@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель теста</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #0b0e11;
+            color: #eaecef;
+            min-height: 100vh;
+        }
+        
+        .admin-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Боковая панель с пользователями */
+        .sidebar {
+            width: 350px;
+            background: rgba(18, 22, 28, 0.95);
+            border-right: 1px solid #2b3139;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f0b90b, #f8d12f, #f0b90b);
+        }
+        
+        .sidebar-header {
+            padding: 25px;
+            border-bottom: 1px solid #2b3139;
+        }
+        
+        .sidebar-header h2 {
+            color: #f0b90b;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #f0b90b 0%, #f8d12f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .sidebar-header p {
+            color: #b7bdc6;
+            font-size: 14px;
+        }
+        
+        /* Статистика в сайдбаре */
+        .sidebar-stats {
+            padding: 20px 25px;
+            border-bottom: 1px solid #2b3139;
+            background: rgba(43, 49, 57, 0.3);
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .stat-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .stat-label {
+            color: #b7bdc6;
+        }
+        
+        .stat-value {
+            color: #f0b90b;
+            font-weight: 600;
+        }
+        
+        /* Список пользователей */
+        .users-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        
+        .user-card {
+            background: rgba(43, 49, 57, 0.5);
+            border: 1px solid #2b3139;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .user-card:hover {
+            background: rgba(59, 66, 76, 0.7);
+            border-color: #f0b90b;
+            transform: translateY(-2px);
+        }
+        
+        .user-card.active {
+            background: rgba(240, 185, 11, 0.15);
+            border-color: #f0b90b;
+            box-shadow: 0 0 0 1px #f0b90b, 0 8px 20px rgba(240, 185, 11, 0.1);
+        }
+        
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .user-nickname {
+            font-weight: 700;
+            color: #eaecef;
+            font-size: 16px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 200px;
+        }
+        
+        .user-score {
+            font-weight: 700;
+            font-size: 18px;
+            color: #f0b90b;
+        }
+        
+        .user-score.correct {
+            color: #27ae60;
+        }
+        
+        .user-score.incorrect {
+            color: #e74c3c;
+        }
+        
+        .user-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #b7bdc6;
+        }
+        
+        .user-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-completed {
+            background: rgba(39, 174, 96, 0.15);
+            color: #27ae60;
+            border: 1px solid rgba(39, 174, 96, 0.3);
+        }
+        
+        .status-in_progress {
+            background: rgba(52, 152, 219, 0.15);
+            color: #3498db;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+        
+        .status-waiting {
+            background: rgba(155, 89, 182, 0.15);
+            color: #9b59b6;
+            border: 1px solid rgba(155, 89, 182, 0.3);
+        }
+        
+        .status-timeout {
+            background: rgba(243, 156, 18, 0.15);
+            color: #f39c12;
+            border: 1px solid rgba(243, 156, 18, 0.3);
+        }
+        
+        /* Основная область с детальной информацией */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .main-header {
+            padding: 25px 30px;
+            border-bottom: 1px solid #2b3139;
+            background: rgba(18, 22, 28, 0.95);
+            position: relative;
+        }
+        
+        .main-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f0b90b, #f8d12f, #f0b90b);
+        }
+        
+        .main-header h1 {
+            color: #f0b90b;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #f0b90b 0%, #f8d12f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .user-details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+        
+        .user-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .user-detail {
+            background: rgba(43, 49, 57, 0.5);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid #2b3139;
+            font-size: 14px;
+        }
+        
+        .user-detail strong {
+            color: #f0b90b;
+            margin-right: 5px;
+        }
+        
+        /* Область с ответами */
+        .answers-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            background: rgba(11, 14, 17, 0.7);
+        }
+        
+        .answers-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .answers-header h2 {
+            color: #f0b90b;
+            font-size: 22px;
+            font-weight: 600;
+        }
+        
+        .answers-summary {
+            background: rgba(43, 49, 57, 0.5);
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 1px solid #2b3139;
+        }
+        
+        .answers-summary .score {
+            font-size: 24px;
+            font-weight: 700;
+            color: #f0b90b;
+            text-align: center;
+        }
+        
+        .answers-summary .score-label {
+            font-size: 14px;
+            color: #b7bdc6;
+            text-align: center;
+        }
+        
+        /* Таблица ответов */
+        .answers-table {
+            background: rgba(18, 22, 28, 0.95);
+            border-radius: 16px;
+            border: 1px solid #2b3139;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .answers-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .answers-table thead {
+            background: rgba(240, 185, 11, 0.1);
+        }
+        
+        .answers-table th {
+            padding: 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 15px;
+            color: #f0b90b;
+            border-bottom: 1px solid #2b3139;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .answers-table td {
+            padding: 20px;
+            border-bottom: 1px solid #2b3139;
+            font-size: 15px;
+            color: #eaecef;
+            vertical-align: top;
+        }
+        
+        .answers-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .answers-table tbody tr:hover {
+            background: rgba(240, 185, 11, 0.05);
+        }
+        
+        /* Стили для ответов */
+        .question-number {
+            width: 60px;
+            font-weight: 700;
+            color: #f0b90b;
+            font-size: 18px;
+        }
+        
+        .question-text {
+            color: #eaecef;
+            font-weight: 500;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .user-answer {
+            background: rgba(43, 49, 57, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .user-answer.correct {
+            border-color: #27ae60;
+            background: rgba(39, 174, 96, 0.1);
+        }
+        
+        .user-answer.incorrect {
+            border-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+        
+        .user-answer.timeout {
+            border-color: #f39c12;
+            background: rgba(243, 156, 18, 0.1);
+            font-style: italic;
+            color: #f39c12;
+        }
+        
+        .answer-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #b7bdc6;
+            margin-top: 8px;
+        }
+        
+        .answer-time {
+            color: #f0b90b;
+            font-weight: 600;
+        }
+        
+        .answer-status {
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 13px;
+        }
+        
+        .correct-status {
+            color: #27ae60;
+        }
+        
+        .incorrect-status {
+            color: #e74c3c;
+        }
+        
+        .timeout-status {
+            color: #f39c12;
+        }
+        
+        .no-answer {
+            color: #95a5a6;
+            font-style: italic;
+            font-size: 15px;
+        }
+        
+        /* Панель управления */
+        .control-panel {
+            background: rgba(18, 22, 28, 0.95);
+            padding: 20px 25px;
+            border-top: 1px solid #2b3139;
+        }
+        
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #2b3139;
+            transition: .4s;
+            border-radius: 26px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: #b7bdc6;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #f0b90b;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(24px);
+            background-color: #0b0e11;
+        }
+        
+        .toggle-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #eaecef;
+        }
+        
+        .toggle-status {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .status-active {
+            background: rgba(240, 185, 11, 0.15);
+            color: #f0b90b;
+            border: 1px solid rgba(240, 185, 11, 0.3);
+        }
+        
+        .status-inactive {
+            background: rgba(255, 107, 107, 0.15);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+        
+        .control-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #f0b90b 0%, #f8d12f 100%);
+            color: #0b0e11;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(240, 185, 11, 0.25);
+        }
+        
+        .btn:disabled {
+            background: #2b3139;
+            color: #5e6673;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #ff7979 100%);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        }
+        
+        .btn-secondary {
+            background: #2b3139;
+            color: #eaecef;
+        }
+        
+        .btn-secondary:hover {
+            background: #3a424b;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        
+        /* Загрузка */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #b7bdc6;
+            font-size: 16px;
+        }
+        
+        .loader {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(240, 185, 11, 0.3);
+            border-radius: 50%;
+            border-top-color: #f0b90b;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .no-user-selected {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #b7bdc6;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .no-user-selected .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #f0b90b;
+            opacity: 0.5;
+        }
+        
+        .no-user-selected h3 {
+            color: #f0b90b;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+        
+        /* Вопросы для отображения */
+        .questions-data {
+            display: none;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 300px;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .admin-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: 300px;
+                border-right: none;
+                border-bottom: 1px solid #2b3139;
+            }
+            
+            .users-list {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+            }
+            
+            .user-card {
+                margin-bottom: 0;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .sidebar-header,
+            .main-header,
+            .answers-container {
+                padding: 20px;
+            }
+            
+            .answers-table th,
+            .answers-table td {
+                padding: 15px;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Левая панель: список пользователей -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>📊 Админ-панель</h2>
+                <p>Список пользователей • 15 вопросов</p>
+            </div>
+            
+            <div class="sidebar-stats">
+                <div class="stat-row">
+                    <span class="stat-label">Всего прошли:</span>
+                    <span class="stat-value" id="total-users">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Средний результат:</span>
+                    <span class="stat-value" id="avg-score">0%</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Активный тест:</span>
+                    <span class="stat-value" id="test-status-sidebar">Нет</span>
+                </div>
+            </div>
+            
+            <div class="users-list" id="users-list">
+                <!-- Список пользователей будет здесь -->
+                <div class="loading">
+                    <div class="loader"></div>
+                    Загрузка пользователей...
+                </div>
+            </div>
+            
+            <div class="control-panel">
+                <div class="toggle-switch">
+                    <label class="switch">
+                        <input type="checkbox" id="test-toggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="toggle-label">Включить тест</span>
+                    <span id="test-status" class="toggle-status status-inactive">ВЫКЛ</span>
+                </div>
+                
+                <div class="control-buttons">
+                    <button class="btn btn-success" onclick="exportToCSV()" id="export-btn" disabled>
+                        📥 Экспорт CSV
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadData()">
+                        🔄 Обновить
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Основная область: детальная информация -->
+        <div class="main-content">
+            <div class="main-header">
+                <h1 id="selected-user-name">Выберите пользователя</h1>
+                <div class="user-details-header" id="user-details-header" style="display: none;">
+                    <div class="user-info">
+                        <div class="user-detail">
+                            <strong>Результат:</strong> <span id="user-result-score">0/15</span>
+                        </div>
+                        <div class="user-detail">
+                            <strong>Время:</strong> <span id="user-total-time">0 сек</span>
+                        </div>
+                        <div class="user-detail">
+                            <strong>Процент:</strong> <span id="user-percentage">0%</span>
+                        </div>
+                    </div>
+                    <div class="user-detail">
+                        <strong>Завершено:</strong> <span id="user-completed-at">—</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="answers-container" id="answers-container">
+                <div class="no-user-selected" id="no-user-selected">
+                    <div class="icon">👈</div>
+                    <h3>Выберите пользователя</h3>
+                    <p>Выберите пользователя из списка слева, чтобы просмотреть его ответы</p>
+                </div>
+                
+                <!-- Детальная информация о пользователе -->
+                <div id="user-details" style="display: none;">
+                    <div class="answers-header">
+                        <h2>Ответы пользователя</h2>
+                        <div class="answers-summary">
+                            <div class="score" id="user-score-display">0/15</div>
+                            <div class="score-label">правильных ответов</div>
+                        </div>
+                    </div>
+                    
+                    <div class="answers-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px;">№</th>
+                                    <th>Вопрос</th>
+                                    <th>Ответ пользователя</th>
+                                    <th style="width: 100px;">Время</th>
+                                    <th style="width: 120px;">Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody id="answers-body">
+                                <!-- Ответы будут здесь -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрытые данные вопросов -->
+    <div class="questions-data" id="questions-data">
+        <!-- Вопросы будут храниться здесь -->
+    </div>
+
+    <script>
+        // Конфигурация Supabase
+        const SUPABASE_URL = 'https://wkukgnkfbxgpvlraczeu.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_11WBFNEcbspv1yDyfxq7sQ_Nl51ew5i';
+        
+        // Создаем клиент
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Данные ВСЕХ 15 вопросов
+        const QUESTIONS = [
+            {
+                number: 1,
+                text: "Аналитик - это:",
+                options: {
+                    option1: "Друг девушки, который хорошо разбирается в крипте и ведет закрытый канал с сигналами",
+                    option2: "Финансовый аналитик, работающий в крупной компании, который не дает сигналы никому, кроме девушки и ее отца"
+                },
+                correct: "option2"
+            },
+            {
+                number: 2,
+                text: "Кого вы возьмёте в работу?",
+                options: {
+                    option1: "Александр, 31 год, гражданство РФ, родился в Санкт-Петербурге, работает курьером в Ozon",
+                    option2: "Наиль, 29 лет, гражданство РФ, родился в Казахстане, опытный специалист в сфере продаж, хорошо зарабатывает",
+                    option3: "Никого"
+                },
+                correct: "option1"
+            },
+            {
+                number: 3,
+                text: "Индикаторный вброс делается с целью:",
+                options: {
+                    option1: "Увидеть реакцию клиента на тот факт, что девушка зарабатывает на инвестициях",
+                    option2: "Рассказать клиенту, как девушка работает с аналитиком, чтобы у клиента было понимание сферы на момент предложения"
+                },
+                correct: "option1"
+            },
+            {
+                number: 4,
+                text: "Сколько вбросов должно быть за весь диалог?",
+                options: {
+                    option1: "2-3 вброса",
+                    option2: "1 вброс",
+                    option3: "4-6 вбросов"
+                },
+                correct: "option1"
+            },
+            {
+                number: 5,
+                text: "Оптимальное количество 'прогревов' до момента предложения:",
+                options: {
+                    option1: "3 раза",
+                    option2: "1-2 раза",
+                    option3: "5 и более раз"
+                },
+                correct: "option1"
+            },
+            {
+                number: 6,
+                text: "Возьмете ли вы клиента, который сидит на сайте знакомств больше месяца, но инвестиции ему еще не предлагали?",
+                options: {
+                    option1: "Да",
+                    option2: "Нет"
+                },
+                correct: "option2"
+            },
+            {
+                number: 7,
+                text: "Когда делается индикаторный вброс?",
+                options: {
+                    option1: "На второй день общения",
+                    option2: "В первый день общения, в первые 2 часа ведения диалога",
+                    option3: "После предложения"
+                },
+                correct: "option2"
+            },
+            {
+                number: 8,
+                text: "Можно ли передать клиента с хорошей официальной зарплатой, но с просрочками по кредитам?",
+                options: {
+                    option1: "Да",
+                    option2: "Нет"
+                },
+                correct: "option2"
+            },
+            {
+                number: 9,
+                text: "Клиенту будет 23 года через две недели, возьмёте ли вы его в работу?",
+                options: {
+                    option1: "Да",
+                    option2: "Нет"
+                },
+                correct: "option2"
+            },
+            {
+                number: 10,
+                text: "Когда вы узнавали у клиента что ему предлагали, он сказал что ему писало много фейков с предложениями поработать и купить интимные фотографии. Возьмёте ли вы такого клиента в работу?",
+                options: {
+                    option1: "Да",
+                    option2: "Нет"
+                },
+                correct: "option1"
+            },
+            {
+                number: 11,
+                text: "Клиент раньше занимался инвестициями, но год назад все потерял. Что вы сделаете с таким клиентом?",
+                options: {
+                    option1: "Возьмете в работу поскольку это хороший клиент уже с интересом к сфере",
+                    option2: "Проконсультируетесь с тимлидером",
+                    option3: "Архив, поскольку у клиента негативный опыт с инвестициями"
+                },
+                correct: "option2"
+            },
+            {
+                number: 12,
+                text: "Какая цель прогрева?",
+                options: {
+                    option1: "Создать у клиента интерес к развитию и увеличению дохода",
+                    option2: "Рассказать плюсы сферы инвестиций",
+                    option3: "Рассказать как девочка работает с аналитиком"
+                },
+                correct: "option1"
+            },
+            {
+                number: 13,
+                text: "Клиент в самом начале общения 5-м сообщением просит скинуть фотки. Ваши действия?",
+                options: {
+                    option1: "Скинете фотографии",
+                    option2: "Скажите клиенту что он перегибает палку и вы не собираетесь кидать фотографии не знакомому человеку",
+                    option3: "Мягко откажете, после чего в течении 30-60 мин сами скинете клиенту кружочек без его просьбы"
+                },
+                correct: "option3"
+            },
+            {
+                number: 14,
+                text: "В самом начале общения клиент просит скинуть кружек что бы убедиться что девочка не фейк. Ваши действия?",
+                options: {
+                    option1: "Скинете кружечек, тем самым отсеете у него все сомнения и продолжите общение",
+                    option2: "Выкинете в архив"
+                },
+                correct: "option2"
+            },
+            {
+                number: 15,
+                text: "Выберете правильное утверждение",
+                options: {
+                    option1: "Аналитик набирает команду партнеров и возьмет клиента если у него будет желание сотрудничать и хороший капитал",
+                    option2: "Аналитик работает частным специалистом в большой компании и возьмет клиента в партнеры ради исключения только потому что за него попросила девочка"
+                },
+                correct: "option2"
+            }
+        ];
+        
+        // Переменные состояния
+        let allUsers = [];
+        let selectedUser = null;
+        let realtimeSubscription = null;
+        
+        // Загрузка при старте
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Админ-панель инициализирована');
+            await loadData();
+            await loadSettings();
+            setupRealtime();
+        });
+        
+        // Загрузка данных
+        async function loadData() {
+            console.log('Загрузка данных...');
+            showLoading(true);
+            
+            try {
+                // Загружаем всех пользователей
+                const { data: users, error } = await supabaseClient
+                    .from('test_sessions')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    console.error('Ошибка загрузки данных:', error);
+                    throw error;
+                }
+                
+                console.log('Данные загружены:', users?.length || 0, 'пользователей');
+                
+                allUsers = users || [];
+                updateStats();
+                renderUsersList();
+                
+                showLoading(false);
+                
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                showError('Ошибка загрузки данных: ' + error.message);
+            }
+        }
+        
+        // Загрузка настроек теста
+        async function loadSettings() {
+            try {
+                const { data: settings, error } = await supabaseClient
+                    .from('test_settings')
+                    .select('*')
+                    .single();
+                
+                if (error) throw error;
+                
+                const toggle = document.getElementById('test-toggle');
+                const statusSpan = document.getElementById('test-status');
+                const sidebarStatus = document.getElementById('test-status-sidebar');
+                
+                toggle.checked = settings.is_active;
+                if (settings.is_active) {
+                    statusSpan.textContent = 'ВКЛ';
+                    statusSpan.className = 'toggle-status status-active';
+                    sidebarStatus.textContent = 'Да';
+                } else {
+                    statusSpan.textContent = 'ВЫКЛ';
+                    statusSpan.className = 'toggle-status status-inactive';
+                    sidebarStatus.textContent = 'Нет';
+                }
+                
+                // Событие переключения
+                toggle.addEventListener('change', async () => {
+                    const newStatus = toggle.checked;
+                    
+                    const { error } = await supabaseClient
+                        .from('test_settings')
+                        .update({ is_active: newStatus })
+                        .eq('id', 1);
+                    
+                    if (error) {
+                        console.error('Ошибка обновления настроек:', error);
+                        alert('Ошибка: ' + error.message);
+                        toggle.checked = !newStatus;
+                    } else {
+                        statusSpan.textContent = newStatus ? 'ВКЛ' : 'ВЫКЛ';
+                        statusSpan.className = newStatus ? 
+                            'toggle-status status-active' : 
+                            'toggle-status status-inactive';
+                        sidebarStatus.textContent = newStatus ? 'Да' : 'Нет';
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Ошибка загрузки настроек:', error);
+            }
+        }
+        
+        // Настройка realtime подписки
+        function setupRealtime() {
+            if (realtimeSubscription) {
+                supabaseClient.removeChannel(realtimeSubscription);
+            }
+            
+            realtimeSubscription = supabaseClient
+                .channel('test_results_changes')
+                .on('postgres_changes', 
+                    { 
+                        event: '*', 
+                        schema: 'public', 
+                        table: 'test_sessions' 
+                    }, 
+                    (payload) => {
+                        console.log('Realtime: изменение в результатах');
+                        loadData();
+                    }
+                )
+                .on('postgres_changes',
+                    { 
+                        event: '*', 
+                        schema: 'public', 
+                        table: 'test_settings' 
+                    },
+                    (payload) => {
+                        console.log('Realtime: изменение настроек');
+                        loadSettings();
+                    }
+                )
+                .subscribe();
+        }
+        
+        // Обновление статистики
+        function updateStats() {
+            // Всего пользователей
+            document.getElementById('total-users').textContent = allUsers.length;
+            
+            // Средний результат (15 вопросов)
+            const completedUsers = allUsers.filter(u => u.status === 'completed');
+            if (completedUsers.length > 0) {
+                const avgCorrect = completedUsers.reduce((sum, u) => sum + (u.total_correct || 0), 0) / completedUsers.length;
+                const avgPercent = Math.round((avgCorrect / 15) * 100);
+                document.getElementById('avg-score').textContent = avgPercent + '%';
+            } else {
+                document.getElementById('avg-score').textContent = '0%';
+            }
+            
+            // Активируем кнопку экспорта если есть данные
+            document.getElementById('export-btn').disabled = allUsers.length === 0;
+        }
+        
+        // Рендеринг списка пользователей
+        function renderUsersList() {
+            const usersList = document.getElementById('users-list');
+            
+            if (allUsers.length === 0) {
+                usersList.innerHTML = `
+                    <div class="no-user-selected" style="height: auto; padding: 40px 20px;">
+                        <div class="icon">📭</div>
+                        <h3>Нет данных</h3>
+                        <p>Пользователи еще не прошли тест</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            allUsers.forEach((user, index) => {
+                const totalCorrect = user.total_correct || 0;
+                const percentage = Math.round((totalCorrect / 15) * 100);
+                const isActive = selectedUser && selectedUser.id === user.id;
+                
+                // Определяем цвет оценки
+                let scoreClass = '';
+                if (percentage >= 75) scoreClass = 'correct';
+                else if (percentage >= 50) scoreClass = '';
+                else scoreClass = 'incorrect';
+                
+                // Форматируем дату
+                const date = new Date(user.created_at);
+                const dateString = date.toLocaleDateString('ru-RU');
+                const timeString = date.toLocaleTimeString('ru-RU').slice(0, 5);
+                
+                html += `
+                    <div class="user-card ${isActive ? 'active' : ''}" 
+                         onclick="selectUser('${user.id}')"
+                         id="user-card-${user.id}">
+                        <div class="user-header">
+                            <div class="user-nickname" title="${user.telegram_nickname || 'Без имени'}">
+                                ${user.telegram_nickname || 'Без имени'}
+                            </div>
+                            <div class="user-score ${scoreClass}">
+                                ${totalCorrect}/15
+                            </div>
+                        </div>
+                        <div class="user-meta">
+                            <div>${dateString} ${timeString}</div>
+                            <div class="user-status status-${user.status || 'completed'}">
+                                ${getStatusText(user.status)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            usersList.innerHTML = html;
+        }
+        
+        // Выбор пользователя
+        function selectUser(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+            
+            selectedUser = user;
+            
+            // Обновляем активную карточку
+            document.querySelectorAll('.user-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.getElementById(`user-card-${userId}`).classList.add('active');
+            
+            // Показываем детальную информацию
+            showUserDetails(user);
+        }
+        
+        // Показать детальную информацию о пользователе
+        function showUserDetails(user) {
+            // Обновляем заголовок
+            document.getElementById('selected-user-name').textContent = 
+                `Ответы пользователя: ${user.telegram_nickname || 'Без имени'}`;
+            
+            // Показываем блок с деталями
+            document.getElementById('user-details-header').style.display = 'flex';
+            document.getElementById('no-user-selected').style.display = 'none';
+            document.getElementById('user-details').style.display = 'block';
+            
+            // Обновляем статистику (15 вопросов)
+            const totalCorrect = user.total_correct || 0;
+            const percentage = Math.round((totalCorrect / 15) * 100);
+            const totalTime = user.total_time_spent || 0;
+            
+            document.getElementById('user-result-score').textContent = `${totalCorrect}/15`;
+            document.getElementById('user-total-time').textContent = `${totalTime} сек`;
+            document.getElementById('user-percentage').textContent = `${percentage}%`;
+            document.getElementById('user-score-display').textContent = `${totalCorrect}/15`;
+            
+            // Форматируем дату завершения
+            let completedAt = '—';
+            if (user.completed_at) {
+                const date = new Date(user.completed_at);
+                completedAt = date.toLocaleDateString('ru-RU') + ' ' + 
+                             date.toLocaleTimeString('ru-RU').slice(0, 5);
+            }
+            document.getElementById('user-completed-at').textContent = completedAt;
+            
+            // Рендерим ответы на все 15 вопросов
+            renderUserAnswers(user);
+        }
+        
+        // Рендеринг ответов пользователя (15 вопросов)
+        function renderUserAnswers(user) {
+            const answersBody = document.getElementById('answers-body');
+            let html = '';
+            
+            for (let i = 1; i <= 15; i++) {
+                const question = QUESTIONS[i - 1];
+                const answerKey = user[`q${i}_answer`];
+                const isCorrect = user[`q${i}_is_correct`];
+                const timeSpent = user[`q${i}_time_spent`];
+                
+                // Определяем текст ответа
+                let answerText = 'Нет ответа';
+                let answerClass = 'timeout';
+                let statusText = 'Таймаут';
+                let statusClass = 'timeout-status';
+                
+                if (answerKey && answerKey !== 'null') {
+                    answerText = question.options[answerKey] || answerKey;
+                    answerClass = isCorrect ? 'correct' : 'incorrect';
+                    statusText = isCorrect ? 'Правильно' : 'Неправильно';
+                    statusClass = isCorrect ? 'correct-status' : 'incorrect-status';
+                }
+                
+                html += `
+                    <tr>
+                        <td class="question-number">${question.number}</td>
+                        <td>
+                            <div class="question-text">${question.text}</div>
+                            <div class="user-answer ${answerClass}">
+                                ${answerText}
+                                <div class="answer-info">
+                                    <span class="answer-time">${timeSpent || 0} сек</span>
+                                    <span class="answer-status ${statusClass}">${statusText}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${answerText}</td>
+                        <td><span class="answer-time">${timeSpent || 0} сек</span></td>
+                        <td><span class="answer-status ${statusClass}">${statusText}</span></td>
+                    </tr>
+                `;
+            }
+            
+            answersBody.innerHTML = html;
+        }
+        
+        // Текст статуса
+        function getStatusText(status) {
+            const statusMap = {
+                'completed': 'Завершен',
+                'in_progress': 'В процессе',
+                'waiting': 'Ожидание',
+                'timeout': 'Таймаут'
+            };
+            return statusMap[status] || 'Завершен';
+        }
+        
+        // Экспорт в CSV (15 вопросов)
+        function exportToCSV() {
+            if (allUsers.length === 0) {
+                alert('Нет данных для экспорта');
+                return;
+            }
+            
+            const headers = ['ID', 'Telegram ник', 'Время начала', 'Всего правильных', 'Процент', 'Общее время', 'Статус'];
+            
+            const csvRows = [
+                headers.join(','),
+                ...allUsers.map(user => {
+                    const totalCorrect = user.total_correct || 0;
+                    const percentage = Math.round((totalCorrect / 15) * 100);
+                    const row = [
+                        user.id,
+                        `"${user.telegram_nickname || ''}"`,
+                        user.created_at,
+                        totalCorrect,
+                        percentage + '%',
+                        user.total_time_spent || 0,
+                        user.status
+                    ];
+                    return row.join(',');
+                })
+            ];
+            
+            const csvString = csvRows.join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            const date = new Date().toISOString().split('T')[0];
+            a.download = `test_results_${date}_${allUsers.length}_users.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            console.log('CSV экспортирован:', allUsers.length, 'пользователей');
+        }
+        
+        // Вспомогательные функции UI
+        function showLoading(show) {
+            const usersList = document.getElementById('users-list');
+            if (show) {
+                usersList.innerHTML = `
+                    <div class="loading" style="height: 200px;">
+                        <div class="loader"></div>
+                        Загрузка пользователей...
+                    </div>
+                `;
+            }
+        }
+        
+        function showError(message) {
+            const usersList = document.getElementById('users-list');
+            usersList.innerHTML = `
+                <div class="error" style="margin: 20px; padding: 20px; border-radius: 12px; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); color: #e74c3c;">
+                    <strong>Ошибка:</strong> ${message}<br><br>
+                    <button onclick="loadData()" class="btn btn-secondary" style="padding: 8px 16px; font-size: 14px;">
+                        Повторить загрузку
+                    </button>
+                </div>
+            `;
+        }
+        
+        // Глобальные функции
+        window.exportToCSV = exportToCSV;
+        window.loadData = loadData;
+        window.selectUser = selectUser;
+    </script>
+</body>
+</html>
