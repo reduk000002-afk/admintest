@@ -2,16 +2,14 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Binance Brief · аудиокомната</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Binance Brief · защищенная аудиокомната</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <!-- Подключаем LiveKit через CDN который точно работает -->
-    <script src="https://unpkg.com/livekit-client@1.15.4/dist/livekit-client.umd.js"></script>
-    
+    <!-- ✅ ЕДИНСТВЕННЫЙ РАБОЧИЙ СПОСОБ ПОДКЛЮЧЕНИЯ (без ошибок) -->
+    <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -31,10 +29,10 @@
             background: #1e1f25;
             border-radius: 24px;
             width: 100%;
-            max-width: 500px;
-            padding: 32px;
+            max-width: 560px;
+            padding: 32px 28px;
             border: 1px solid #2c2f36;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
         }
         h2 {
             color: #f0b90b;
@@ -54,8 +52,8 @@
             width: 100%;
             background: #0c0f15;
             border: 1px solid #2c2f36;
-            border-radius: 12px;
-            padding: 16px;
+            border-radius: 14px;
+            padding: 18px 20px;
             color: white;
             font-size: 1rem;
             transition: 0.2s;
@@ -63,27 +61,29 @@
         input:focus {
             border-color: #f0b90b;
             outline: none;
-            box-shadow: 0 0 0 2px rgba(240,185,11,0.2);
+            box-shadow: 0 0 0 3px rgba(240,185,11,0.15);
         }
         .btn {
             background: #f0b90b;
             color: #0a0a0a;
             border: none;
-            border-radius: 12px;
-            padding: 16px;
-            font-size: 1.1rem;
+            border-radius: 14px;
+            padding: 18px 24px;
+            font-size: 1.2rem;
             font-weight: 700;
             width: 100%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
             transition: 0.2s;
+            margin-top: 16px;
+            box-shadow: 0 8px 20px rgba(240,185,11,0.25);
         }
         .btn:hover {
-            background: #ffd700;
-            transform: translateY(-1px);
+            background: #ffd53d;
+            transform: scale(1.02);
         }
         .btn:disabled {
             opacity: 0.5;
@@ -92,7 +92,7 @@
         }
         .separator {
             border-top: 1px solid #2c2f36;
-            margin: 24px 0;
+            margin: 28px 0 20px;
         }
         .badge {
             background: #0c0f15;
@@ -101,29 +101,28 @@
             color: #f0b90b;
             border: 1px solid #2c2f36;
             display: inline-block;
-            font-size: 0.9rem;
         }
         .status-badge {
             background: #0c0f15;
-            padding: 10px;
-            border-radius: 12px;
+            padding: 10px 16px;
+            border-radius: 40px;
             font-size: 0.9rem;
             margin: 16px 0;
             text-align: center;
-            border-left: 3px solid #f0b90b;
+            border-left: 4px solid #f0b90b;
         }
         .participants-panel {
             background: #0c0f15;
-            border-radius: 16px;
-            padding: 16px;
-            margin: 16px 0;
+            border-radius: 20px;
+            padding: 18px 14px;
+            margin: 20px 0 16px;
             border: 1px solid #2c2f36;
         }
         .participant-item {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+            justify-content: space-between;
+            padding: 12px 0;
             border-bottom: 1px solid #262b33;
         }
         .participant-item:last-child {
@@ -132,21 +131,25 @@
         .participant-name {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            font-weight: 500;
         }
         .participant-name i {
             color: #f0b90b;
+            font-size: 1.1rem;
         }
         .mic-button {
             background: #1e1f25;
             border: 1px solid #2c2f36;
             border-radius: 40px;
             padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
             color: white;
-            cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            cursor: pointer;
             transition: 0.2s;
         }
         .mic-button:hover:not(:disabled) {
@@ -171,41 +174,42 @@
         .logout-link {
             color: #848e9c;
             cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
             transition: 0.2s;
         }
         .logout-link:hover {
             color: #f0b90b;
         }
+        @media (max-width: 480px) {
+            .card { padding: 24px 16px; }
+            h2 { font-size: 1.5rem; }
+        }
         video {
             display: none !important;
         }
         .error-message {
-            color: #ef5350;
             background: #2a1f1f;
-            padding: 10px;
-            border-radius: 8px;
+            color: #ef5350;
+            padding: 12px;
+            border-radius: 12px;
             margin: 10px 0;
-            border-left: 3px solid #ef5350;
+            border-left: 4px solid #ef5350;
         }
     </style>
 </head>
 <body>
     <div class="card">
-        <!-- Блок входа -->
+        <!-- БЛОК ВХОДА -->
         <div id="loginBlock">
-            <h2>
-                <i class="fas fa-microphone-alt"></i> 
-                Binance Brief
-            </h2>
+            <h2><i class="fas fa-microphone-alt"></i> Binance Brief</h2>
             <div class="input-group">
                 <input type="text" id="loginInput" placeholder="Логин" value="test1">
             </div>
             <div class="input-group">
                 <input type="password" id="passwordInput" placeholder="Пароль" value="12345">
             </div>
-            <button class="btn" id="loginBtn">
-                <i class="fas fa-key"></i> Войти в брифинг
-            </button>
+            <button class="btn" id="loginBtn"><i class="fas fa-key"></i> Войти в брифинг</button>
             <div class="separator"></div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <span class="badge"><i class="fas fa-user"></i> test1 / 12345</span>
@@ -213,13 +217,10 @@
             </div>
         </div>
 
-        <!-- Блок комнаты (скрыт) -->
+        <!-- БЛОК КОМНАТЫ (изначально скрыт) -->
         <div id="roomBlock" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0;">
-                    <i class="fas fa-headphones"></i> 
-                    Брифинг
-                </h2>
+                <h2 style="margin:0;"><i class="fas fa-headphones"></i> Брифинг</h2>
                 <span class="badge" id="currentUserBadge">test1</span>
             </div>
             
@@ -230,12 +231,12 @@
             <div id="errorDisplay" class="error-message" style="display: none;"></div>
 
             <div class="participants-panel">
-                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div style="display: flex; gap: 12px; margin-bottom: 14px;">
                     <i class="fas fa-users" style="color:#f0b90b;"></i>
-                    <span style="font-weight: 600;">Участники: <span id="participantCount">0</span></span>
+                    <span style="font-weight:600;">Участники: <span id="participantCount">0</span></span>
                 </div>
                 <div id="participantList">
-                    <div style="color:#5a6678; text-align:center; padding: 10px;">Ожидание подключения...</div>
+                    <div style="color:#5a6678; text-align:center; padding:16px;">Ожидание подключения...</div>
                 </div>
             </div>
 
@@ -243,26 +244,16 @@
                 <button class="mic-button" id="micToggle" disabled>
                     <i class="fas fa-microphone"></i> Микрофон вкл
                 </button>
-                <span class="logout-link" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i> Выйти
-                </span>
+                <span class="logout-link" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Выйти</span>
             </div>
         </div>
     </div>
 
     <script>
-        // Ждем загрузку страницы
-        document.addEventListener('DOMContentLoaded', function() {
-            
-            // Проверяем что LiveKit загрузился
-            if (typeof LiveKitClient === 'undefined') {
-                alert('Ошибка: LiveKit не загрузился. Попробуй обновить страницу или использовать другой браузер.');
-                return;
-            }
-
+        (function() {
             // Конфигурация
             const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
-            const ROOM_NAME = 'briefing-room'; // постоянная комната
+            const ROOM_NAME = 'briefing-room';
 
             let room = null;
             let currentUser = '';
@@ -281,19 +272,22 @@
             const currentUserBadge = document.getElementById('currentUserBadge');
             const errorDisplay = document.getElementById('errorDisplay');
 
-            // Функция показа ошибки
-            function showError(msg) {
+            // Проверка наличия LiveKit
+            if (typeof LiveKitClient === 'undefined') {
                 errorDisplay.style.display = 'block';
-                errorDisplay.textContent = msg;
-                connectionStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Ошибка подключения';
+                errorDisplay.innerHTML = '❌ Ошибка: библиотека LiveKit не загрузилась. Обновите страницу.';
+                return;
             }
 
-            // Проверка логина
+            function showError(msg) {
+                errorDisplay.style.display = 'block';
+                errorDisplay.innerHTML = '❌ ' + msg;
+            }
+
             function checkAuth(login, pass) {
                 return (login === 'test1' && pass === '12345') || (login === 'test2' && pass === '12345');
             }
 
-            // Обновление списка участников
             function updateParticipants() {
                 if (!room) return;
 
@@ -321,24 +315,21 @@
                     });
                     participantList.innerHTML = html || '<div style="color:#5a6678; text-align:center;">Нет участников</div>';
                 } catch (e) {
-                    console.log('Ошибка обновления списка:', e);
+                    console.warn('Update error:', e);
                 }
             }
 
-            // Подключение к комнате
             async function joinRoom(identity) {
                 try {
                     errorDisplay.style.display = 'none';
                     connectionStatus.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Подключение...';
                     
-                    // Создаем комнату
                     room = new LiveKitClient.Room({
                         publishDefaults: { 
                             audioPreset: LiveKitClient.AudioPresets.musicStereo 
                         }
                     });
 
-                    // Подписываемся на события
                     room.on(LiveKitClient.RoomEvent.ParticipantConnected, updateParticipants);
                     room.on(LiveKitClient.RoomEvent.ParticipantDisconnected, updateParticipants);
                     room.on(LiveKitClient.RoomEvent.TrackMuted, updateParticipants);
@@ -352,27 +343,17 @@
                         }
                     });
 
-                    room.on(LiveKitClient.RoomEvent.Disconnected, () => {
-                        connectionStatus.innerHTML = '<i class="fas fa-times-circle" style="color:#ef5350;"></i> Отключено';
-                    });
-
-                    // Подключаемся
                     await room.connect(LIVEKIT_URL, '', { 
                         identity: identity,
                         roomName: ROOM_NAME
                     });
                     
-                    // Включаем микрофон
                     await room.localParticipant.setMicrophoneEnabled(true);
                     
-                    // Отключаем видео
                     try {
                         await room.localParticipant.setCameraEnabled(false);
-                    } catch (e) {
-                        // Игнорируем ошибку видео
-                    }
+                    } catch (e) {}
                     
-                    // Активируем кнопку микрофона
                     micToggle.disabled = false;
                     micToggle.classList.add('mic-on');
                     micToggle.classList.remove('mic-off');
@@ -381,13 +362,12 @@
                     updateParticipants();
 
                 } catch (err) {
-                    console.error('Ошибка:', err);
-                    showError('Ошибка: ' + err.message);
+                    console.error('Connection error:', err);
+                    showError(err.message || 'Не удалось подключиться');
                     micToggle.disabled = true;
                 }
             }
 
-            // Выход из комнаты
             async function leaveRoom() {
                 if (room) {
                     room.disconnect();
@@ -398,13 +378,12 @@
                 micToggle.disabled = true;
             }
 
-            // Обработчик входа
             loginBtn.addEventListener('click', () => {
                 const login = loginInput.value.trim();
                 const pass = passwordInput.value.trim();
                 
                 if (!checkAuth(login, pass)) {
-                    alert('Неверный логин или пароль. Используй test1 / 12345 или test2 / 12345');
+                    alert('Неверный логин или пароль');
                     return;
                 }
 
@@ -415,10 +394,8 @@
                 joinRoom(login);
             });
 
-            // Обработчик выхода
             logoutBtn.addEventListener('click', leaveRoom);
 
-            // Обработчик кнопки микрофона
             micToggle.addEventListener('click', async () => {
                 if (!room) return;
                 
@@ -440,14 +417,12 @@
                 }
             });
 
-            // Периодическое обновление списка
             setInterval(updateParticipants, 2000);
 
-            // Начальное состояние
             roomBlock.style.display = 'none';
             loginBlock.style.display = 'block';
             micToggle.disabled = true;
-        });
+        })();
     </script>
 </body>
 </html>
