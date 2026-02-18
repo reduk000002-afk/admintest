@@ -10,12 +10,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <!-- Иконки (Font Awesome для простоты) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- LiveKit components для браузера (официальный JS) -->
-    <script src="https://unpkg.com/@livekit/components-styling@1.6.0/dist/index.min.js"></script>
-    <script src="https://unpkg.com/@livekit/components-core@1.6.0/dist/index.min.js"></script>
-    <script type="module" src="https://unpkg.com/@livekit/components-react@1.6.0/dist/index.mjs"></script>
-    <!-- LiveKit JS SDK (основной) -->
-    <script src="https://unpkg.com/livekit-client@1.15.0/dist/livekit-client.umd.js"></script>
+    
+    <!-- ИСПРАВЛЕНО: используем jsDelivr и esm.sh вместо unpkg -->
+    <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.0/dist/livekit-client.umd.min.js"></script>
+    
+    <!-- Карта импортов для модулей -->
+    <script type="importmap">
+        {
+            "imports": {
+                "@livekit/components-react": "https://esm.sh/@livekit/components-react@1.6.0",
+                "@livekit/components-core": "https://esm.sh/@livekit/components-core@1.6.0",
+                "livekit-client": "https://esm.sh/livekit-client@1.15.0"
+            }
+        }
+    </script>
+    
     <style>
         /* ------------- БАЗОВЫЙ СТИЛЬ BINANCE (ЧЁРНО-ЖЁЛТЫЙ) ------------- */
         * {
@@ -330,61 +339,20 @@
     </div>
 
     <script type="module">
-        // ----- ИМПОРТ LiveKit компонентов (через CDM) -----
-        import * as client from 'https://unpkg.com/livekit-client@1.15.0/dist/livekit-client.esm.js';
-        import * as reactCore from 'https://unpkg.com/@livekit/components-core@1.6.0/dist/index.mjs';
-        import * as reactComponents from 'https://unpkg.com/@livekit/components-react@1.6.0/dist/index.mjs';
+        // ----- ИМПОРТ LiveKit компонентов через карту импортов (esm.sh) -----
+        import * as client from 'livekit-client';
+        import * as reactCore from '@livekit/components-core';
+        import * as reactComponents from '@livekit/components-react';
         
         // ----- ТВОИ ДАННЫЕ (из облака LiveKit) -----
         const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
         const ROOM_NAME = 'briefing-room';           // фиксированная комната для всех
         
-        // ВНИМАНИЕ: для корректной работы нужно сгенерировать токен.
-        // Мы сделаем заглушку, но в реальности лучше получать токен через небольшую функцию.
-        // В бесплатном облаке можно использовать сгенерированный "тестовый токен" через API.
-        // Для упрощения примера я использую метод подключения без токена (только для теста, если комната открыта)
-        // НО: LiveKit Cloud требует валидный токен. Используем функцию getToken().
-        
-        // Функция для получения токена (имитация, но рабочая — через LiveKit Cloud Secret)
-        // В реальности ты можешь сгенерировать токен на бэкенде, но для теста используем клиентский генератор.
-        // Однако по соображениям безопасности секрет наружу нельзя. Обходим так:
-        // 1. Ты вводишь API Secret в поле ниже? лучше не надо.
-        // 2. Я использую отдельную функцию, которая пытается получить токен через LiveKit API (требует ключ).
-        // Но для простоты демо создадим токен "admin" предварительно вручную? 
-        
-        // Альтернатива: используем вариант с готовым токеном, который можно сгенерировать один раз.
-        // Так как у нас тестовый проект, сделаем предупреждение и подключение без токена (только если комната разрешает anonymous).
-        // Но настройки LiveKit: вкладка "Settings" -> "API Keys" нужно создать ключ.
-        
-        // ----- ДЛЯ КОРРЕКТНОЙ РАБОТЫ МЫ СОЗДАДИМ ПРОСТОЙ ТОКЕН ЧЕРЕЗ ТВОЙ СЕКРЕТ (потребуется ввод) -----
-        // Я спроектирую так: ты вставишь API Secret в поле (но это небезопасно), поэтому сделаем иначе.
-        // Используем метод generateToken из livekit-server-sdk, но он для Node.js. В браузере нельзя.
-        
-        // Поэтому я сейчас создаю ПЕРЕМЕННУЮ, куда ты сможешь вставить готовый токен от LiveKit.
-        // Инструкция: 1. Зайди в LiveKit Cloud -> проект -> Settings -> API Keys
-        // 2. Создай ключ (или скопируй существующий Secret)
-        // 3. Вставь его в поле ниже (в коде) — временно для теста.
-        // Но так как код потом будет открыт, лучше создать временный токен через их интерфейс.
-        
-        // Для ускорения: я вставлю токен, который сгенерировал онлайн (но он одноразовый).
-        // Проще всего: заходим в проект, вкладка "Rooms", создаём комнату briefing-room, включаем "publish allowed" для всех?
-        // В LiveKit Cloud можно разрешить подключение без токена для теста? Да, есть опция в настройках комнаты.
-        // Я предлагаю выставить на время теста "Room can be joined without token" (в настройках комнаты в облаке).
-        // Тогда код ниже будет работать без токена. Это идеально для прототипа.
-        
-        // Итак, УСТАНОВКА: 
-        // 1. Иди в https://cloud.livekit.io/projects/testzvonok/rooms
-        // 2. Создай комнату "briefing-room" (если нет)
-        // 3. Внутри комнаты вкладка "Settings" -> разреши "Allow participants to join without token" (ВКЛ)
-        // 4. Тогда любой сможет зайти.
-        
-        // Как только это сделаешь, код подключится без ошибок.
-        
-        const WITHOUT_TOKEN = true; // используем бестокен-режим (комната должна разрешать)
+        // Используем бестокен-режим (комната должна разрешать join without token)
+        const WITHOUT_TOKEN = true; 
         
         // Глобальные переменные
         let currentRoom = null;
-        let currentParticipant = null;
         let currentUserLogin = 'test1';
         let audioEnabled = true;
         
@@ -420,7 +388,7 @@
             let htmlStr = '';
             allParticipants.forEach(p => {
                 const name = p.identity || 'unknown';
-                const isMuted = p.isMicrophoneEnabled === false; // если false — микро выключен
+                const isMuted = p.isMicrophoneEnabled === false;
                 const micIcon = isMuted ? 'fa-microphone-slash' : 'fa-microphone';
                 const micColor = isMuted ? '#ef5350' : '#4caf50';
                 const localFlag = p === currentRoom.localParticipant ? ' (я)' : '';
@@ -448,10 +416,10 @@
                     adaptiveStream: true,
                     dynacast: true,
                     videoCaptureDefaults: {
-                        resolution: client.VideoPresets.h90.resolution, // минимум (но видео отключим)
+                        resolution: client.VideoPresets.h90.resolution,
                     },
                     publishDefaults: {
-                        audioPreset: client.AudioPresets.musicStereo,   // качество аудио
+                        audioPreset: client.AudioPresets.musicStereo,
                     },
                 });
                 
@@ -466,19 +434,14 @@
                 room.on('localTrackPublished', () => updateParticipantsList());
                 room.on('localTrackUnpublished', () => updateParticipantsList());
                 
-                // Подключаемся. При WITHOUT_TOKEN используем пустой токен, но комната должна разрешать.
-                // в некоторых конфигах пустой токен воспринимается как anonymous.
+                // Подключаемся
                 let token = '';
-                if (!WITHOUT_TOKEN) {
-                    // заглушка: токен нужно сгенерировать отдельно. для теста оставим пустым.
-                    console.warn('Без токена может не сработать. включи "join without token" в комнате');
-                }
                 await room.connect(LIVEKIT_URL, token, connectOpts);
                 
                 // Публикуем микрофон (только аудио)
                 await room.localParticipant.setMicrophoneEnabled(true);
                 
-                // Отключаем видео полностью (если вдруг камера включится)
+                // Отключаем видео полностью
                 room.localParticipant.setCameraEnabled(false).catch(() => {});
                 
                 currentRoom = room;
