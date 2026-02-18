@@ -1,14 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Binance Brief · конференция</title>
+    <title>Binance Brief · конференція</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        /* Твой черно-желтый стиль */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #0a0a0a; color: #eaecef; min-height: 100vh; display: flex; flex-direction: column; }
-        
         .navbar {
             background: #1e1f25;
             border-bottom: 1px solid #2c2f36;
@@ -32,14 +30,12 @@
             padding: 8px 16px;
             color: #f0b90b;
         }
-        
         .main-container {
             display: flex;
             flex: 1;
             padding: 24px;
             gap: 24px;
         }
-        
         .sidebar {
             width: 300px;
             background: #1e1f25;
@@ -62,7 +58,6 @@
             border-radius: 10px;
             margin-bottom: 8px;
         }
-        
         .stage {
             flex: 1;
             background: #1e1f25;
@@ -70,7 +65,6 @@
             border-radius: 16px;
             padding: 24px;
         }
-        
         .status-card {
             background: #0c0f15;
             border-left: 4px solid #f0b90b;
@@ -78,7 +72,6 @@
             border-radius: 12px;
             margin-bottom: 24px;
         }
-        
         .participants-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -104,7 +97,6 @@
             font-size: 24px;
             color: #f0b90b;
         }
-        
         .control-bar {
             background: #1e1f25;
             border-top: 1px solid #2c2f36;
@@ -135,13 +127,10 @@
             color: #ef5350;
             border: 1px solid #2c2f36;
         }
-        .btn-danger:hover {
-            border-color: #ef5350;
-        }
         video { display: none !important; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- ПОДКЛЮЧАЕМ ЛОКАЛЬНЫЙ ФАЙЛ (который ты скачал) -->
+    <!-- Підключаємо локальний файл -->
     <script src="livekit.js"></script>
 </head>
 <body>
@@ -152,13 +141,13 @@
 
     <div class="main-container">
         <div class="sidebar">
-            <div class="sidebar-title"><i class="fas fa-users"></i> Участники (<span id="participantCount">0</span>)</div>
+            <div class="sidebar-title"><i class="fas fa-users"></i> Учасники (<span id="participantCount">0</span>)</div>
             <div id="participantsList"></div>
         </div>
 
         <div class="stage">
             <div class="status-card" id="connectionStatus">
-                <i class="fas fa-circle-notch fa-spin"></i> Подключение...
+                <i class="fas fa-circle-notch fa-spin"></i> Підключення...
             </div>
             <div class="participants-grid" id="participantsGrid"></div>
         </div>
@@ -166,25 +155,21 @@
 
     <div class="control-bar">
         <button class="btn btn-primary" onclick="toggleMic()" id="micBtn">
-            <i class="fas fa-microphone"></i> <span id="micText">Выключить микрофон</span>
+            <i class="fas fa-microphone"></i> <span id="micText">Вимкнути мікрофон</span>
         </button>
         <button class="btn btn-danger" onclick="leaveRoom()">
-            <i class="fas fa-sign-out-alt"></i> Покинуть
+            <i class="fas fa-sign-out-alt"></i> Покинути
         </button>
     </div>
 
     <script>
-        // Ждем загрузки страницы и библиотеки
+        // Проста перевірка
         window.addEventListener('load', function() {
-            // Определяем LiveKit (может быть в разных местах)
-            const LK = window.LiveKit || window.LiveKitClient || window.livekit;
-            
-            if (!LK) {
-                document.getElementById('connectionStatus').innerHTML = '❌ Помилка: бібліотека LiveKit не завантажилась. Перевір файл livekit.js';
+            if (!window.LiveKit) {
+                document.getElementById('connectionStatus').innerHTML = '❌ Помилка: файл livekit.js не знайдено або він пошкоджений';
                 return;
             }
 
-            // Получаем параметры из URL
             const urlParams = new URLSearchParams(window.location.search);
             const roomName = urlParams.get('room');
             const userName = urlParams.get('user') || 'Учасник_' + Math.random().toString(36).substring(7);
@@ -202,39 +187,26 @@
 
             async function connect() {
                 try {
-                    // Створюємо кімнату
-                    room = new LK.Room();
+                    room = new LiveKit.Room();
                     
                     // Підписуємось на події
-                    if (LK.RoomEvent) {
-                        room.on(LK.RoomEvent.ParticipantConnected, updateUI);
-                        room.on(LK.RoomEvent.ParticipantDisconnected, updateUI);
-                        room.on(LK.RoomEvent.TrackMuted, updateUI);
-                        room.on(LK.RoomEvent.TrackUnmuted, updateUI);
-                        
-                        room.on(LK.RoomEvent.Connected, () => {
-                            document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> Підключено до кімнати';
-                        });
+                    room.on(LiveKit.RoomEvent.Connected, () => {
+                        document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> Підключено';
+                    });
 
-                        room.on(LK.RoomEvent.Disconnected, () => {
-                            document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-times-circle" style="color:#ef5350;"></i> Відключено';
-                        });
-                    }
+                    room.on(LiveKit.RoomEvent.ParticipantConnected, updateUI);
+                    room.on(LiveKit.RoomEvent.ParticipantDisconnected, updateUI);
 
-                    // Підключаємось
                     await room.connect(LIVEKIT_URL, '', {
                         identity: userName,
                         roomName: roomName
                     });
                     
-                    // Вмикаємо мікрофон
                     await room.localParticipant.setMicrophoneEnabled(true);
-                    
                     updateUI();
 
                 } catch(e) {
                     document.getElementById('connectionStatus').innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ef5350;"></i> Помилка: ${e.message}`;
-                    console.error(e);
                 }
             }
 
@@ -244,61 +216,34 @@
                 const participants = [room.localParticipant, ...room.participants.values()];
                 document.getElementById('participantCount').textContent = participants.length;
                 
-                let listHtml = '';
-                let gridHtml = '';
-                
+                let html = '';
                 participants.forEach(p => {
                     const isMe = p === room.localParticipant ? ' (ви)' : '';
-                    const micIcon = p.isMicrophoneEnabled ? 'fa-microphone' : 'fa-microphone-slash';
-                    const micColor = p.isMicrophoneEnabled ? '#4caf50' : '#ef5350';
-                    
-                    listHtml += `<div class="participant"><span><i class="fas fa-user-circle" style="color:#f0b90b;"></i> ${p.identity}${isMe}</span> <i class="fas ${micIcon}" style="color:${micColor};"></i></div>`;
-                    
-                    gridHtml += `
-                        <div class="participant-card">
-                            <div class="avatar"><i class="fas fa-user"></i></div>
-                            <div style="margin-bottom:5px;">${p.identity}${isMe}</div>
-                            <div style="color:${micColor};"><i class="fas ${micIcon}"></i></div>
-                        </div>
-                    `;
+                    html += `<div class="participant">👤 ${p.identity}${isMe}</div>`;
                 });
                 
-                document.getElementById('participantsList').innerHTML = listHtml || '<div style="color:#848e9c; text-align:center;">Немає учасників</div>';
-                document.getElementById('participantsGrid').innerHTML = gridHtml || '<div style="color:#848e9c; text-align:center;">Очікування учасників...</div>';
+                document.getElementById('participantsList').innerHTML = html;
+                
+                let gridHtml = '';
+                participants.forEach(p => {
+                    gridHtml += `<div class="participant-card"><div class="avatar"><i class="fas fa-user"></i></div><div>${p.identity}</div></div>`;
+                });
+                document.getElementById('participantsGrid').innerHTML = gridHtml;
             }
 
             window.toggleMic = async function() {
                 if (!room) return;
                 const newState = !room.localParticipant.isMicrophoneEnabled;
                 await room.localParticipant.setMicrophoneEnabled(newState);
-                
-                const micBtn = document.getElementById('micBtn');
-                const micIcon = micBtn.querySelector('i');
-                const micText = document.getElementById('micText');
-                
-                if (newState) {
-                    micIcon.className = 'fas fa-microphone';
-                    micText.textContent = 'Вимкнути мікрофон';
-                } else {
-                    micIcon.className = 'fas fa-microphone-slash';
-                    micText.textContent = 'Увімкнути мікрофон';
-                }
-                
                 updateUI();
             }
 
             window.leaveRoom = function() {
-                if (room) {
-                    room.disconnect();
-                    room = null;
-                }
+                if (room) room.disconnect();
                 window.location.href = '/';
             }
 
-            // Запускаємо
             connect();
-            
-            // Оновлюємо кожні 2 секунди
             setInterval(updateUI, 2000);
         });
     </script>
