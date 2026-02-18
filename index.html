@@ -1,59 +1,301 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Binance Brief</title>
+    <title>Binance Brief · личный кабинет</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        /* Твои черно-желтые стили */
-        body { background: #0a0a0a; color: #f0b90b; font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .card { background: #1e1f25; padding: 40px; border-radius: 20px; width: 500px; }
-        input, button { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; }
-        input { background: #0c0f15; border: 1px solid #2c2f36; color: white; }
-        button { background: #f0b90b; color: black; font-weight: bold; border: none; cursor: pointer; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+        body {
+            background: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .card {
+            background: #1e1f25;
+            border: 1px solid #2c2f36;
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+        }
+        h1 {
+            color: #f0b90b;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        h1 i {
+            color: #f0b90b;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 16px;
+            background: #0c0f15;
+            border: 1px solid #2c2f36;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+        }
+        input:focus {
+            border-color: #f0b90b;
+            outline: none;
+        }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: #f0b90b;
+            color: #0a0a0a;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .btn:hover {
+            background: #ffd53d;
+        }
+        .btn-secondary {
+            background: #0c0f15;
+            color: #f0b90b;
+            border: 1px solid #2c2f36;
+        }
+        .btn-secondary:hover {
+            border-color: #f0b90b;
+            background: #0c0f15;
+        }
+        .users-list {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #2c2f36;
+        }
+        .user-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #0c0f15;
+            border: 1px solid #2c2f36;
+            border-radius: 40px;
+            color: #f0b90b;
+            margin: 5px;
+        }
+        .error-message {
+            color: #ef5350;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <div class="card">
-        <h2>🔊 Binance Brief</h2>
-        <input type="text" id="login" placeholder="Логин" value="test1">
-        <input type="password" id="pass" placeholder="Пароль" value="12345">
-        <button onclick="checkLogin()">🚀 Войти</button>
+        <h1>
+            <i class="fas fa-microphone-alt"></i>
+            Binance Brief
+        </h1>
 
-        <div id="adminPanel" style="display:none; margin-top:20px;">
-            <p>Привет, <span id="userName"></span>!</p>
-            <button onclick="createBrief()">🎙️ СОЗДАТЬ НОВЫЙ БРИФИНГ</button>
-            <div id="linkArea" style="margin-top:20px;"></div>
+        <!-- Форма входа -->
+        <div id="loginForm">
+            <div class="input-group">
+                <input type="text" id="username" placeholder="Логин" value="admin">
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Пароль" value="12345">
+            </div>
+            <button class="btn" onclick="login()">
+                <i class="fas fa-key"></i> Войти
+            </button>
+
+            <div class="users-list">
+                <span class="user-badge"><i class="fas fa-user"></i> admin / 12345</span>
+                <span class="user-badge"><i class="fas fa-user"></i> test1 / 12345</span>
+                <span class="user-badge"><i class="fas fa-user"></i> test2 / 12345</span>
+            </div>
+        </div>
+
+        <!-- Личный кабинет (скрыт) -->
+        <div id="dashboard" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h2 style="color:#f0b90b; font-size:1.5rem;">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="displayName"></span>
+                </h2>
+                <span class="user-badge" id="userRole"></span>
+            </div>
+
+            <!-- Статус конференции -->
+            <div style="background: #0c0f15; border-radius: 16px; padding: 24px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #ef5350;" id="statusIndicator"></div>
+                    <span id="conferenceStatus">Конференция не активна</span>
+                </div>
+
+                <!-- Для админа: кнопка создания конференции -->
+                <div id="adminControls" style="display: none;">
+                    <button class="btn" onclick="startConference()">
+                        <i class="fas fa-play"></i> Начать конференцию
+                    </button>
+                </div>
+
+                <!-- Для всех: кнопка присоединения -->
+                <div id="joinControls" style="display: none;">
+                    <button class="btn btn-secondary" onclick="joinConference()">
+                        <i class="fas fa-headphones"></i> Присоединиться к конференции
+                    </button>
+                </div>
+            </div>
+
+            <!-- История/статус -->
+            <div style="color: #848e9c; font-size: 0.9rem;">
+                <i class="fas fa-info-circle"></i> 
+                <span id="activeRoom"></span>
+            </div>
+
+            <button class="btn btn-secondary" onclick="logout()" style="margin-top: 20px;">
+                <i class="fas fa-sign-out-alt"></i> Выйти
+            </button>
         </div>
     </div>
 
     <script>
-        const SANDBOX_URL = 'https://hyper-opcode-2mhmvv.sandbox.livekit.io'; // Твоя ссылка на песочницу
+        // Данные пользователей
+        const users = {
+            admin: { role: 'admin', name: 'Администратор' },
+            test1: { role: 'user', name: 'Сотрудник 1' },
+            test2: { role: 'user', name: 'Сотрудник 2' }
+        };
+        const PASSWORD = '12345';
 
-        function checkLogin() {
-            const login = document.getElementById('login').value;
-            const pass = document.getElementById('pass').value;
-            if ((login === 'test1' || login === 'test2') && pass === '12345') {
-                document.getElementById('adminPanel').style.display = 'block';
-                document.getElementById('userName').innerText = login;
-            } else {
+        // Состояние конференции (храним в localStorage, чтобы все видели)
+        let activeConference = localStorage.getItem('activeConference') || null;
+        let conferenceRoom = localStorage.getItem('conferenceRoom') || null;
+
+        let currentUser = null;
+
+        // Функция входа
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!users[username] || password !== PASSWORD) {
                 alert('Неверный логин или пароль');
+                return;
+            }
+
+            currentUser = {
+                login: username,
+                role: users[username].role,
+                name: users[username].name
+            };
+
+            // Показываем личный кабинет
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            
+            document.getElementById('displayName').textContent = `${users[username].name} (@${username})`;
+            document.getElementById('userRole').textContent = username === 'admin' ? 'Администратор' : 'Участник';
+
+            // Обновляем интерфейс конференции
+            updateConferenceUI();
+        }
+
+        // Обновление интерфейса конференции
+        function updateConferenceUI() {
+            const statusEl = document.getElementById('conferenceStatus');
+            const indicator = document.getElementById('statusIndicator');
+            const adminControls = document.getElementById('adminControls');
+            const joinControls = document.getElementById('joinControls');
+            const activeRoomEl = document.getElementById('activeRoom');
+
+            if (activeConference) {
+                statusEl.textContent = `Конференция активна (комната: ${conferenceRoom})`;
+                indicator.style.background = '#4caf50';
+                activeRoomEl.innerHTML = `<i class="fas fa-door-open"></i> Активная комната: ${conferenceRoom}`;
+                
+                // Показываем кнопку присоединения для всех
+                joinControls.style.display = 'block';
+                
+                // Для админа показываем кнопку управления
+                if (currentUser.role === 'admin') {
+                    adminControls.style.display = 'block';
+                }
+            } else {
+                statusEl.textContent = 'Конференция не активна';
+                indicator.style.background = '#ef5350';
+                activeRoomEl.innerHTML = '<i class="fas fa-hourglass"></i> Ожидание начала конференции';
+                joinControls.style.display = 'none';
+                
+                // Для админа показываем кнопку создания
+                if (currentUser.role === 'admin') {
+                    adminControls.style.display = 'block';
+                }
             }
         }
 
-        function createBrief() {
+        // Админ начинает конференцию
+        function startConference() {
             // Генерируем уникальное имя комнаты
-            const roomName = 'brief-' + new Date().getTime();
+            const roomName = 'conf-' + new Date().getTime();
             
-            // Формируем ссылку на твою песочницу с параметром комнаты
-            const roomUrl = `${SANDBOX_URL}?room=${roomName}`;
+            // Сохраняем в localStorage (видят все)
+            localStorage.setItem('activeConference', 'true');
+            localStorage.setItem('conferenceRoom', roomName);
             
-            document.getElementById('linkArea').innerHTML = `
-                <div style="background:#0c0f15; padding:15px; border-radius:10px;">
-                    <div style="color:#4caf50; margin-bottom:10px;">✅ Комната создана!</div>
-                    <input type="text" value="${roomUrl}" readonly style="width:100%; margin-bottom:10px;">
-                    <button onclick="navigator.clipboard.writeText('${roomUrl}')">📋 Копировать ссылку</button>
-                </div>
-            `;
+            activeConference = true;
+            conferenceRoom = roomName;
+            
+            updateConferenceUI();
+            
+            alert(`Конференция создана! Комната: ${roomName}`);
         }
+
+        // Все присоединяются к конференции
+        function joinConference() {
+            if (!activeConference || !conferenceRoom) {
+                alert('Нет активной конференции');
+                return;
+            }
+
+            // Переходим в комнату (открываем room.html с параметрами)
+            const roomUrl = `room.html?room=${conferenceRoom}&user=${currentUser.login}`;
+            window.open(roomUrl, '_blank');
+        }
+
+        // Выход из аккаунта
+        function logout() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+        }
+
+        // Проверяем статус конференции каждые 3 секунды (для синхронизации)
+        setInterval(() => {
+            const newActive = localStorage.getItem('activeConference');
+            const newRoom = localStorage.getItem('conferenceRoom');
+            
+            if (newActive !== activeConference || newRoom !== conferenceRoom) {
+                activeConference = newActive;
+                conferenceRoom = newRoom;
+                if (document.getElementById('dashboard').style.display === 'block') {
+                    updateConferenceUI();
+                }
+            }
+        }, 3000);
     </script>
 </body>
 </html>
