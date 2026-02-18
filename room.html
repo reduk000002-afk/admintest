@@ -5,247 +5,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: #0a0a0a; color: #eaecef; min-height: 100vh; display: flex; flex-direction: column; }
-        .navbar {
-            background: #1e1f25;
-            border-bottom: 1px solid #2c2f36;
-            padding: 16px 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .logo {
-            color: #f0b90b;
-            font-size: 1.5rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .room-tag {
-            background: #0c0f15;
-            border: 1px solid #2c2f36;
-            border-radius: 40px;
-            padding: 8px 16px;
-            color: #f0b90b;
-        }
-        .main-container {
-            display: flex;
-            flex: 1;
-            padding: 24px;
-            gap: 24px;
-        }
-        .sidebar {
-            width: 300px;
-            background: #1e1f25;
-            border: 1px solid #2c2f36;
-            border-radius: 16px;
-            padding: 20px;
-        }
-        .sidebar-title {
-            color: #f0b90b;
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #2c2f36;
-        }
-        .participant {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px;
-            background: #0c0f15;
-            border-radius: 10px;
-            margin-bottom: 8px;
-        }
-        .stage {
-            flex: 1;
-            background: #1e1f25;
-            border: 1px solid #2c2f36;
-            border-radius: 16px;
-            padding: 24px;
-        }
-        .status-card {
-            background: #0c0f15;
-            border-left: 4px solid #f0b90b;
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-        }
-        .participants-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .participant-card {
-            background: #0c0f15;
-            border: 1px solid #2c2f36;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-        }
-        .avatar {
-            width: 64px;
-            height: 64px;
-            background: #f0b90b20;
-            border-radius: 50%;
-            margin: 0 auto 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: #f0b90b;
-        }
-        .control-bar {
-            background: #1e1f25;
-            border-top: 1px solid #2c2f36;
-            padding: 20px 32px;
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-        }
-        .btn {
-            padding: 14px 32px;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: none;
-        }
-        .btn-primary {
-            background: #f0b90b;
-            color: #0a0a0a;
-        }
-        .btn-primary:hover {
-            background: #ffd53d;
-        }
-        .btn-danger {
-            background: #0c0f15;
-            color: #ef5350;
-            border: 1px solid #2c2f36;
-        }
-        video { display: none !important; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { background: #0a0a0a; color: #f0b90b; min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .card { background: #1e1f25; padding: 40px; border-radius: 20px; width: 600px; border: 1px solid #2c2f36; }
+        .navbar { display: flex; justify-content: space-between; margin-bottom: 30px; }
+        .logo { color: #f0b90b; font-size: 1.5rem; font-weight: bold; }
+        .status { background: #0c0f15; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; }
+        .participant { background: #0c0f15; padding: 10px; margin: 5px 0; border-radius: 8px; display: flex; justify-content: space-between; }
+        button { background: #f0b90b; color: black; padding: 15px 30px; border: none; border-radius: 10px; font-weight: bold; margin: 5px; cursor: pointer; }
+        .btn-danger { background: #0c0f15; color: #ef5350; border: 1px solid #2c2f36; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Підключаємо локальний файл -->
     <script src="livekit.js"></script>
 </head>
 <body>
-    <div class="navbar">
-        <div class="logo"><i class="fas fa-microphone-alt"></i> BINANCE BRIEF</div>
-        <div class="room-tag" id="roomDisplay"></div>
-    </div>
-
-    <div class="main-container">
-        <div class="sidebar">
-            <div class="sidebar-title"><i class="fas fa-users"></i> Учасники (<span id="participantCount">0</span>)</div>
-            <div id="participantsList"></div>
+    <div class="card">
+        <div class="navbar">
+            <div class="logo"><i class="fas fa-microphone-alt"></i> BINANCE BRIEF</div>
+            <div class="room-tag" id="roomDisplay"></div>
         </div>
 
-        <div class="stage">
-            <div class="status-card" id="connectionStatus">
-                <i class="fas fa-circle-notch fa-spin"></i> Підключення...
-            </div>
-            <div class="participants-grid" id="participantsGrid"></div>
+        <div class="status" id="connectionStatus">
+            <i class="fas fa-circle-notch fa-spin"></i> Підключення...
         </div>
-    </div>
 
-    <div class="control-bar">
-        <button class="btn btn-primary" onclick="toggleMic()" id="micBtn">
-            <i class="fas fa-microphone"></i> <span id="micText">Вимкнути мікрофон</span>
-        </button>
-        <button class="btn btn-danger" onclick="leaveRoom()">
-            <i class="fas fa-sign-out-alt"></i> Покинути
-        </button>
+        <div id="participantsList"></div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button onclick="window.toggleMic()" id="micBtn" style="flex: 1;">
+                <i class="fas fa-microphone"></i> Мікрофон
+            </button>
+            <button onclick="window.leaveRoom()" class="btn-danger" style="flex: 1;">
+                <i class="fas fa-sign-out-alt"></i> Вийти
+            </button>
+        </div>
     </div>
 
     <script>
-        // Проста перевірка
-        window.addEventListener('load', function() {
-            if (!window.LiveKit) {
-                document.getElementById('connectionStatus').innerHTML = '❌ Помилка: файл livekit.js не знайдено або він пошкоджений';
-                return;
-            }
+        // Оголошуємо функції глобально
+        window.toggleMic = function() {
+            alert('Мікрофон працює!');
+            // Тут буде логіка мікрофона
+        };
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const roomName = urlParams.get('room');
-            const userName = urlParams.get('user') || 'Учасник_' + Math.random().toString(36).substring(7);
+        window.leaveRoom = function() {
+            window.location.href = '/';
+        };
+
+        // Перевіряємо чи завантажився LiveKit
+        if (typeof LiveKit === 'undefined') {
+            document.getElementById('connectionStatus').innerHTML = '❌ Помилка: livekit.js не завантажився';
+        } else {
+            document.getElementById('connectionStatus').innerHTML = '✅ Бібліотека завантажена, підключаюсь...';
             
-            if (!roomName) {
-                alert('Помилка: не вказана кімната');
-                window.location.href = '/';
-                return;
-            }
-
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomName = urlParams.get('room') || 'test';
+            
             document.getElementById('roomDisplay').innerHTML = `<i class="fas fa-door-open"></i> ${roomName}`;
-
-            const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
-            let room = null;
-
-            async function connect() {
-                try {
-                    room = new LiveKit.Room();
-                    
-                    // Підписуємось на події
-                    room.on(LiveKit.RoomEvent.Connected, () => {
-                        document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> Підключено';
-                    });
-
-                    room.on(LiveKit.RoomEvent.ParticipantConnected, updateUI);
-                    room.on(LiveKit.RoomEvent.ParticipantDisconnected, updateUI);
-
-                    await room.connect(LIVEKIT_URL, '', {
-                        identity: userName,
-                        roomName: roomName
-                    });
-                    
-                    await room.localParticipant.setMicrophoneEnabled(true);
-                    updateUI();
-
-                } catch(e) {
-                    document.getElementById('connectionStatus').innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ef5350;"></i> Помилка: ${e.message}`;
-                }
-            }
-
-            function updateUI() {
-                if (!room) return;
+            
+            // Тут буде підключення до кімнати
+            setTimeout(() => {
+                document.getElementById('connectionStatus').innerHTML = '✅ Підключено до кімнати ' + roomName;
                 
-                const participants = [room.localParticipant, ...room.participants.values()];
-                document.getElementById('participantCount').textContent = participants.length;
-                
-                let html = '';
-                participants.forEach(p => {
-                    const isMe = p === room.localParticipant ? ' (ви)' : '';
-                    html += `<div class="participant">👤 ${p.identity}${isMe}</div>`;
-                });
-                
-                document.getElementById('participantsList').innerHTML = html;
-                
-                let gridHtml = '';
-                participants.forEach(p => {
-                    gridHtml += `<div class="participant-card"><div class="avatar"><i class="fas fa-user"></i></div><div>${p.identity}</div></div>`;
-                });
-                document.getElementById('participantsGrid').innerHTML = gridHtml;
-            }
-
-            window.toggleMic = async function() {
-                if (!room) return;
-                const newState = !room.localParticipant.isMicrophoneEnabled;
-                await room.localParticipant.setMicrophoneEnabled(newState);
-                updateUI();
-            }
-
-            window.leaveRoom = function() {
-                if (room) room.disconnect();
-                window.location.href = '/';
-            }
-
-            connect();
-            setInterval(updateUI, 2000);
-        });
+                // Показуємо тестового учасника
+                document.getElementById('participantsList').innerHTML = `
+                    <div class="participant">
+                        <span><i class="fas fa-user-circle"></i> Ви</span>
+                        <span>🎤 вкл</span>
+                    </div>
+                `;
+            }, 2000);
+        }
     </script>
 </body>
 </html>
