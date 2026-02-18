@@ -1,21 +1,85 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Binance Brief</title>
+    <title>Binance Brief · аудиозвонок</title>
     <meta charset="UTF-8">
     <style>
-        body { background: #0a0a0a; color: #f0b90b; font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; margin:0; }
-        .card { background: #1e1f25; padding: 40px; border-radius: 20px; width: 500px; border:1px solid #2c2f36; }
-        input, button { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; box-sizing:border-box; }
-        input { background: #0c0f15; border: 1px solid #2c2f36; color: white; }
-        button { background: #f0b90b; color: black; font-weight: bold; border: none; cursor: pointer; }
-        button:hover { background: #ffd53d; }
-        .participant { display: flex; justify-content: space-between; padding: 12px; background: #0c0f15; margin: 5px 0; border-radius: 8px; }
-        .status { background: #0c0f15; padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; }
-        h2 { color:#f0b90b; margin-bottom:20px; }
+        body { 
+            background: #0a0a0a; 
+            color: #f0b90b; 
+            font-family: Arial, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0;
+            padding: 16px;
+        }
+        .card { 
+            background: #1e1f25; 
+            border-radius: 24px; 
+            padding: 32px; 
+            width: 100%;
+            max-width: 500px; 
+            border: 1px solid #2c2f36;
+        }
+        h2 { 
+            color: #f0b90b; 
+            font-size: 2rem; 
+            margin-bottom: 24px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        input { 
+            width: 100%; 
+            padding: 16px; 
+            background: #0c0f15; 
+            border: 1px solid #2c2f36; 
+            border-radius: 12px; 
+            color: white; 
+            font-size: 1rem; 
+            margin-bottom: 20px; 
+            box-sizing: border-box;
+        }
+        input:focus { 
+            border-color: #f0b90b; 
+            outline: none; 
+        }
+        button { 
+            background: #f0b90b; 
+            color: #0a0a0a; 
+            border: none; 
+            border-radius: 12px; 
+            padding: 16px; 
+            font-size: 1.2rem; 
+            font-weight: bold; 
+            width: 100%; 
+            cursor: pointer; 
+            margin: 10px 0; 
+        }
+        button:hover { 
+            background: #ffd53d; 
+        }
+        .status { 
+            background: #0c0f15; 
+            padding: 16px; 
+            border-radius: 12px; 
+            margin: 20px 0; 
+            text-align: center; 
+            border-left: 4px solid #f0b90b; 
+        }
+        .participant { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 12px; 
+            background: #0c0f15; 
+            margin: 5px 0; 
+            border-radius: 8px; 
+        }
     </style>
-    <!-- Подключаем настоящую библиотеку -->
-    <script src="livekit.js"></script>
+    <!-- ПОДКЛЮЧАЕМ LIVEKIT ЧЕРЕЗ НАДЕЖНЫЙ CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js"></script>
 </head>
 <body>
     <div class="card">
@@ -33,31 +97,29 @@
             <div class="status" id="connectionStatus">Подключение...</div>
             <div id="participantsList"></div>
             <button onclick="toggleMic()" id="micBtn">🎤 Выключить микрофон</button>
-            <button onclick="leaveRoom()" style="margin-top:10px;">🚪 Выйти</button>
+            <button onclick="leaveRoom()">🚪 Выйти</button>
         </div>
     </div>
 
     <script>
-        // Проверяем загрузку
+        // Проверяем, загрузился ли LiveKit
         if (typeof LiveKitClient === 'undefined') {
-            alert('Ошибка: библиотека не загружена');
+            document.body.innerHTML = '<div style="color:red; padding:20px;">❌ Ошибка: LiveKit не загрузился. Проверь интернет или VPN.</div>';
         }
 
+        // Данные из твоего аккаунта
         const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
         let room = null;
-        let currentUser = '';
 
         async function joinRoom() {
             const roomName = document.getElementById('roomName').value.trim();
-            const userName = document.getElementById('userName').value.trim() || 'User' + Math.random().toString(36).substring(7);
+            const userName = document.getElementById('userName').value.trim() || 'User_' + Math.random().toString(36).substring(7);
             
             if (!roomName) {
-                alert('Введите название комнаты');
+                alert('Введи название комнаты');
                 return;
             }
 
-            currentUser = userName;
-            
             // Переключаем экраны
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('roomScreen').style.display = 'block';
@@ -66,16 +128,20 @@
                 // Создаем комнату
                 room = new LiveKitClient.Room();
                 
-                // События
+                // Слушаем события подключения участников
                 room.on(LiveKitClient.RoomEvent.ParticipantConnected, updateParticipants);
                 room.on(LiveKitClient.RoomEvent.ParticipantDisconnected, updateParticipants);
                 
                 room.on(LiveKitClient.RoomEvent.Connected, () => {
-                    document.getElementById('connectionStatus').innerHTML = '✅ Подключено к комнате';
+                    document.getElementById('connectionStatus').innerHTML = '✅ Подключено к комнате: ' + roomName;
+                });
+
+                room.on(LiveKitClient.RoomEvent.Disconnected, () => {
+                    document.getElementById('connectionStatus').innerHTML = '❌ Отключено';
                 });
 
                 // Подключаемся
-                await room.connect(LIVEKIT_URL, '', {
+                await room.connect(LIVEKIT_URL, '', { 
                     identity: userName,
                     roomName: roomName
                 });
@@ -95,7 +161,7 @@
             if (!room) return;
             
             const participants = [room.localParticipant, ...Array.from(room.participants.values())];
-            let html = '<h3>Участники:</h3>';
+            let html = '<h3 style="color:#f0b90b;">Участники:</h3>';
             
             participants.forEach(p => {
                 const micStatus = p.isMicrophoneEnabled ? '🎤' : '🔇';
@@ -129,6 +195,11 @@
 
         // Обновляем список каждые 2 секунды
         setInterval(updateParticipants, 2000);
+
+        // Делаем функции доступными глобально
+        window.joinRoom = joinRoom;
+        window.toggleMic = toggleMic;
+        window.leaveRoom = leaveRoom;
     </script>
 </body>
 </html>
