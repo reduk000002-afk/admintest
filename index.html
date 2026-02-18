@@ -4,82 +4,95 @@
     <title>Binance Brief</title>
     <meta charset="UTF-8">
     <style>
-        body { background: #0a0a0a; color: #f0b90b; font-family: Arial; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: #1e1f25; padding: 40px; border-radius: 20px; width: 500px; border: 1px solid #2c2f36; }
+        body { background: #0a0a0a; color: #f0b90b; font-family: Arial; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin:0; }
+        .card { background: #1e1f25; padding: 40px; border-radius: 20px; width: 500px; border:1px solid #2c2f36; }
         input { width: 100%; padding: 15px; margin: 10px 0; background: #0c0f15; border: 1px solid #2c2f36; color: white; border-radius: 10px; }
-        button { background: #f0b90b; color: black; padding: 15px; border: none; border-radius: 10px; font-weight: bold; width: 100%; margin: 5px 0; cursor: pointer; }
-        .participant { display: flex; justify-content: space-between; padding: 10px; background: #0c0f15; margin: 5px 0; border-radius: 8px; }
-        .status { background: #0c0f15; padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; }
+        button { background: #f0b90b; color: black; padding: 15px; border: none; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; }
+        .link-box { background: #0c0f15; padding: 15px; border-radius: 10px; margin: 10px 0; word-break: break-all; }
     </style>
-    <!-- Подключаем библиотеку (рабочая ссылка) -->
-    <script src="https://unpkg.com/livekit-client@1.15.4/dist/livekit-client.umd.js"></script>
 </head>
 <body>
     <div class="card">
         <h2>🔊 Binance Brief</h2>
-        
-        <div id="login">
-            <input type="text" id="room" placeholder="Название комнаты" value="test123">
-            <input type="text" id="name" placeholder="Ваше имя" value="User">
-            <button onclick="connect()">🚀 Войти</button>
+
+        <!-- Шаг 1: Вход (логин/пароль) -->
+        <div id="step1">
+            <input type="text" id="login" placeholder="Логин" value="test1">
+            <input type="password" id="pass" placeholder="Пароль" value="12345">
+            <button onclick="checkLogin()">🚀 Войти</button>
         </div>
 
-        <div id="room" style="display:none;">
-            <div class="status" id="connStatus">Подключение...</div>
-            <div id="users"></div>
-            <button onclick="toggleMic()" id="micBtn">🎤 Микрофон</button>
-            <button onclick="disconnect()">🚪 Выйти</button>
+        <!-- Шаг 2: Создание комнаты (после входа) -->
+        <div id="step2" style="display:none;">
+            <p>Привет, <span id="userName"></span>!</p>
+            <button onclick="createRoom()">🎙️ СОЗДАТЬ НОВЫЙ БРИФИНГ</button>
+            
+            <!-- Здесь появится ссылка на комнату -->
+            <div id="roomLink" style="display:none;" class="link-box"></div>
         </div>
     </div>
 
     <script>
-        const url = 'wss://testzvonok-3q10z44j.livekit.cloud';
-        let currentRoom = null;
+        // Твои данные LiveKit
+        const API_KEY = 'APIenU2zhEwG6cd';
+        const API_SECRET = 'iUeO4vJX9VAlsUu8s6ps8Zm7iosIgTzNuww2euU2GMf';
+        
+        let currentUser = '';
 
-        window.connect = async function() {
-            const roomName = document.getElementById('room').value;
-            const userName = document.getElementById('name').value;
+        // Проверка логина
+        function checkLogin() {
+            const login = document.getElementById('login').value;
+            const pass = document.getElementById('pass').value;
             
-            document.getElementById('login').style.display = 'none';
-            document.getElementById('room').style.display = 'block';
-            
-            try {
-                const room = new LiveKitClient.Room();
-                currentRoom = room;
-                
-                room.on(LiveKitClient.RoomEvent.ParticipantConnected, updateUsers);
-                room.on(LiveKitClient.RoomEvent.ParticipantDisconnected, updateUsers);
-                
-                await room.connect(url, '', { identity: userName, roomName: roomName });
-                await room.localParticipant.setMicrophoneEnabled(true);
-                
-                document.getElementById('connStatus').innerHTML = '✅ Подключено';
-                updateUsers();
-                
-            } catch(e) {
-                document.getElementById('connStatus').innerHTML = '❌ ' + e.message;
+            if ((login === 'test1' || login === 'test2') && pass === '12345') {
+                currentUser = login;
+                document.getElementById('step1').style.display = 'none';
+                document.getElementById('step2').style.display = 'block';
+                document.getElementById('userName').innerText = login;
+            } else {
+                alert('Неверный логин или пароль');
             }
         }
 
-        function updateUsers() {
-            if(!currentRoom) return;
-            const list = [currentRoom.localParticipant, ...currentRoom.participants.values()];
-            let html = '<h3>Участники:</h3>';
-            list.forEach(p => {
-                html += `<div class="participant">👤 ${p.identity}</div>`;
-            });
-            document.getElementById('users').innerHTML = html;
-        }
+        // Создание комнаты
+        async function createRoom() {
+            // Генерируем имя комнаты: brief-1802-1530 (дата-время)
+            const now = new Date();
+            const roomName = `brief-${now.getDate()}${now.getMonth()+1}-${now.getHours()}${now.getMinutes()}`;
+            
+            document.getElementById('roomLink').style.display = 'block';
+            document.getElementById('roomLink').innerHTML = '⏳ Создаю комнату...';
+            
+            try {
+                // Создаем комнату через LiveKit API
+                const response = await fetch('https://api.livekit.cloud/v1/rooms', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_SECRET}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: roomName,
+                        emptyTimeout: 600
+                    })
+                });
 
-        window.toggleMic = async function() {
-            if(!currentRoom) return;
-            const state = !currentRoom.localParticipant.isMicrophoneEnabled;
-            await currentRoom.localParticipant.setMicrophoneEnabled(state);
-        }
-
-        window.disconnect = function() {
-            if(currentRoom) currentRoom.disconnect();
-            location.reload();
+                if (response.ok) {
+                    // Ссылка на комнату (все будут заходить по ней)
+                    const roomUrl = `${window.location.origin}/room.html?room=${roomName}`;
+                    
+                    document.getElementById('roomLink').innerHTML = `
+                        <div style="color:#4caf50; margin-bottom:10px;">✅ Комната создана!</div>
+                        <div style="margin-bottom:10px;">Ссылка для всех:</div>
+                        <input type="text" value="${roomUrl}" readonly style="width:100%; padding:10px; background:#1e1f25; border:1px solid #f0b90b; color:white; border-radius:5px;">
+                        <button onclick="navigator.clipboard.writeText('${roomUrl}')" style="margin-top:10px; background:#f0b90b; padding:10px;">📋 Копировать ссылку</button>
+                    `;
+                } else {
+                    document.getElementById('roomLink').innerHTML = '❌ Ошибка создания комнаты';
+                }
+            } catch(e) {
+                document.getElementById('roomLink').innerHTML = '❌ Ошибка: ' + e.message;
+            }
         }
     </script>
 </body>
