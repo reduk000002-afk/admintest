@@ -135,18 +135,8 @@
         video { display: none !important; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- ПОДКЛЮЧАЕМ БИБЛИОТЕКУ ПРАВИЛЬНО (ЭТОТ СПОСОБ РАБОТАЕТ 100%) -->
+    <!-- ПОДКЛЮЧАЕМ БИБЛИОТЕКУ LIVEKIT (UMD версия) -->
     <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js"></script>
-    <script>
-        // Проверяем загрузку библиотеки
-        window.onload = function() {
-            if (typeof LiveKitClient === 'undefined') {
-                document.body.innerHTML = '<div style="color:red; padding:20px;">❌ Ошибка: LiveKit не загрузился. Проверь интернет или VPN.</div>';
-            } else {
-                console.log('✅ LiveKit загружен');
-            }
-        }
-    </script>
 </head>
 <body>
     <div class="navbar">
@@ -178,133 +168,123 @@
     </div>
 
     <script>
-        // Дожидаемся загрузки библиотеки
-        function init() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const roomName = urlParams.get('room');
-            const userName = urlParams.get('user') || 'Участник_' + Math.random().toString(36).substring(7);
-            
-            if (!roomName) {
-                alert('Ошибка: не указана комната');
-                window.location.href = '/';
-                return;
-            }
+        // Исправлено: LiveKit, а не LiveKitClient!
+        const LiveKit = window.LiveKit;
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomName = urlParams.get('room');
+        const userName = urlParams.get('user') || 'Участник_' + Math.random().toString(36).substring(7);
+        
+        if (!roomName) {
+            alert('Ошибка: не указана комната');
+            window.location.href = '/';
+        }
 
-            document.getElementById('roomDisplay').innerHTML = `<i class="fas fa-door-open"></i> ${roomName}`;
+        document.getElementById('roomDisplay').innerHTML = `<i class="fas fa-door-open"></i> ${roomName}`;
 
-            const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
-            let room = null;
+        const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
+        let room = null;
 
-            async function connect() {
-                try {
-                    room = new LiveKitClient.Room({
-                        publishDefaults: {
-                            audioPreset: LiveKitClient.AudioPresets.musicStereo
-                        }
-                    });
-                    
-                    room.on(LiveKitClient.RoomEvent.ParticipantConnected, updateUI);
-                    room.on(LiveKitClient.RoomEvent.ParticipantDisconnected, updateUI);
-                    room.on(LiveKitClient.RoomEvent.TrackMuted, updateUI);
-                    room.on(LiveKitClient.RoomEvent.TrackUnmuted, updateUI);
-                    
-                    room.on(LiveKitClient.RoomEvent.Connected, () => {
-                        document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> Подключено к комнате';
-                    });
-
-                    await room.connect(LIVEKIT_URL, '', {
-                        identity: userName,
-                        roomName: roomName
-                    });
-                    
-                    await room.localParticipant.setMicrophoneEnabled(true);
-                    
-                    document.getElementById('micBtn').disabled = false;
-                    updateUI();
-
-                } catch(e) {
-                    document.getElementById('connectionStatus').innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ef5350;"></i> Ошибка: ${e.message}`;
-                    console.error(e);
-                }
-            }
-
-            function updateUI() {
-                if (!room) return;
-                
-                const participants = [room.localParticipant, ...room.participants.values()];
-                document.getElementById('participantCount').textContent = participants.length;
-                
-                let listHtml = '';
-                let gridHtml = '';
-                
-                participants.forEach(p => {
-                    const isMe = p === room.localParticipant ? ' (вы)' : '';
-                    const micIcon = p.isMicrophoneEnabled ? 'fa-microphone' : 'fa-microphone-slash';
-                    const micColor = p.isMicrophoneEnabled ? '#4caf50' : '#ef5350';
-                    
-                    listHtml += `<div class="participant"><span><i class="fas fa-user-circle" style="color:#f0b90b;"></i> ${p.identity}${isMe}</span> <i class="fas ${micIcon}" style="color:${micColor};"></i></div>`;
-                    
-                    gridHtml += `
-                        <div class="participant-card">
-                            <div class="avatar"><i class="fas fa-user"></i></div>
-                            <div style="margin-bottom:5px;">${p.identity}${isMe}</div>
-                            <div style="color:${micColor};"><i class="fas ${micIcon}"></i></div>
-                        </div>
-                    `;
+        async function connect() {
+            try {
+                // Исправлено: LiveKit.Room вместо LiveKitClient.Room
+                room = new LiveKit.Room({
+                    publishDefaults: {
+                        audioPreset: LiveKit.AudioPresets.musicStereo
+                    }
                 });
                 
-                document.getElementById('participantsList').innerHTML = listHtml || '<div style="color:#848e9c; text-align:center;">Нет участников</div>';
-                document.getElementById('participantsGrid').innerHTML = gridHtml || '<div style="color:#848e9c; text-align:center;">Ожидание участников...</div>';
-            }
+                // Исправлено: все события через LiveKit.RoomEvent
+                room.on(LiveKit.RoomEvent.ParticipantConnected, updateUI);
+                room.on(LiveKit.RoomEvent.ParticipantDisconnected, updateUI);
+                room.on(LiveKit.RoomEvent.TrackMuted, updateUI);
+                room.on(LiveKit.RoomEvent.TrackUnmuted, updateUI);
+                
+                room.on(LiveKit.RoomEvent.Connected, () => {
+                    document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> Подключено к комнате';
+                });
 
-            window.toggleMic = async function() {
-                if (!room) return;
-                const newState = !room.localParticipant.isMicrophoneEnabled;
-                await room.localParticipant.setMicrophoneEnabled(newState);
+                room.on(LiveKit.RoomEvent.Disconnected, () => {
+                    document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-times-circle" style="color:#ef5350;"></i> Отключено';
+                });
+
+                await room.connect(LIVEKIT_URL, '', {
+                    identity: userName,
+                    roomName: roomName
+                });
                 
-                const micBtn = document.getElementById('micBtn');
-                const micIcon = micBtn.querySelector('i');
-                const micText = document.getElementById('micText');
-                
-                if (newState) {
-                    micIcon.className = 'fas fa-microphone';
-                    micText.textContent = 'Выключить микрофон';
-                } else {
-                    micIcon.className = 'fas fa-microphone-slash';
-                    micText.textContent = 'Включить микрофон';
-                }
+                await room.localParticipant.setMicrophoneEnabled(true);
                 
                 updateUI();
-            }
 
-            window.leaveRoom = function() {
-                if (room) {
-                    room.disconnect();
-                    room = null;
-                }
-                window.location.href = '/';
+            } catch(e) {
+                document.getElementById('connectionStatus').innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ef5350;"></i> Ошибка: ${e.message}`;
+                console.error(e);
             }
+        }
 
-            // Запускаем подключение
-            connect();
+        function updateUI() {
+            if (!room) return;
             
-            // Обновляем UI каждые 2 секунды
-            setInterval(updateUI, 2000);
+            const participants = [room.localParticipant, ...room.participants.values()];
+            document.getElementById('participantCount').textContent = participants.length;
+            
+            let listHtml = '';
+            let gridHtml = '';
+            
+            participants.forEach(p => {
+                const isMe = p === room.localParticipant ? ' (вы)' : '';
+                const micIcon = p.isMicrophoneEnabled ? 'fa-microphone' : 'fa-microphone-slash';
+                const micColor = p.isMicrophoneEnabled ? '#4caf50' : '#ef5350';
+                
+                listHtml += `<div class="participant"><span><i class="fas fa-user-circle" style="color:#f0b90b;"></i> ${p.identity}${isMe}</span> <i class="fas ${micIcon}" style="color:${micColor};"></i></div>`;
+                
+                gridHtml += `
+                    <div class="participant-card">
+                        <div class="avatar"><i class="fas fa-user"></i></div>
+                        <div style="margin-bottom:5px;">${p.identity}${isMe}</div>
+                        <div style="color:${micColor};"><i class="fas ${micIcon}"></i></div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('participantsList').innerHTML = listHtml || '<div style="color:#848e9c; text-align:center;">Нет участников</div>';
+            document.getElementById('participantsGrid').innerHTML = gridHtml || '<div style="color:#848e9c; text-align:center;">Ожидание участников...</div>';
         }
 
-        // Ждем загрузки библиотеки
-        if (typeof LiveKitClient !== 'undefined') {
-            init();
-        } else {
-            // Если библиотека еще не загрузилась, ждем
-            window.addEventListener('load', function() {
-                if (typeof LiveKitClient !== 'undefined') {
-                    init();
-                } else {
-                    document.getElementById('connectionStatus').innerHTML = '❌ Ошибка загрузки LiveKit. Обнови страницу.';
-                }
-            });
+        window.toggleMic = async function() {
+            if (!room) return;
+            const newState = !room.localParticipant.isMicrophoneEnabled;
+            await room.localParticipant.setMicrophoneEnabled(newState);
+            
+            const micBtn = document.getElementById('micBtn');
+            const micIcon = micBtn.querySelector('i');
+            const micText = document.getElementById('micText');
+            
+            if (newState) {
+                micIcon.className = 'fas fa-microphone';
+                micText.textContent = 'Выключить микрофон';
+            } else {
+                micIcon.className = 'fas fa-microphone-slash';
+                micText.textContent = 'Включить микрофон';
+            }
+            
+            updateUI();
         }
+
+        window.leaveRoom = function() {
+            if (room) {
+                room.disconnect();
+                room = null;
+            }
+            window.location.href = '/';
+        }
+
+        // Запускаем подключение
+        connect();
+        
+        // Обновляем UI каждые 2 секунды
+        setInterval(updateUI, 2000);
     </script>
 </body>
 </html>
