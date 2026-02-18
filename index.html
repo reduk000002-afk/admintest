@@ -76,6 +76,7 @@
             background: #0c0f15;
             margin: 5px 0;
             border-radius: 8px;
+            color: white;
         }
         .mic-btn {
             background: #1e1f25;
@@ -87,10 +88,8 @@
             width: 100%;
             margin-top: 20px;
         }
-        .mic-on { color: #4caf50; }
-        .mic-off { color: #ef5350; }
     </style>
-    <!-- Подключаем LiveKit -->
+    <!-- ПОДКЛЮЧАЕМ LIVEKIT ДРУГИМ СПОСОБОМ -->
     <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js"></script>
 </head>
 <body>
@@ -125,7 +124,14 @@
     </div>
 
     <script>
-        // ТВОИ ДАННЫЕ LIVEKIT (уже вставлены)
+        // Проверяем, загрузилась ли библиотека
+        if (typeof LiveKitClient === 'undefined') {
+            document.body.innerHTML = '<div style="color:red; padding:20px;">❌ Ошибка: LiveKit не загрузился. Проверь интернет или обнови страницу.</div>';
+        } else {
+            console.log('✅ LiveKit загружен');
+        }
+
+        // ТВОИ ДАННЫЕ LIVEKIT
         const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
         
         let room = null;
@@ -141,6 +147,11 @@
                 return;
             }
 
+            if (!LiveKitClient) {
+                alert('Ошибка: LiveKit не загружен');
+                return;
+            }
+
             currentRoomName = roomName;
             currentUserName = userName;
 
@@ -151,7 +162,9 @@
             try {
                 // Создаем комнату
                 room = new LiveKitClient.Room({
-                    publishDefaults: { audioPreset: LiveKitClient.AudioPresets.musicStereo }
+                    publishDefaults: { 
+                        audioPreset: LiveKitClient.AudioPresets.musicStereo 
+                    }
                 });
 
                 // Слушаем события
@@ -173,7 +186,7 @@
                     }
                 });
 
-                // Подключаемся (без токена - комнаты создаются автоматически)
+                // Подключаемся (без токена)
                 await room.connect(LIVEKIT_URL, '', { 
                     identity: currentUserName,
                     roomName: currentRoomName
@@ -193,21 +206,25 @@
         function updateParticipants() {
             if (!room) return;
             
-            const participants = [room.localParticipant, ...Array.from(room.participants.values())];
-            let html = '';
-            
-            participants.forEach(p => {
-                const micState = p.isMicrophoneEnabled ? '🎤 вкл' : '🔇 выкл';
-                const isMe = p === room.localParticipant ? ' (это вы)' : '';
-                html += `
-                    <div class="participant">
-                        <span>👤 ${p.identity || 'User'}${isMe}</span>
-                        <span style="color: ${p.isMicrophoneEnabled ? '#4caf50' : '#ef5350'};">${micState}</span>
-                    </div>
-                `;
-            });
-            
-            document.getElementById('participantsList').innerHTML = html;
+            try {
+                const participants = [room.localParticipant, ...Array.from(room.participants.values())];
+                let html = '';
+                
+                participants.forEach(p => {
+                    const micState = p.isMicrophoneEnabled ? '🎤 вкл' : '🔇 выкл';
+                    const isMe = p === room.localParticipant ? ' (это вы)' : '';
+                    html += `
+                        <div class="participant">
+                            <span>👤 ${p.identity || 'User'}${isMe}</span>
+                            <span style="color: ${p.isMicrophoneEnabled ? '#4caf50' : '#ef5350'};">${micState}</span>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('participantsList').innerHTML = html;
+            } catch (e) {
+                console.log('Ошибка обновления списка:', e);
+            }
         }
 
         async function toggleMic() {
@@ -241,6 +258,9 @@
 
         // Обновляем список каждые 2 секунды
         setInterval(updateParticipants, 2000);
+
+        // Для отладки - показываем в консоли, что библиотека доступна
+        console.log('LiveKitClient доступен:', !!LiveKitClient);
     </script>
 </body>
 </html>
