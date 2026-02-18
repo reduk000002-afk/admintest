@@ -1,27 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Binance Brief · аудиокомната</title>
+    <title>Binance Brief · конференция</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        /* ========== ТВОЙ ЧЕРНО-ЖЕЛТЫЙ СТИЛЬ ========== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
+        /* Твой черно-желтый стиль */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #0a0a0a; color: #eaecef; min-height: 100vh; display: flex; flex-direction: column; }
         
-        body {
-            background-color: #0a0a0a;
-            color: #eaecef;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        /* Шапка как в Binance */
         .navbar {
             background: #1e1f25;
             border-bottom: 1px solid #2c2f36;
@@ -30,7 +17,6 @@
             justify-content: space-between;
             align-items: center;
         }
-        
         .logo {
             color: #f0b90b;
             font-size: 1.5rem;
@@ -39,17 +25,14 @@
             align-items: center;
             gap: 10px;
         }
-        
         .room-tag {
             background: #0c0f15;
             border: 1px solid #2c2f36;
             border-radius: 40px;
             padding: 8px 16px;
             color: #f0b90b;
-            font-size: 0.9rem;
         }
         
-        /* Основной контейнер */
         .main-container {
             display: flex;
             flex: 1;
@@ -57,7 +40,6 @@
             gap: 24px;
         }
         
-        /* Боковая панель (участники) */
         .sidebar {
             width: 300px;
             background: #1e1f25;
@@ -65,81 +47,44 @@
             border-radius: 16px;
             padding: 20px;
         }
-        
         .sidebar-title {
             color: #f0b90b;
             font-size: 1.1rem;
-            font-weight: 600;
             margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
             padding-bottom: 12px;
             border-bottom: 1px solid #2c2f36;
         }
-        
         .participant {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             padding: 12px;
             background: #0c0f15;
             border-radius: 10px;
             margin-bottom: 8px;
-            border: 1px solid #2c2f36;
         }
         
-        .participant-name {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .participant-name i {
-            color: #f0b90b;
-        }
-        
-        .mic-indicator {
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-        }
-        
-        .mic-on { color: #4caf50; }
-        .mic-off { color: #ef5350; }
-        
-        /* Основная область */
         .stage {
             flex: 1;
             background: #1e1f25;
             border: 1px solid #2c2f36;
             border-radius: 16px;
             padding: 24px;
-            display: flex;
-            flex-direction: column;
         }
         
         .status-card {
             background: #0c0f15;
             border-left: 4px solid #f0b90b;
-            padding: 16px 20px;
+            padding: 16px;
             border-radius: 12px;
             margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
         }
         
         .participants-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 16px;
             margin-bottom: 24px;
         }
-        
         .participant-card {
             background: #0c0f15;
             border: 1px solid #2c2f36;
@@ -147,7 +92,6 @@
             padding: 20px;
             text-align: center;
         }
-        
         .avatar {
             width: 64px;
             height: 64px;
@@ -161,7 +105,6 @@
             color: #f0b90b;
         }
         
-        /* Панель управления (снизу) */
         .control-bar {
             background: #1e1f25;
             border-top: 1px solid #2c2f36;
@@ -170,276 +113,131 @@
             justify-content: center;
             gap: 16px;
         }
-        
         .btn {
             padding: 14px 32px;
             border-radius: 40px;
             font-weight: 600;
-            font-size: 1rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 10px;
-            transition: 0.2s;
             border: none;
         }
-        
         .btn-primary {
             background: #f0b90b;
             color: #0a0a0a;
         }
-        
-        .btn-primary:hover {
-            background: #ffd53d;
-            transform: scale(1.02);
-        }
-        
-        .btn-secondary {
-            background: #0c0f15;
-            color: #eaecef;
-            border: 1px solid #2c2f36;
-        }
-        
-        .btn-secondary:hover {
-            border-color: #f0b90b;
-        }
-        
         .btn-danger {
             background: #0c0f15;
             color: #ef5350;
             border: 1px solid #2c2f36;
         }
-        
-        .btn-danger:hover {
-            border-color: #ef5350;
-        }
-        
-        video {
-            display: none !important;
-        }
-        
-        .text-success { color: #4caf50; }
-        .text-warning { color: #f0b90b; }
-        .text-danger { color: #ef5350; }
+        video { display: none !important; }
     </style>
-    <!-- Подключаем иконки Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Подключаем LiveKit (механика из песочницы) -->
     <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js"></script>
 </head>
 <body>
-    <!-- Шапка -->
     <div class="navbar">
-        <div class="logo">
-            <i class="fas fa-microphone-alt"></i>
-            BINANCE BRIEF
-        </div>
-        <div class="room-tag" id="roomTag">
-            <i class="fas fa-door-open"></i> <span id="roomName">загрузка...</span>
-        </div>
+        <div class="logo"><i class="fas fa-microphone-alt"></i> BINANCE BRIEF</div>
+        <div class="room-tag" id="roomDisplay"></div>
     </div>
 
-    <!-- Основная часть -->
     <div class="main-container">
-        <!-- Боковая панель с участниками -->
         <div class="sidebar">
-            <div class="sidebar-title">
-                <i class="fas fa-users"></i>
-                УЧАСТНИКИ <span id="participantCount">(0)</span>
-            </div>
-            <div id="participantsList">
-                <!-- Сюда будет подгружаться список -->
-                <div style="color: #848e9c; text-align: center; padding: 20px;">
-                    <i class="fas fa-circle-notch fa-spin"></i> Загрузка...
-                </div>
-            </div>
+            <div class="sidebar-title"><i class="fas fa-users"></i> Участники (<span id="participantCount">0</span>)</div>
+            <div id="participantsList"></div>
         </div>
 
-        <!-- Основная сцена -->
         <div class="stage">
-            <!-- Статус подключения -->
             <div class="status-card" id="connectionStatus">
-                <i class="fas fa-circle-notch fa-spin text-warning"></i>
-                <span>Подключение к серверу...</span>
+                <i class="fas fa-circle-notch fa-spin"></i> Подключение...
             </div>
-
-            <!-- Сетка участников (как в песочнице, но в черно-желтом стиле) -->
-            <div class="participants-grid" id="participantsGrid">
-                <!-- Динамически через JS -->
-            </div>
-
-            <!-- Информация о комнате -->
-            <div style="background: #0c0f15; border-radius: 10px; padding: 16px; border: 1px solid #2c2f36;">
-                <div style="display: flex; gap: 20px; color: #848e9c; font-size: 0.9rem;">
-                    <div><i class="fas fa-microphone text-warning"></i> Только аудио</div>
-                    <div><i class="fas fa-lock text-warning"></i> Защищенное соединение</div>
-                </div>
-            </div>
+            <div class="participants-grid" id="participantsGrid"></div>
         </div>
     </div>
 
-    <!-- Панель управления -->
     <div class="control-bar">
-        <button class="btn btn-primary" id="micButton" onclick="toggleMic()">
-            <i class="fas fa-microphone" id="micIcon"></i>
-            <span id="micText">Выключить микрофон</span>
+        <button class="btn btn-primary" onclick="toggleMic()">
+            <i class="fas fa-microphone"></i> <span id="micText">Выключить микрофон</span>
         </button>
         <button class="btn btn-danger" onclick="leaveRoom()">
-            <i class="fas fa-sign-out-alt"></i>
-            Покинуть
+            <i class="fas fa-sign-out-alt"></i> Покинуть
         </button>
     </div>
 
     <script>
-        // ========== МЕХАНИКА ИЗ ПЕСОЧНИЦЫ LIVEKIT ==========
-        
-        // Получаем название комнаты из URL
         const urlParams = new URLSearchParams(window.location.search);
-        const roomName = urlParams.get('room') || 'default-room';
-        document.getElementById('roomName').textContent = roomName;
+        const roomName = urlParams.get('room');
+        const userName = urlParams.get('user') || 'Участник';
+        
+        document.getElementById('roomDisplay').innerHTML = `<i class="fas fa-door-open"></i> ${roomName}`;
 
-        // Твои данные LiveKit
         const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
         let room = null;
-        let currentUser = 'User_' + Math.random().toString(36).substring(7);
 
-        // Функция обновления интерфейса (как в песочнице)
+        async function connect() {
+            try {
+                room = new LiveKitClient.Room();
+                
+                room.on(LiveKitClient.RoomEvent.ParticipantConnected, updateUI);
+                room.on(LiveKitClient.RoomEvent.ParticipantDisconnected, updateUI);
+                
+                await room.connect(LIVEKIT_URL, '', {
+                    identity: userName,
+                    roomName: roomName
+                });
+                
+                await room.localParticipant.setMicrophoneEnabled(true);
+                document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> Подключено';
+                updateUI();
+
+            } catch(e) {
+                document.getElementById('connectionStatus').innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ef5350;"></i> Ошибка: ${e.message}`;
+            }
+        }
+
         function updateUI() {
             if (!room) return;
-
-            const participants = [room.localParticipant, ...Array.from(room.participants.values())];
             
-            // Обновляем счетчик участников
-            document.getElementById('participantCount').textContent = `(${participants.length})`;
-
-            // Обновляем список участников в боковой панели
-            let listHtml = '';
+            const participants = [room.localParticipant, ...room.participants.values()];
+            document.getElementById('participantCount').textContent = participants.length;
+            
+            let listHtml = '', gridHtml = '';
+            
             participants.forEach(p => {
                 const isMe = p === room.localParticipant ? ' (вы)' : '';
                 const micIcon = p.isMicrophoneEnabled ? 'fa-microphone' : 'fa-microphone-slash';
-                const micColor = p.isMicrophoneEnabled ? 'mic-on' : 'mic-off';
+                const micColor = p.isMicrophoneEnabled ? '#4caf50' : '#ef5350';
                 
-                listHtml += `
-                    <div class="participant">
-                        <div class="participant-name">
-                            <i class="fas fa-user-circle"></i>
-                            ${p.identity}${isMe}
-                        </div>
-                        <div class="mic-indicator ${micColor}">
-                            <i class="fas ${micIcon}"></i>
-                        </div>
-                    </div>
-                `;
-            });
-            document.getElementById('participantsList').innerHTML = listHtml;
-
-            // Обновляем сетку участников
-            let gridHtml = '';
-            participants.forEach(p => {
-                const isMe = p === room.localParticipant ? ' (вы)' : '';
-                const micIcon = p.isMicrophoneEnabled ? 'fa-microphone' : 'fa-microphone-slash';
-                const micColor = p.isMicrophoneEnabled ? 'text-success' : 'text-danger';
+                listHtml += `<div class="participant"><span><i class="fas fa-user-circle" style="color:#f0b90b;"></i> ${p.identity}${isMe}</span> <i class="fas ${micIcon}" style="color:${micColor};"></i></div>`;
                 
                 gridHtml += `
                     <div class="participant-card">
-                        <div class="avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div style="font-weight: 600; margin-bottom: 8px;">${p.identity}${isMe}</div>
-                        <div style="font-size: 0.9rem; color: #848e9c;">
-                            <i class="fas ${micIcon} ${micColor}"></i>
-                        </div>
+                        <div class="avatar"><i class="fas fa-user"></i></div>
+                        <div>${p.identity}${isMe}</div>
+                        <div style="color:${micColor};"><i class="fas ${micIcon}"></i></div>
                     </div>
                 `;
             });
+            
+            document.getElementById('participantsList').innerHTML = listHtml;
             document.getElementById('participantsGrid').innerHTML = gridHtml;
         }
 
-        // Подключение к комнате (как в песочнице)
-        async function connect() {
-            try {
-                // Создаем комнату LiveKit
-                room = new LiveKitClient.Room({
-                    publishDefaults: {
-                        audioPreset: LiveKitClient.AudioPresets.musicStereo
-                    }
-                });
-
-                // Подписываемся на события (как в песочнице)
-                room.on(LiveKitClient.RoomEvent.ParticipantConnected, updateUI);
-                room.on(LiveKitClient.RoomEvent.ParticipantDisconnected, updateUI);
-                room.on(LiveKitClient.RoomEvent.TrackMuted, updateUI);
-                room.on(LiveKitClient.RoomEvent.TrackUnmuted, updateUI);
-                
-                room.on(LiveKitClient.RoomEvent.Connected, () => {
-                    document.getElementById('connectionStatus').innerHTML = `
-                        <i class="fas fa-check-circle text-success"></i>
-                        <span>Подключено к комнате <strong style="color:#f0b90b;">${roomName}</strong></span>
-                    `;
-                });
-
-                room.on(LiveKitClient.RoomEvent.Disconnected, () => {
-                    document.getElementById('connectionStatus').innerHTML = `
-                        <i class="fas fa-times-circle text-danger"></i>
-                        <span>Отключено от сервера</span>
-                    `;
-                });
-
-                // Подключаемся
-                await room.connect(LIVEKIT_URL, '', {
-                    identity: currentUser,
-                    roomName: roomName
-                });
-
-                // Включаем микрофон
-                await room.localParticipant.setMicrophoneEnabled(true);
-                
-                // Обновляем интерфейс
-                updateUI();
-
-            } catch (err) {
-                document.getElementById('connectionStatus').innerHTML = `
-                    <i class="fas fa-exclamation-triangle text-danger"></i>
-                    <span>Ошибка подключения: ${err.message}</span>
-                `;
-                console.error(err);
-            }
-        }
-
-        // Управление микрофоном
         async function toggleMic() {
             if (!room) return;
-            
             const newState = !room.localParticipant.isMicrophoneEnabled;
             await room.localParticipant.setMicrophoneEnabled(newState);
-            
-            const micIcon = document.getElementById('micIcon');
-            const micText = document.getElementById('micText');
-            
-            if (newState) {
-                micIcon.className = 'fas fa-microphone';
-                micText.textContent = 'Выключить микрофон';
-            } else {
-                micIcon.className = 'fas fa-microphone-slash';
-                micText.textContent = 'Включить микрофон';
-            }
-            
             updateUI();
         }
 
-        // Выход из комнаты
         function leaveRoom() {
-            if (room) {
-                room.disconnect();
-                room = null;
-            }
-            window.location.href = '/'; // Возврат на главную
+            if (room) room.disconnect();
+            window.close();
         }
 
-        // Запускаем подключение при загрузке страницы
         connect();
-
-        // Обновляем интерфейс каждые 2 секунды
         setInterval(updateUI, 2000);
     </script>
 </body>
