@@ -8,6 +8,7 @@
         /* Твой черно-желтый стиль */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #0a0a0a; color: #eaecef; min-height: 100vh; display: flex; flex-direction: column; }
+        
         .navbar {
             background: #1e1f25;
             border-bottom: 1px solid #2c2f36;
@@ -31,12 +32,14 @@
             padding: 8px 16px;
             color: #f0b90b;
         }
+        
         .main-container {
             display: flex;
             flex: 1;
             padding: 24px;
             gap: 24px;
         }
+        
         .sidebar {
             width: 300px;
             background: #1e1f25;
@@ -59,6 +62,7 @@
             border-radius: 10px;
             margin-bottom: 8px;
         }
+        
         .stage {
             flex: 1;
             background: #1e1f25;
@@ -66,6 +70,7 @@
             border-radius: 16px;
             padding: 24px;
         }
+        
         .status-card {
             background: #0c0f15;
             border-left: 4px solid #f0b90b;
@@ -73,6 +78,7 @@
             border-radius: 12px;
             margin-bottom: 24px;
         }
+        
         .participants-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -98,6 +104,7 @@
             font-size: 24px;
             color: #f0b90b;
         }
+        
         .control-bar {
             background: #1e1f25;
             border-top: 1px solid #2c2f36;
@@ -120,19 +127,22 @@
             background: #f0b90b;
             color: #0a0a0a;
         }
+        .btn-primary:hover {
+            background: #ffd53d;
+        }
         .btn-danger {
             background: #0c0f15;
             color: #ef5350;
             border: 1px solid #2c2f36;
         }
+        .btn-danger:hover {
+            border-color: #ef5350;
+        }
         video { display: none !important; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <!-- ПЫТАЕМСЯ ЗАГРУЗИТЬ ИЗ 5 РАЗНЫХ ИСТОЧНИКОВ -->
-    <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js"></script>
-    <script src="https://unpkg.com/livekit-client@1.15.4/dist/livekit-client.umd.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/livekit-client/1.15.4/livekit-client.umd.min.js"></script>
+    <!-- ПОДКЛЮЧАЕМ ЛОКАЛЬНЫЙ ФАЙЛ (который ты скачал) -->
+    <script src="livekit.js"></script>
 </head>
 <body>
     <div class="navbar">
@@ -164,26 +174,25 @@
     </div>
 
     <script>
-        // Ждем загрузки всех скриптов
+        // Ждем загрузки страницы и библиотеки
         window.addEventListener('load', function() {
-            console.log('LiveKit объект:', window.LiveKit);
-            console.log('LiveKitClient объект:', window.LiveKitClient);
-            
-            // Пробуем найти LiveKit в разных местах
+            // Определяем LiveKit (может быть в разных местах)
             const LK = window.LiveKit || window.LiveKitClient || window.livekit;
             
             if (!LK) {
-                document.getElementById('connectionStatus').innerHTML = '❌ Не удалось загрузить LiveKit. Проверь интернет или VPN.';
+                document.getElementById('connectionStatus').innerHTML = '❌ Помилка: бібліотека LiveKit не завантажилась. Перевір файл livekit.js';
                 return;
             }
-            
+
+            // Получаем параметры из URL
             const urlParams = new URLSearchParams(window.location.search);
             const roomName = urlParams.get('room');
-            const userName = urlParams.get('user') || 'Участник_' + Math.random().toString(36).substring(7);
+            const userName = urlParams.get('user') || 'Учасник_' + Math.random().toString(36).substring(7);
             
             if (!roomName) {
-                alert('Ошибка: не указана комната');
+                alert('Помилка: не вказана кімната');
                 window.location.href = '/';
+                return;
             }
 
             document.getElementById('roomDisplay').innerHTML = `<i class="fas fa-door-open"></i> ${roomName}`;
@@ -193,8 +202,10 @@
 
             async function connect() {
                 try {
+                    // Створюємо кімнату
                     room = new LK.Room();
                     
+                    // Підписуємось на події
                     if (LK.RoomEvent) {
                         room.on(LK.RoomEvent.ParticipantConnected, updateUI);
                         room.on(LK.RoomEvent.ParticipantDisconnected, updateUI);
@@ -202,20 +213,27 @@
                         room.on(LK.RoomEvent.TrackUnmuted, updateUI);
                         
                         room.on(LK.RoomEvent.Connected, () => {
-                            document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> Подключено к комнате';
+                            document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> Підключено до кімнати';
+                        });
+
+                        room.on(LK.RoomEvent.Disconnected, () => {
+                            document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-times-circle" style="color:#ef5350;"></i> Відключено';
                         });
                     }
 
+                    // Підключаємось
                     await room.connect(LIVEKIT_URL, '', {
                         identity: userName,
                         roomName: roomName
                     });
                     
+                    // Вмикаємо мікрофон
                     await room.localParticipant.setMicrophoneEnabled(true);
+                    
                     updateUI();
 
                 } catch(e) {
-                    document.getElementById('connectionStatus').innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ef5350;"></i> Ошибка: ${e.message}`;
+                    document.getElementById('connectionStatus').innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ef5350;"></i> Помилка: ${e.message}`;
                     console.error(e);
                 }
             }
@@ -230,7 +248,7 @@
                 let gridHtml = '';
                 
                 participants.forEach(p => {
-                    const isMe = p === room.localParticipant ? ' (вы)' : '';
+                    const isMe = p === room.localParticipant ? ' (ви)' : '';
                     const micIcon = p.isMicrophoneEnabled ? 'fa-microphone' : 'fa-microphone-slash';
                     const micColor = p.isMicrophoneEnabled ? '#4caf50' : '#ef5350';
                     
@@ -245,8 +263,8 @@
                     `;
                 });
                 
-                document.getElementById('participantsList').innerHTML = listHtml;
-                document.getElementById('participantsGrid').innerHTML = gridHtml;
+                document.getElementById('participantsList').innerHTML = listHtml || '<div style="color:#848e9c; text-align:center;">Немає учасників</div>';
+                document.getElementById('participantsGrid').innerHTML = gridHtml || '<div style="color:#848e9c; text-align:center;">Очікування учасників...</div>';
             }
 
             window.toggleMic = async function() {
@@ -260,10 +278,10 @@
                 
                 if (newState) {
                     micIcon.className = 'fas fa-microphone';
-                    micText.textContent = 'Выключить микрофон';
+                    micText.textContent = 'Вимкнути мікрофон';
                 } else {
                     micIcon.className = 'fas fa-microphone-slash';
-                    micText.textContent = 'Включить микрофон';
+                    micText.textContent = 'Увімкнути мікрофон';
                 }
                 
                 updateUI();
@@ -277,7 +295,10 @@
                 window.location.href = '/';
             }
 
+            // Запускаємо
             connect();
+            
+            // Оновлюємо кожні 2 секунди
             setInterval(updateUI, 2000);
         });
     </script>
