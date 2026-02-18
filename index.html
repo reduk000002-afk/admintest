@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Binance Brief · личный кабинет</title>
+    <title>Binance Brief · особистий кабінет</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
@@ -17,6 +17,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 16px;
         }
         .card {
             background: #1e1f25;
@@ -25,6 +26,7 @@
             padding: 40px;
             width: 100%;
             max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
         }
         h1 {
             color: #f0b90b;
@@ -33,6 +35,9 @@
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+        h1 i {
+            color: #f0b90b;
         }
         .input-group {
             margin-bottom: 20px;
@@ -45,10 +50,12 @@
             border-radius: 12px;
             color: white;
             font-size: 1rem;
+            transition: 0.2s;
         }
         input:focus {
             border-color: #f0b90b;
             outline: none;
+            box-shadow: 0 0 0 3px rgba(240,185,11,0.15);
         }
         .btn {
             width: 100%;
@@ -65,6 +72,7 @@
             justify-content: center;
             gap: 10px;
             margin: 10px 0;
+            transition: 0.2s;
         }
         .btn:hover {
             background: #ffd53d;
@@ -76,11 +84,11 @@
         }
         .btn-secondary:hover {
             border-color: #f0b90b;
+            background: #0c0f15;
         }
-        .users-list {
-            margin-top: 30px;
-            padding-top: 20px;
+        .separator {
             border-top: 1px solid #2c2f36;
+            margin: 24px 0;
         }
         .user-badge {
             display: inline-block;
@@ -90,6 +98,7 @@
             border-radius: 40px;
             color: #f0b90b;
             margin: 5px;
+            font-size: 0.9rem;
         }
         .status-indicator {
             width: 12px;
@@ -98,8 +107,33 @@
             display: inline-block;
             margin-right: 8px;
         }
-        .active { background: #4caf50; }
-        .inactive { background: #ef5350; }
+        .active {
+            background: #4caf50;
+            box-shadow: 0 0 10px #4caf50;
+        }
+        .inactive {
+            background: #ef5350;
+        }
+        .status-text {
+            color: #eaecef;
+            font-size: 1rem;
+        }
+        .conference-card {
+            background: #0c0f15;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            border-left: 4px solid #f0b90b;
+        }
+        .room-info {
+            background: #1e1f25;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            color: #f0b90b;
+            word-break: break-all;
+            border: 1px solid #2c2f36;
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -107,84 +141,105 @@
     <div class="card">
         <h1><i class="fas fa-microphone-alt"></i> Binance Brief</h1>
 
+        <!-- Екран входу -->
         <div id="loginForm">
             <div class="input-group">
-                <input type="text" id="username" placeholder="Логин" value="admin">
+                <input type="text" id="username" placeholder="Логін" value="admin">
             </div>
             <div class="input-group">
                 <input type="password" id="password" placeholder="Пароль" value="12345">
             </div>
-            <button class="btn" onclick="login()"><i class="fas fa-key"></i> Войти</button>
+            <button class="btn" onclick="login()"><i class="fas fa-key"></i> Увійти</button>
 
-            <div class="users-list">
-                <span class="user-badge"><i class="fas fa-user"></i> admin</span>
-                <span class="user-badge"><i class="fas fa-user"></i> test1</span>
-                <span class="user-badge"><i class="fas fa-user"></i> test2</span>
-                <div style="color:#848e9c; margin-top:10px;">Пароль: 12345</div>
+            <div class="separator"></div>
+            <div style="display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;">
+                <span class="user-badge"><i class="fas fa-user-cog"></i> admin / 12345</span>
+                <span class="user-badge"><i class="fas fa-user"></i> test1 / 12345</span>
+                <span class="user-badge"><i class="fas fa-user"></i> test2 / 12345</span>
             </div>
         </div>
 
+        <!-- Особистий кабінет (після входу) -->
         <div id="dashboard" style="display: none;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
-                <h2 style="color:#f0b90b;"><i class="fas fa-user-circle"></i> <span id="displayName"></span></h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h2 style="color:#f0b90b; font-size:1.5rem;">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="displayName"></span>
+                </h2>
                 <span class="user-badge" id="userRole"></span>
             </div>
 
-            <div style="background: #0c0f15; border-radius: 16px; padding: 24px; margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; margin-bottom: 20px;">
+            <div class="conference-card">
+                <div style="display: flex; align-items: center; margin-bottom: 15px;">
                     <span class="status-indicator" id="statusIndicator"></span>
-                    <span id="conferenceStatus">Конференция не активна</span>
+                    <span class="status-text" id="conferenceStatus">Конференція не активна</span>
                 </div>
 
+                <!-- Для адміністратора -->
                 <div id="adminControls" style="display: none;">
                     <button class="btn" onclick="startConference()">
-                        <i class="fas fa-play"></i> Начать конференцию
+                        <i class="fas fa-play"></i> Створити конференцію
                     </button>
                 </div>
 
+                <!-- Для всіх учасників -->
                 <div id="joinControls" style="display: none;">
+                    <div class="room-info" id="activeRoom"></div>
                     <button class="btn btn-secondary" onclick="joinConference()">
-                        <i class="fas fa-headphones"></i> Присоединиться
+                        <i class="fas fa-headphones"></i> Приєднатися до конференції
                     </button>
                 </div>
             </div>
 
-            <div style="color: #848e9c;" id="activeRoom"></div>
-            <button class="btn btn-secondary" onclick="logout()" style="margin-top:20px;">
-                <i class="fas fa-sign-out-alt"></i> Выйти
+            <button class="btn btn-secondary" onclick="logout()" style="margin-top: 10px;">
+                <i class="fas fa-sign-out-alt"></i> Вийти
             </button>
         </div>
     </div>
 
     <script>
-        const users = { admin: 'admin', test1: 'user', test2: 'user' };
+        // Дані користувачів
+        const users = {
+            admin: { role: 'admin', name: 'Адміністратор' },
+            test1: { role: 'user', name: 'Співробітник 1' },
+            test2: { role: 'user', name: 'Співробітник 2' }
+        };
         const PASSWORD = '12345';
 
+        // Стан конференції (зберігаємо в localStorage, щоб всі бачили)
         let activeConference = localStorage.getItem('activeConference') === 'true';
         let conferenceRoom = localStorage.getItem('conferenceRoom');
         let currentUser = null;
 
+        // Функція входу
         function login() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
             if (!users[username] || password !== PASSWORD) {
-                alert('Неверный логин или пароль');
+                alert('Невірний логін або пароль');
                 return;
             }
 
-            currentUser = { login: username, role: users[username] };
-            
+            currentUser = {
+                login: username,
+                role: users[username].role,
+                name: users[username].name
+            };
+
+            // Показуємо особистий кабінет
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             
-            document.getElementById('displayName').textContent = username;
-            document.getElementById('userRole').textContent = username === 'admin' ? 'Админ' : 'Участник';
+            document.getElementById('displayName').innerHTML = `${users[username].name} (@${username})`;
+            document.getElementById('userRole').innerHTML = username === 'admin' ? 'Адміністратор' : 'Учасник';
 
-            updateUI();
+            // Оновлюємо інтерфейс конференції
+            updateConferenceUI();
         }
 
-        function updateUI() {
+        // Оновлення інтерфейсу конференції
+        function updateConferenceUI() {
             const indicator = document.getElementById('statusIndicator');
             const statusEl = document.getElementById('conferenceStatus');
             const adminControls = document.getElementById('adminControls');
@@ -193,56 +248,85 @@
 
             if (activeConference && conferenceRoom) {
                 indicator.className = 'status-indicator active';
-                statusEl.textContent = `Конференция активна (${conferenceRoom})`;
-                activeRoomEl.innerHTML = `<i class="fas fa-door-open"></i> Комната: ${conferenceRoom}`;
+                statusEl.innerHTML = `<i class="fas fa-check-circle" style="color:#4caf50;"></i> Конференція активна`;
+                activeRoomEl.innerHTML = `<i class="fas fa-door-open" style="color:#f0b90b;"></i> Кімната: <strong>${conferenceRoom}</strong>`;
                 joinControls.style.display = 'block';
                 
                 if (currentUser.role === 'admin') {
                     adminControls.style.display = 'block';
+                } else {
+                    adminControls.style.display = 'none';
                 }
             } else {
                 indicator.className = 'status-indicator inactive';
-                statusEl.textContent = 'Конференция не активна';
-                activeRoomEl.innerHTML = '<i class="fas fa-hourglass"></i> Ожидание...';
+                statusEl.innerHTML = `<i class="fas fa-hourglass" style="color:#ef5350;"></i> Конференція не активна`;
+                activeRoomEl.innerHTML = '';
                 joinControls.style.display = 'none';
                 
-                if (currentUser.role === 'admin') {
+                if (currentUser && currentUser.role === 'admin') {
                     adminControls.style.display = 'block';
+                } else {
+                    adminControls.style.display = 'none';
                 }
             }
         }
 
+        // Адмін створює конференцію
         function startConference() {
-            conferenceRoom = 'conf-' + new Date().getTime();
+            // Генеруємо унікальну назву кімнати
+            const now = new Date();
+            conferenceRoom = `conf-${now.getFullYear()}${now.getMonth()+1}${now.getDate()}-${now.getHours()}${now.getMinutes()}`;
             activeConference = true;
             
+            // Зберігаємо в localStorage (бачать всі)
             localStorage.setItem('activeConference', 'true');
             localStorage.setItem('conferenceRoom', conferenceRoom);
             
-            updateUI();
-            alert('Конференция создана!');
+            updateConferenceUI();
+            
+            // Показуємо повідомлення з посиланням
+            const roomUrl = `${window.location.origin}/admintest/room.html?room=${conferenceRoom}`;
+            alert(`✅ Конференцію створено!\n\nПосилання для учасників:\n${roomUrl}\n\nСкопіюйте його та надішліть співробітникам.`);
+            
+            // Відкриваємо кімнату для адміна
+            window.open(`room.html?room=${conferenceRoom}&user=${currentUser.login}`, '_blank');
         }
 
+        // Учасники приєднуються
         function joinConference() {
             if (!activeConference || !conferenceRoom) {
-                alert('Нет активной конференции');
+                alert('Немає активної конференції');
                 return;
             }
             window.open(`room.html?room=${conferenceRoom}&user=${currentUser.login}`, '_blank');
         }
 
+        // Вихід
         function logout() {
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('dashboard').style.display = 'none';
+            currentUser = null;
         }
 
+        // Слідкуємо за змінами в localStorage (для синхронізації)
         setInterval(() => {
-            activeConference = localStorage.getItem('activeConference') === 'true';
-            conferenceRoom = localStorage.getItem('conferenceRoom');
-            if (document.getElementById('dashboard').style.display === 'block') {
-                updateUI();
+            const newActive = localStorage.getItem('activeConference') === 'true';
+            const newRoom = localStorage.getItem('conferenceRoom');
+            
+            if (newActive !== activeConference || newRoom !== conferenceRoom) {
+                activeConference = newActive;
+                conferenceRoom = newRoom;
+                if (document.getElementById('dashboard').style.display === 'block') {
+                    updateConferenceUI();
+                }
             }
         }, 2000);
+
+        // Функції глобально
+        window.login = login;
+        window.startConference = startConference;
+        window.joinConference = joinConference;
+        window.logout = logout;
     </script>
 </body>
 </html>
