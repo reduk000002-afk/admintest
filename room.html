@@ -135,7 +135,7 @@
         video { display: none !important; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- ПОДКЛЮЧАЕМ БИБЛИОТЕКУ LIVEKIT (UMD версия) -->
+    <!-- ПОДКЛЮЧАЕМ БИБЛИОТЕКУ LIVEKIT -->
     <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js"></script>
 </head>
 <body>
@@ -168,8 +168,17 @@
     </div>
 
     <script>
-        // Исправлено: LiveKit, а не LiveKitClient!
-        const LiveKit = window.LiveKit;
+        // ========== ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ ==========
+        // Проверяем, что загрузилось
+        console.log('LiveKit объект:', window.LiveKit);
+        console.log('LiveKitClient объект:', window.LiveKitClient);
+        
+        // ОПРЕДЕЛЯЕМ ПРАВИЛЬНЫЙ ОБЪЕКТ
+        const LK = window.LiveKit || window.LiveKitClient;
+        
+        if (!LK) {
+            document.getElementById('connectionStatus').innerHTML = '❌ Ошибка: LiveKit не загрузился';
+        }
         
         const urlParams = new URLSearchParams(window.location.search);
         const roomName = urlParams.get('room');
@@ -187,26 +196,34 @@
 
         async function connect() {
             try {
-                // Исправлено: LiveKit.Room вместо LiveKitClient.Room
-                room = new LiveKit.Room({
-                    publishDefaults: {
-                        audioPreset: LiveKit.AudioPresets.musicStereo
-                    }
-                });
+                // Пробуем разные варианты создания комнаты
+                if (LK.Room) {
+                    room = new LK.Room({
+                        publishDefaults: {
+                            audioPreset: LK.AudioPresets?.musicStereo
+                        }
+                    });
+                } else if (LK.default?.Room) {
+                    room = new LK.default.Room();
+                } else {
+                    throw new Error('Не найден конструктор Room');
+                }
                 
-                // Исправлено: все события через LiveKit.RoomEvent
-                room.on(LiveKit.RoomEvent.ParticipantConnected, updateUI);
-                room.on(LiveKit.RoomEvent.ParticipantDisconnected, updateUI);
-                room.on(LiveKit.RoomEvent.TrackMuted, updateUI);
-                room.on(LiveKit.RoomEvent.TrackUnmuted, updateUI);
-                
-                room.on(LiveKit.RoomEvent.Connected, () => {
-                    document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> Подключено к комнате';
-                });
+                // Подписываемся на события
+                if (LK.RoomEvent) {
+                    room.on(LK.RoomEvent.ParticipantConnected, updateUI);
+                    room.on(LK.RoomEvent.ParticipantDisconnected, updateUI);
+                    room.on(LK.RoomEvent.TrackMuted, updateUI);
+                    room.on(LK.RoomEvent.TrackUnmuted, updateUI);
+                    
+                    room.on(LK.RoomEvent.Connected, () => {
+                        document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> Подключено к комнате';
+                    });
 
-                room.on(LiveKit.RoomEvent.Disconnected, () => {
-                    document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-times-circle" style="color:#ef5350;"></i> Отключено';
-                });
+                    room.on(LK.RoomEvent.Disconnected, () => {
+                        document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-times-circle" style="color:#ef5350;"></i> Отключено';
+                    });
+                }
 
                 await room.connect(LIVEKIT_URL, '', {
                     identity: userName,
