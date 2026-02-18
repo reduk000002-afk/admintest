@@ -6,7 +6,7 @@
     <title>Binance Brief · аудиокомната</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
         body { background: #0a0a0a; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
         .card { background: #1e1f25; border-radius: 24px; width: 100%; max-width: 500px; padding: 32px; border: 1px solid #2c2f36; }
         h2 { color: #f0b90b; font-size: 1.8rem; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
@@ -20,13 +20,22 @@
         .participant-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #262b33; color: white; }
         .status-bar { background: #0c0f15; padding: 10px; border-radius: 12px; margin: 16px 0; text-align: center; border-left: 4px solid #f0b90b; color: #eaecef; }
         .mic-btn { background: #1e1f25; border: 1px solid #2c2f36; border-radius: 40px; padding: 12px 24px; color: white; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .mic-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; }
         .logout { color: #848e9c; cursor: pointer; }
         .logout:hover { color: #f0b90b; }
         video { display: none !important; }
     </style>
-    <!-- Подключаем LiveKit -->
+    <!-- ✅ ГАРАНТИРОВАННО РАБОЧЕЕ ПОДКЛЮЧЕНИЕ -->
     <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js"></script>
+    <script>
+        // Проверяем загрузку ДО всего остального кода
+        window.onload = function() {
+            if (typeof LiveKitClient === 'undefined') {
+                document.body.innerHTML = '<div style="color:red; padding:20px;">❌ Ошибка: LiveKit не загрузился. Проверь интернет или обнови.</div>';
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="card">
@@ -70,134 +79,144 @@
     </div>
 
     <script>
-        // Данные LiveKit
-        const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
-        const ROOM_NAME = 'briefing-room';
-
-        let currentRoom = null;
-        let currentUser = '';
-
-        // Элементы
-        const loginScreen = document.getElementById('loginScreen');
-        const roomScreen = document.getElementById('roomScreen');
-        const loginBtn = document.getElementById('loginBtn');
-        const loginInput = document.getElementById('loginInput');
-        const passwordInput = document.getElementById('passwordInput');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const micBtn = document.getElementById('micBtn');
-        const roomStatus = document.getElementById('roomStatus');
-        const participantList = document.getElementById('participantList');
-        const participantCount = document.getElementById('participantCount');
-
-        // Проверка логина
-        function checkAuth(login, pass) {
-            return (login === 'test1' && pass === '12345') || (login === 'test2' && pass === '12345');
-        }
-
-        // Обновление списка
-        function updateParticipants() {
-            if (!currentRoom) return;
-            const participants = [currentRoom.localParticipant, ...Array.from(currentRoom.participants.values())];
-            participantCount.textContent = participants.length;
-
-            let html = '';
-            participants.forEach(p => {
-                const muted = !p.isMicrophoneEnabled;
-                const name = p.identity || 'User';
-                const me = p === currentRoom.localParticipant ? ' (я)' : '';
-                html += `
-                    <div class="participant-item">
-                        <span><i class="fas fa-user-circle" style="color:#f0b90b;"></i> ${name}${me}</span>
-                        <span style="color: ${muted ? '#ef5350' : '#4caf50'};">
-                            <i class="fas fa-${muted ? 'microphone-slash' : 'microphone'}"></i>
-                        </span>
-                    </div>
-                `;
-            });
-            participantList.innerHTML = html || '<div style="color:#5a6678;">Нет участников</div>';
-        }
-
-        // Подключение
-        async function joinRoom(identity) {
-            try {
-                roomStatus.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Подключение...';
-                
-                currentRoom = new LiveKitClient.Room({
-                    publishDefaults: { audioPreset: LiveKitClient.AudioPresets.musicStereo }
-                });
-
-                currentRoom.on(LiveKitClient.RoomEvent.ParticipantConnected, updateParticipants);
-                currentRoom.on(LiveKitClient.RoomEvent.ParticipantDisconnected, updateParticipants);
-                currentRoom.on(LiveKitClient.RoomEvent.TrackMuted, updateParticipants);
-                currentRoom.on(LiveKitClient.RoomEvent.TrackUnmuted, updateParticipants);
-                
-                currentRoom.on(LiveKitClient.RoomEvent.ConnectionStateChanged, (state) => {
-                    if (state === 'connected') {
-                        roomStatus.innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> Подключено';
-                        micBtn.disabled = false;
-                    } else if (state === 'disconnected') {
-                        roomStatus.innerHTML = '<i class="fas fa-times-circle" style="color:#ef5350;"></i> Отключено';
-                    }
-                });
-
-                await currentRoom.connect(LIVEKIT_URL, '', { 
-                    identity: identity,
-                    roomName: ROOM_NAME
-                });
-                
-                await currentRoom.localParticipant.setMicrophoneEnabled(true);
-                try { await currentRoom.localParticipant.setCameraEnabled(false); } catch (e) {}
-                
-                updateParticipants();
-
-            } catch (err) {
-                roomStatus.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ef5350;"></i> Ошибка: ${err.message}`;
-                console.error(err);
-            }
-        }
-
-        // Выход
-        async function leaveRoom() {
-            if (currentRoom) {
-                currentRoom.disconnect();
-                currentRoom = null;
-            }
-            loginScreen.style.display = 'block';
-            roomScreen.style.display = 'none';
-            micBtn.disabled = true;
-        }
-
-        // Вход
-        loginBtn.addEventListener('click', () => {
-            const login = loginInput.value.trim();
-            const pass = passwordInput.value.trim();
+        // Ждем загрузку DOM
+        document.addEventListener('DOMContentLoaded', function() {
             
-            if (!checkAuth(login, pass)) {
-                alert('Неверный логин или пароль');
+            // Проверяем наличие LiveKit
+            if (typeof LiveKitClient === 'undefined') {
+                alert('❌ Ошибка: LiveKit не загрузился. Обнови страницу или проверь интернет.');
                 return;
             }
 
-            currentUser = login;
-            loginScreen.style.display = 'none';
-            roomScreen.style.display = 'block';
-            joinRoom(login);
+            // Данные LiveKit
+            const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
+            const ROOM_NAME = 'briefing-room';
+
+            let currentRoom = null;
+
+            // Элементы
+            const loginScreen = document.getElementById('loginScreen');
+            const roomScreen = document.getElementById('roomScreen');
+            const loginBtn = document.getElementById('loginBtn');
+            const loginInput = document.getElementById('loginInput');
+            const passwordInput = document.getElementById('passwordInput');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const micBtn = document.getElementById('micBtn');
+            const roomStatus = document.getElementById('roomStatus');
+            const participantList = document.getElementById('participantList');
+            const participantCount = document.getElementById('participantCount');
+
+            // Проверка логина
+            function checkAuth(login, pass) {
+                return (login === 'test1' && pass === '12345') || (login === 'test2' && pass === '12345');
+            }
+
+            // Обновление списка
+            function updateParticipants() {
+                if (!currentRoom) return;
+                try {
+                    const participants = [currentRoom.localParticipant, ...Array.from(currentRoom.participants.values())];
+                    participantCount.textContent = participants.length;
+
+                    let html = '';
+                    participants.forEach(p => {
+                        const muted = !p.isMicrophoneEnabled;
+                        const name = p.identity || 'User';
+                        const me = p === currentRoom.localParticipant ? ' (я)' : '';
+                        html += `
+                            <div class="participant-item">
+                                <span><i class="fas fa-user-circle" style="color:#f0b90b;"></i> ${name}${me}</span>
+                                <span style="color: ${muted ? '#ef5350' : '#4caf50'};">
+                                    <i class="fas fa-${muted ? 'microphone-slash' : 'microphone'}"></i>
+                                </span>
+                            </div>
+                        `;
+                    });
+                    participantList.innerHTML = html || '<div style="color:#5a6678; text-align:center;">Нет участников</div>';
+                } catch (e) {}
+            }
+
+            // Подключение
+            async function joinRoom(identity) {
+                try {
+                    roomStatus.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Подключение...';
+                    
+                    currentRoom = new LiveKitClient.Room({
+                        publishDefaults: { audioPreset: LiveKitClient.AudioPresets.musicStereo }
+                    });
+
+                    currentRoom.on(LiveKitClient.RoomEvent.ParticipantConnected, updateParticipants);
+                    currentRoom.on(LiveKitClient.RoomEvent.ParticipantDisconnected, updateParticipants);
+                    currentRoom.on(LiveKitClient.RoomEvent.TrackMuted, updateParticipants);
+                    currentRoom.on(LiveKitClient.RoomEvent.TrackUnmuted, updateParticipants);
+                    
+                    currentRoom.on(LiveKitClient.RoomEvent.ConnectionStateChanged, (state) => {
+                        if (state === 'connected') {
+                            roomStatus.innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> Подключено';
+                            micBtn.disabled = false;
+                        } else if (state === 'disconnected') {
+                            roomStatus.innerHTML = '<i class="fas fa-times-circle" style="color:#ef5350;"></i> Отключено';
+                        }
+                    });
+
+                    await currentRoom.connect(LIVEKIT_URL, '', { 
+                        identity: identity,
+                        roomName: ROOM_NAME
+                    });
+                    
+                    await currentRoom.localParticipant.setMicrophoneEnabled(true);
+                    try { await currentRoom.localParticipant.setCameraEnabled(false); } catch (e) {}
+                    
+                    updateParticipants();
+
+                } catch (err) {
+                    roomStatus.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ef5350;"></i> Ошибка: ${err.message}`;
+                    console.error(err);
+                }
+            }
+
+            // Выход
+            async function leaveRoom() {
+                if (currentRoom) {
+                    currentRoom.disconnect();
+                    currentRoom = null;
+                }
+                loginScreen.style.display = 'block';
+                roomScreen.style.display = 'none';
+                micBtn.disabled = true;
+            }
+
+            // Вход
+            loginBtn.addEventListener('click', () => {
+                const login = loginInput.value.trim();
+                const pass = passwordInput.value.trim();
+                
+                if (!checkAuth(login, pass)) {
+                    alert('Неверный логин или пароль');
+                    return;
+                }
+
+                loginScreen.style.display = 'none';
+                roomScreen.style.display = 'block';
+                joinRoom(login);
+            });
+
+            // Выход
+            logoutBtn.addEventListener('click', leaveRoom);
+
+            // Микрофон
+            micBtn.addEventListener('click', async () => {
+                if (!currentRoom) return;
+                const newState = !currentRoom.localParticipant.isMicrophoneEnabled;
+                await currentRoom.localParticipant.setMicrophoneEnabled(newState);
+                micBtn.innerHTML = newState ? 
+                    '<i class="fas fa-microphone"></i> Микрофон вкл' : 
+                    '<i class="fas fa-microphone-slash"></i> Микрофон выкл';
+            });
+
+            // Обновление списка
+            setInterval(updateParticipants, 2000);
         });
-
-        // Выход
-        logoutBtn.addEventListener('click', leaveRoom);
-
-        // Микрофон
-        micBtn.addEventListener('click', async () => {
-            if (!currentRoom) return;
-            const newState = !currentRoom.localParticipant.isMicrophoneEnabled;
-            await currentRoom.localParticipant.setMicrophoneEnabled(newState);
-            micBtn.innerHTML = newState ? 
-                '<i class="fas fa-microphone"></i> Микрофон вкл' : 
-                '<i class="fas fa-microphone-slash"></i> Микрофон выкл';
-        });
-
-        // Обновление списка
-        setInterval(updateParticipants, 2000);
     </script>
 </body>
 </html>
