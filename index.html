@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Binance Brief · защищенная аудиокомната</title>
+    <title>Binance Brief</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- LiveKit Client -->
-    <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js"></script>
+    <!-- Подключаем LiveKit Client правильной версии -->
+    <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.1/dist/livekit-client.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -117,9 +117,6 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
-        .mic-button.muted i {
-            color: #ef5350;
-        }
         .footer-info {
             display: flex;
             justify-content: space-between;
@@ -183,9 +180,16 @@
     </div>
 
     <script>
+        // Проверяем что библиотека загрузилась
+        if (typeof LiveKitClient === 'undefined') {
+            alert('Ошибка: LiveKit не загрузился. Обнови страницу.');
+        } else {
+            console.log('LiveKit загружен');
+        }
+
         // Конфигурация
         const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
-        const ROOM_NAME = 'briefing-room'; // постоянное имя комнаты
+        const ROOM_NAME = 'briefing-room';
 
         let room = null;
         let currentUser = '';
@@ -237,19 +241,19 @@
             try {
                 connectionStatus.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Подключение...';
                 
-                room = new window.LiveKitClient.Room({
+                room = new LiveKitClient.Room({
                     publishDefaults: { 
-                        audioPreset: window.LiveKitClient.AudioPresets.musicStereo 
+                        audioPreset: LiveKitClient.AudioPresets.musicStereo 
                     }
                 });
 
                 // Подписываемся на события
-                room.on(window.LiveKitClient.RoomEvent.ParticipantConnected, updateParticipants);
-                room.on(window.LiveKitClient.RoomEvent.ParticipantDisconnected, updateParticipants);
-                room.on(window.LiveKitClient.RoomEvent.TrackMuted, updateParticipants);
-                room.on(window.LiveKitClient.RoomEvent.TrackUnmuted, updateParticipants);
+                room.on(LiveKitClient.RoomEvent.ParticipantConnected, updateParticipants);
+                room.on(LiveKitClient.RoomEvent.ParticipantDisconnected, updateParticipants);
+                room.on(LiveKitClient.RoomEvent.TrackMuted, updateParticipants);
+                room.on(LiveKitClient.RoomEvent.TrackUnmuted, updateParticipants);
                 
-                room.on(window.LiveKitClient.RoomEvent.ConnectionStateChanged, (state) => {
+                room.on(LiveKitClient.RoomEvent.ConnectionStateChanged, (state) => {
                     if (state === 'connected') {
                         connectionStatus.innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> Подключено';
                     } else if (state === 'disconnected') {
@@ -257,10 +261,10 @@
                     }
                 });
 
-                // Подключаемся (комната создастся автоматически)
+                // Подключаемся
                 await room.connect(LIVEKIT_URL, '', { 
                     identity: identity,
-                    roomName: ROOM_NAME  // комната создается при первом подключении
+                    roomName: ROOM_NAME
                 });
                 
                 // Включаем микрофон
@@ -272,14 +276,12 @@
                 // Активируем кнопку
                 micToggle.disabled = false;
                 micToggle.innerHTML = '<i class="fas fa-microphone"></i> Микрофон вкл';
-                micToggle.classList.remove('muted');
                 
                 updateParticipants();
 
             } catch (err) {
                 connectionStatus.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ef5350;"></i> Ошибка: ${err.message}`;
                 console.error(err);
-                alert('Ошибка: ' + err.message);
             }
         }
 
@@ -320,10 +322,9 @@
             micToggle.innerHTML = newState ? 
                 '<i class="fas fa-microphone"></i> Микрофон вкл' : 
                 '<i class="fas fa-microphone-slash"></i> Микрофон выкл';
-            micToggle.classList.toggle('muted', !newState);
         });
 
-        // Обновление списка
+        // Обновление списка каждые 2 секунды
         setInterval(updateParticipants, 2000);
 
         // Начальное состояние
