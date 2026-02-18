@@ -3,220 +3,408 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Binance Brief · аудиокомната</title>
+    <title>Binance Brief · генератор брифингов</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
-        body { background: #0a0a0a; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
-        .card { background: #1e1f25; border-radius: 24px; width: 100%; max-width: 500px; padding: 32px; border: 1px solid #2c2f36; }
-        h2 { color: #f0b90b; font-size: 1.8rem; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
-        .input-group { margin-bottom: 20px; }
-        input { width: 100%; background: #0c0f15; border: 1px solid #2c2f36; border-radius: 12px; padding: 16px; color: white; font-size: 1rem; }
-        input:focus { border-color: #f0b90b; outline: none; }
-        .btn { background: #f0b90b; color: #0a0a0a; border: none; border-radius: 12px; padding: 16px; font-size: 1.1rem; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 16px; }
-        .btn:hover { background: #ffd53d; }
-        .separator { border-top: 1px solid #2c2f36; margin: 24px 0; }
-        .badge { background: #0c0f15; padding: 8px 16px; border-radius: 40px; color: #f0b90b; border: 1px solid #2c2f36; display: inline-block; margin: 4px; }
-        .participant-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #262b33; color: white; }
-        .status-bar { background: #0c0f15; padding: 10px; border-radius: 12px; margin: 16px 0; text-align: center; border-left: 4px solid #f0b90b; color: #eaecef; }
-        .mic-btn { background: #1e1f25; border: 1px solid #2c2f36; border-radius: 40px; padding: 12px 24px; color: white; cursor: pointer; display: flex; align-items: center; gap: 10px; }
-        .mic-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; }
-        .logout { color: #848e9c; cursor: pointer; }
-        .logout:hover { color: #f0b90b; }
-        video { display: none !important; }
-    </style>
-    <!-- ✅ ГАРАНТИРОВАННО РАБОЧЕЕ ПОДКЛЮЧЕНИЕ -->
-    <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js"></script>
-    <script>
-        // Проверяем загрузку ДО всего остального кода
-        window.onload = function() {
-            if (typeof LiveKitClient === 'undefined') {
-                document.body.innerHTML = '<div style="color:red; padding:20px;">❌ Ошибка: LiveKit не загрузился. Проверь интернет или обнови.</div>';
-            }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
         }
-    </script>
+        body {
+            background: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .card {
+            background: #1e1f25;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 560px;
+            padding: 32px 28px;
+            border: 1px solid #2c2f36;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
+        }
+        h2 {
+            color: #f0b90b;
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        h2 i {
+            color: #f0b90b;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            background: #0c0f15;
+            border: 1px solid #2c2f36;
+            border-radius: 14px;
+            padding: 18px 20px;
+            color: white;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+        input:focus {
+            border-color: #f0b90b;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(240,185,11,0.15);
+        }
+        .btn {
+            background: #f0b90b;
+            color: #0a0a0a;
+            border: none;
+            border-radius: 14px;
+            padding: 18px 24px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: 0.2s;
+            margin-top: 16px;
+            box-shadow: 0 8px 20px rgba(240,185,11,0.25);
+        }
+        .btn:hover {
+            background: #ffd53d;
+            transform: scale(1.02);
+        }
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid #2c2f36;
+            color: #eaecef;
+            box-shadow: none;
+            margin-top: 10px;
+        }
+        .btn-secondary:hover {
+            border-color: #f0b90b;
+            background: #1e1f25;
+            transform: none;
+        }
+        .separator {
+            border-top: 1px solid #2c2f36;
+            margin: 28px 0 20px;
+        }
+        .badge {
+            background: #0c0f15;
+            padding: 8px 16px;
+            border-radius: 40px;
+            color: #f0b90b;
+            border: 1px solid #2c2f36;
+            display: inline-block;
+            font-size: 0.9rem;
+        }
+        .room-link-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: #0c0f15;
+            border-radius: 16px;
+            border-left: 4px solid #f0b90b;
+        }
+        .link-box {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .link-box input {
+            flex: 1;
+            padding: 12px;
+            background: #1e1f25;
+            border: 1px solid #2c2f36;
+            border-radius: 10px;
+            color: white;
+            font-size: 0.9rem;
+        }
+        .copy-btn {
+            background: #f0b90b;
+            color: #0a0a0a;
+            border: none;
+            border-radius: 10px;
+            padding: 0 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .copy-btn:hover {
+            background: #ffd53d;
+        }
+        .success-message {
+            color: #4caf50;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .error-message {
+            color: #ef5350;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .info-text {
+            color: #848e9c;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #2c2f36;
+            border-top-color: #f0b90b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
     <div class="card">
-        <!-- Экран входа -->
-        <div id="loginScreen">
-            <h2><i class="fas fa-microphone-alt"></i> Binance Brief</h2>
+        <!-- Шапка -->
+        <h2>
+            <i class="fas fa-microphone-alt"></i> 
+            Binance Brief
+        </h2>
+
+        <!-- Блок входа (логин/пароль) -->
+        <div id="loginBlock">
             <div class="input-group">
                 <input type="text" id="loginInput" placeholder="Логин" value="test1">
             </div>
             <div class="input-group">
                 <input type="password" id="passwordInput" placeholder="Пароль" value="12345">
             </div>
-            <button class="btn" id="loginBtn"><i class="fas fa-key"></i> Войти</button>
+            <button class="btn" id="loginBtn">
+                <i class="fas fa-key"></i> Войти в панель управления
+            </button>
             <div class="separator"></div>
-            <div>
-                <span class="badge">test1 / 12345</span>
-                <span class="badge">test2 / 12345</span>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <span class="badge"><i class="fas fa-user"></i> test1 / 12345</span>
+                <span class="badge"><i class="fas fa-user"></i> test2 / 12345</span>
             </div>
         </div>
 
-        <!-- Экран комнаты (скрыт) -->
-        <div id="roomScreen" style="display: none;">
-            <h2><i class="fas fa-headphones"></i> Брифинг</h2>
-            <div id="roomStatus" class="status-bar"><i class="fas fa-circle-notch fa-spin"></i> Подключение...</div>
-            
-            <div style="background: #0c0f15; border-radius: 16px; padding: 16px;">
-                <div style="display: flex; gap: 10px; margin-bottom: 10px; color:#f0b90b;">
-                    <i class="fas fa-users"></i>
-                    <span>Участники: <span id="participantCount">0</span></span>
-                </div>
-                <div id="participantList"></div>
+        <!-- Блок создания комнат (показывается после входа) -->
+        <div id="adminBlock" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin:0; font-size:1.5rem;">
+                    <i class="fas fa-cog"></i> 
+                    Управление
+                </h2>
+                <span class="badge" id="userBadge">test1</span>
             </div>
 
-            <div class="footer">
-                <button class="mic-btn" id="micBtn" disabled>
-                    <i class="fas fa-microphone"></i> Микрофон вкл
-                </button>
-                <span class="logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Выйти</span>
+            <!-- Кнопка создания комнаты -->
+            <button class="btn" id="createRoomBtn">
+                <i class="fas fa-plus-circle"></i> СОЗДАТЬ НОВЫЙ БРИФИНГ
+            </button>
+
+            <!-- Контейнер для отображения созданной комнаты -->
+            <div id="roomResult" style="display: none;"></div>
+
+            <!-- История последних комнат (будет обновляться) -->
+            <div id="recentRooms" style="margin-top: 30px;">
+                <div style="color:#f0b90b; margin-bottom: 15px; font-weight:600;">
+                    <i class="fas fa-history"></i> Последние брифинги:
+                </div>
+                <div id="roomsList" style="color:#848e9c;">
+                    Пока нет созданных комнат
+                </div>
             </div>
+
+            <!-- Кнопка выхода -->
+            <button class="btn btn-secondary" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i> Выйти
+            </button>
         </div>
     </div>
 
     <script>
-        // Ждем загрузку DOM
-        document.addEventListener('DOMContentLoaded', function() {
+        // ============ ТВОИ ДАННЫЕ LIVEKIT ============
+        const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
+        const API_KEY = 'APIenU2zhEwG6cd';
+        const API_SECRET = 'iUeO4vJX9VAlsUu8s6ps8Zm7iosIgTzNuww2euU2GMf';
+        
+        // ============ ХРАНИЛИЩЕ СОЗДАННЫХ КОМНАТ ============
+        let createdRooms = JSON.parse(localStorage.getItem('createdRooms')) || [];
+        
+        // ============ ЭЛЕМЕНТЫ DOM ============
+        const loginBlock = document.getElementById('loginBlock');
+        const adminBlock = document.getElementById('adminBlock');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loginInput = document.getElementById('loginInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const userBadge = document.getElementById('userBadge');
+        const createRoomBtn = document.getElementById('createRoomBtn');
+        const roomResult = document.getElementById('roomResult');
+        const roomsList = document.getElementById('roomsList');
+
+        // ============ ПРОВЕРКА ЛОГИНА ============
+        function checkAuth(login, pass) {
+            return (login === 'test1' && pass === '12345') || (login === 'test2' && pass === '12345');
+        }
+
+        // ============ ОБНОВЛЕНИЕ СПИСКА КОМНАТ ============
+        function updateRoomsList() {
+            if (createdRooms.length === 0) {
+                roomsList.innerHTML = 'Пока нет созданных комнат';
+                return;
+            }
             
-            // Проверяем наличие LiveKit
-            if (typeof LiveKitClient === 'undefined') {
-                alert('❌ Ошибка: LiveKit не загрузился. Обнови страницу или проверь интернет.');
+            let html = '';
+            // Показываем последние 5 комнат
+            createdRooms.slice(-5).reverse().forEach(room => {
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #0c0f15; border-radius: 8px; margin-bottom: 8px;">
+                        <span style="color: #eaecef;">${room.name}</span>
+                        <button onclick="copyRoomUrl('${room.url}')" style="background: #f0b90b; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer;">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            roomsList.innerHTML = html;
+        }
+
+        // ============ КОПИРОВАНИЕ ССЫЛКИ ============
+        window.copyRoomUrl = function(url) {
+            navigator.clipboard.writeText(url);
+            alert('✅ Ссылка скопирована!');
+        }
+
+        // ============ СОЗДАНИЕ КОМНАТЫ ============
+        async function createRoom() {
+            // Показываем загрузку
+            roomResult.style.display = 'block';
+            roomResult.innerHTML = `
+                <div class="room-link-container">
+                    <div style="text-align: center;">
+                        <div class="loading" style="margin: 20px auto;"></div>
+                        <div>Создаю комнату...</div>
+                    </div>
+                </div>
+            `;
+
+            // Генерируем имя комнаты (дата + время)
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const roomName = `briefing-${day}${month}-${hours}${minutes}`;
+
+            try {
+                // СОЗДАЕМ КОМНАТУ ЧЕРЕЗ API LIVEKIT
+                const response = await fetch('https://api.livekit.cloud/v1/rooms', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_SECRET}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: roomName,
+                        emptyTimeout: 600, // 10 минут после ухода последнего
+                        maxParticipants: 20
+                    })
+                });
+
+                if (response.ok) {
+                    // Ссылка на комнату (предполагаем что room.html лежит рядом)
+                    const roomUrl = `${window.location.origin}/room.html?room=${roomName}`;
+                    
+                    // Сохраняем в историю
+                    createdRooms.push({ name: roomName, url: roomUrl, created: new Date().toISOString() });
+                    localStorage.setItem('createdRooms', JSON.stringify(createdRooms));
+                    
+                    // Показываем результат
+                    roomResult.innerHTML = `
+                        <div class="room-link-container">
+                            <div class="success-message">
+                                <i class="fas fa-check-circle"></i> Комната успешно создана!
+                            </div>
+                            <div class="link-box">
+                                <input type="text" id="roomUrlInput" value="${roomUrl}" readonly>
+                                <button class="copy-btn" onclick="copyRoomUrl('${roomUrl}')">
+                                    <i class="fas fa-copy"></i> Копировать
+                                </button>
+                            </div>
+                            <div class="info-text">
+                                <i class="fas fa-info-circle"></i> 
+                                Комната: ${roomName} · живёт 10 минут после ухода всех
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Обновляем список комнат
+                    updateRoomsList();
+                    
+                } else {
+                    const error = await response.text();
+                    roomResult.innerHTML = `
+                        <div class="room-link-container">
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-triangle"></i> Ошибка создания: ${error}
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                roomResult.innerHTML = `
+                    <div class="room-link-container">
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-triangle"></i> Ошибка: ${error.message}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // ============ ОБРАБОТЧИК ВХОДА ============
+        loginBtn.addEventListener('click', () => {
+            const login = loginInput.value.trim();
+            const pass = passwordInput.value.trim();
+            
+            if (!checkAuth(login, pass)) {
+                alert('Неверный логин или пароль');
                 return;
             }
 
-            // Данные LiveKit
-            const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
-            const ROOM_NAME = 'briefing-room';
-
-            let currentRoom = null;
-
-            // Элементы
-            const loginScreen = document.getElementById('loginScreen');
-            const roomScreen = document.getElementById('roomScreen');
-            const loginBtn = document.getElementById('loginBtn');
-            const loginInput = document.getElementById('loginInput');
-            const passwordInput = document.getElementById('passwordInput');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const micBtn = document.getElementById('micBtn');
-            const roomStatus = document.getElementById('roomStatus');
-            const participantList = document.getElementById('participantList');
-            const participantCount = document.getElementById('participantCount');
-
-            // Проверка логина
-            function checkAuth(login, pass) {
-                return (login === 'test1' && pass === '12345') || (login === 'test2' && pass === '12345');
-            }
-
-            // Обновление списка
-            function updateParticipants() {
-                if (!currentRoom) return;
-                try {
-                    const participants = [currentRoom.localParticipant, ...Array.from(currentRoom.participants.values())];
-                    participantCount.textContent = participants.length;
-
-                    let html = '';
-                    participants.forEach(p => {
-                        const muted = !p.isMicrophoneEnabled;
-                        const name = p.identity || 'User';
-                        const me = p === currentRoom.localParticipant ? ' (я)' : '';
-                        html += `
-                            <div class="participant-item">
-                                <span><i class="fas fa-user-circle" style="color:#f0b90b;"></i> ${name}${me}</span>
-                                <span style="color: ${muted ? '#ef5350' : '#4caf50'};">
-                                    <i class="fas fa-${muted ? 'microphone-slash' : 'microphone'}"></i>
-                                </span>
-                            </div>
-                        `;
-                    });
-                    participantList.innerHTML = html || '<div style="color:#5a6678; text-align:center;">Нет участников</div>';
-                } catch (e) {}
-            }
-
-            // Подключение
-            async function joinRoom(identity) {
-                try {
-                    roomStatus.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Подключение...';
-                    
-                    currentRoom = new LiveKitClient.Room({
-                        publishDefaults: { audioPreset: LiveKitClient.AudioPresets.musicStereo }
-                    });
-
-                    currentRoom.on(LiveKitClient.RoomEvent.ParticipantConnected, updateParticipants);
-                    currentRoom.on(LiveKitClient.RoomEvent.ParticipantDisconnected, updateParticipants);
-                    currentRoom.on(LiveKitClient.RoomEvent.TrackMuted, updateParticipants);
-                    currentRoom.on(LiveKitClient.RoomEvent.TrackUnmuted, updateParticipants);
-                    
-                    currentRoom.on(LiveKitClient.RoomEvent.ConnectionStateChanged, (state) => {
-                        if (state === 'connected') {
-                            roomStatus.innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> Подключено';
-                            micBtn.disabled = false;
-                        } else if (state === 'disconnected') {
-                            roomStatus.innerHTML = '<i class="fas fa-times-circle" style="color:#ef5350;"></i> Отключено';
-                        }
-                    });
-
-                    await currentRoom.connect(LIVEKIT_URL, '', { 
-                        identity: identity,
-                        roomName: ROOM_NAME
-                    });
-                    
-                    await currentRoom.localParticipant.setMicrophoneEnabled(true);
-                    try { await currentRoom.localParticipant.setCameraEnabled(false); } catch (e) {}
-                    
-                    updateParticipants();
-
-                } catch (err) {
-                    roomStatus.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ef5350;"></i> Ошибка: ${err.message}`;
-                    console.error(err);
-                }
-            }
-
-            // Выход
-            async function leaveRoom() {
-                if (currentRoom) {
-                    currentRoom.disconnect();
-                    currentRoom = null;
-                }
-                loginScreen.style.display = 'block';
-                roomScreen.style.display = 'none';
-                micBtn.disabled = true;
-            }
-
-            // Вход
-            loginBtn.addEventListener('click', () => {
-                const login = loginInput.value.trim();
-                const pass = passwordInput.value.trim();
-                
-                if (!checkAuth(login, pass)) {
-                    alert('Неверный логин или пароль');
-                    return;
-                }
-
-                loginScreen.style.display = 'none';
-                roomScreen.style.display = 'block';
-                joinRoom(login);
-            });
-
-            // Выход
-            logoutBtn.addEventListener('click', leaveRoom);
-
-            // Микрофон
-            micBtn.addEventListener('click', async () => {
-                if (!currentRoom) return;
-                const newState = !currentRoom.localParticipant.isMicrophoneEnabled;
-                await currentRoom.localParticipant.setMicrophoneEnabled(newState);
-                micBtn.innerHTML = newState ? 
-                    '<i class="fas fa-microphone"></i> Микрофон вкл' : 
-                    '<i class="fas fa-microphone-slash"></i> Микрофон выкл';
-            });
-
-            // Обновление списка
-            setInterval(updateParticipants, 2000);
+            // Показываем админ-панель
+            userBadge.textContent = login;
+            loginBlock.style.display = 'none';
+            adminBlock.style.display = 'block';
+            
+            // Обновляем список комнат
+            updateRoomsList();
         });
+
+        // ============ ОБРАБОТЧИК ВЫХОДА ============
+        logoutBtn.addEventListener('click', () => {
+            loginBlock.style.display = 'block';
+            adminBlock.style.display = 'none';
+            roomResult.style.display = 'none';
+        });
+
+        // ============ ОБРАБОТЧИК СОЗДАНИЯ КОМНАТЫ ============
+        createRoomBtn.addEventListener('click', createRoom);
+
+        // ============ ИНИЦИАЛИЗАЦИЯ ============
+        // Показываем сохраненные комнаты при загрузке
+        updateRoomsList();
     </script>
 </body>
 </html>
