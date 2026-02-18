@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Binance Brief · комната</title>
+    <meta charset="UTF-8">
+    <style>
+        body { background: #0a0a0a; color: #f0b90b; font-family: Arial; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin:0; }
+        .card { background: #1e1f25; padding: 40px; border-radius: 20px; width: 500px; border:1px solid #2c2f36; }
+        .status { background: #0c0f15; padding: 15px; border-radius: 10px; margin: 20px 0; text-align: center; }
+        .participant { display: flex; justify-content: space-between; padding: 10px; background: #0c0f15; margin: 5px 0; border-radius: 8px; }
+        button { background: #f0b90b; color: black; padding: 15px; border: none; border-radius: 10px; font-weight: bold; width: 100%; margin: 5px 0; cursor: pointer; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js"></script>
+</head>
+<body>
+    <div class="card">
+        <h2>🔊 Брифинг</h2>
+        
+        <div id="roomInfo" class="status">Подключение...</div>
+        
+        <div id="participantsList"></div>
+        
+        <button onclick="toggleMic()" id="micBtn">🎤 Выключить микрофон</button>
+        <button onclick="leave()">🚪 Покинуть</button>
+    </div>
+
+    <script>
+        const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomName = urlParams.get('room');
+        
+        if (!roomName) {
+            alert('Нет названия комнаты');
+            window.location.href = '/';
+        }
+
+        let room = null;
+
+        async function connect() {
+            try {
+                room = new LiveKitClient.Room();
+                
+                room.on(LiveKitClient.RoomEvent.ParticipantConnected, updateParticipants);
+                room.on(LiveKitClient.RoomEvent.ParticipantDisconnected, updateParticipants);
+                
+                room.on(LiveKitClient.RoomEvent.Connected, () => {
+                    document.getElementById('roomInfo').innerHTML = '✅ Подключено к комнате: ' + roomName;
+                });
+
+                // Генерируем случайное имя для участника
+                const userName = 'Участник_' + Math.random().toString(36).substring(7);
+                
+                await room.connect(LIVEKIT_URL, '', {
+                    identity: userName,
+                    roomName: roomName
+                });
+                
+                await room.localParticipant.setMicrophoneEnabled(true);
+                updateParticipants();
+
+            } catch(e) {
+                document.getElementById('roomInfo').innerHTML = '❌ Ошибка: ' + e.message;
+            }
+        }
+
+        function updateParticipants() {
+            if (!room) return;
+            
+            const participants = [room.localParticipant, ...room.participants.values()];
+            let html = '<h3>Участники:</h3>';
+            
+            participants.forEach(p => {
+                const mic = p.isMicrophoneEnabled ? '🎤' : '🔇';
+                const me = p === room.localParticipant ? ' (вы)' : '';
+                html += `<div class="participant">👤 ${p.identity}${me} ${mic}</div>`;
+            });
+            
+            document.getElementById('participantsList').innerHTML = html;
+        }
+
+        async function toggleMic() {
+            if (!room) return;
+            const state = !room.localParticipant.isMicrophoneEnabled;
+            await room.localParticipant.setMicrophoneEnabled(state);
+            document.getElementById('micBtn').innerHTML = state ? '🎤 Выключить микрофон' : '🔇 Включить микрофон';
+            updateParticipants();
+        }
+
+        function leave() {
+            if (room) room.disconnect();
+            window.location.href = '/';
+        }
+
+        connect();
+        setInterval(updateParticipants, 2000);
+    </script>
+</body>
+</html>
