@@ -11,19 +11,8 @@
     <!-- Иконки (Font Awesome для простоты) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
-    <!-- ИСПРАВЛЕНО: используем jsDelivr и esm.sh вместо unpkg -->
-    <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.0/dist/livekit-client.umd.min.js"></script>
-    
-    <!-- Карта импортов для модулей -->
-    <script type="importmap">
-        {
-            "imports": {
-                "@livekit/components-react": "https://esm.sh/@livekit/components-react@1.6.0",
-                "@livekit/components-core": "https://esm.sh/@livekit/components-core@1.6.0",
-                "livekit-client": "https://esm.sh/livekit-client@1.15.0"
-            }
-        }
-    </script>
+    <!-- Подключаем только livekit-client (без react-компонентов) -->
+    <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js"></script>
     
     <style>
         /* ------------- БАЗОВЫЙ СТИЛЬ BINANCE (ЧЁРНО-ЖЁЛТЫЙ) ------------- */
@@ -34,7 +23,7 @@
             font-family: 'Inter', sans-serif;
         }
         body {
-            background-color: #0a0a0a;  /* глубокий чёрный */
+            background-color: #0a0a0a;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -43,7 +32,7 @@
             padding: 16px;
         }
         .card {
-            background-color: #1e1f25;  /* тёмно-серый с лёгким синеватым отливом (как Binance) */
+            background-color: #1e1f25;
             border-radius: 24px;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
             width: 100%;
@@ -59,7 +48,7 @@
         h2 {
             font-size: 1.8rem;
             margin-bottom: 8px;
-            color: #f0b90b;  /* жёлтый Binance */
+            color: #f0b90b;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -154,12 +143,11 @@
             gap: 8px;
         }
         .room-container {
-            display: none;  /* скрыта пока не залогинились */
+            display: none;
         }
         .login-container {
             display: block;
         }
-        /* панель участников */
         .participants-panel {
             background: #0c0f15;
             border-radius: 20px;
@@ -236,34 +224,26 @@
         .logout-link:hover {
             color: #f0b90b;
         }
-        /* Адаптация под телефон */
         @media (max-width: 480px) {
             .card { padding: 24px 16px; }
             h2 { font-size: 1.5rem; }
         }
-        /* мелкий хинт */
         .note {
             color: #5a6678;
             font-size: 0.8rem;
             margin-top: 8px;
             text-align: center;
         }
-        .livekit-room-container {
-            min-height: 280px;
-            background: #0c0f15;
-            border-radius: 24px;
-            padding: 12px;
+        .status-badge {
+            background: #1e1f25;
+            border-radius: 20px;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            color: #f0b90b;
             border: 1px solid #2c2f36;
         }
-        /* скроем видео-элементы, которые могут появиться от LiveKit — оставим только аудио */
         video {
             display: none !important;
-        }
-        /* кастомная кнопка откл/вкл микро (дублирующая) будет сверху */
-        .audio-controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
         }
     </style>
 </head>
@@ -293,7 +273,7 @@
             <div class="note">только авторизованные сотрудники</div>
         </div>
 
-        <!-- БЛОК КОМНАТЫ (изначально скрыт) -->
+        <!-- БЛОК КОМНАТЫ -->
         <div id="roomBlock" class="room-container">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
                 <h2 style="margin:0;">
@@ -303,27 +283,26 @@
                 <span id="currentUserLabel" class="user-badge"><i class="fas fa-user-circle"></i> <span id="displayName">test1</span></span>
             </div>
 
-            <!-- панель участников (динамическая) -->
+            <!-- статус подключения -->
+            <div id="connectionStatus" class="status-badge" style="margin-bottom: 15px; text-align: center;">
+                <i class="fas fa-circle-notch fa-spin"></i> подключаемся...
+            </div>
+
+            <!-- панель участников -->
             <div class="participants-panel" id="participantsPanel">
                 <div style="display: flex; gap:12px; align-items: center; margin-bottom: 14px;">
                     <i class="fas fa-users" style="color:#f0b90b;"></i>
                     <span style="font-weight:600;">в брифинге · <span id="participantCount">0</span></span>
                 </div>
                 <div id="participantList">
-                    <!-- сюда будет вставлен список через js -->
                     <div style="color:#5a6678; text-align:center; padding:16px;">ожидаем подключения...</div>
                 </div>
             </div>
 
-            <!-- контейнер, где будет жить LiveKit (аудио-комната) -->
-            <div id="livekitContainer" class="livekit-room-container">
-                <!-- сам звонок отрендерится внутри -->
-            </div>
-
-            <!-- нижняя панель с микрофоном и выходом -->
+            <!-- нижняя панель -->
             <div class="footer-info">
                 <div class="audio-controls">
-                    <button class="mic-button" id="micToggleButton">
+                    <button class="mic-button" id="micToggleButton" disabled>
                         <i class="fas fa-microphone"></i> выключить микрофон
                     </button>
                 </div>
@@ -338,23 +317,14 @@
         </div>
     </div>
 
-    <script type="module">
-        // ----- ИМПОРТ LiveKit компонентов через карту импортов (esm.sh) -----
-        import * as client from 'livekit-client';
-        import * as reactCore from '@livekit/components-core';
-        import * as reactComponents from '@livekit/components-react';
-        
-        // ----- ТВОИ ДАННЫЕ (из облака LiveKit) -----
+    <script>
+        // ----- ТВОИ ДАННЫЕ ИЗ ОБЛАКА LIVEKIT -----
         const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
-        const ROOM_NAME = 'briefing-room';           // фиксированная комната для всех
-        
-        // Используем бестокен-режим (комната должна разрешать join without token)
-        const WITHOUT_TOKEN = true; 
-        
+        const ROOM_NAME = 'briefing-room';  // название комнаты, должно быть создано в админке LiveKit и разрешать вход без токена
+
         // Глобальные переменные
         let currentRoom = null;
         let currentUserLogin = 'test1';
-        let audioEnabled = true;
         
         // DOM элементы
         const loginBlock = document.getElementById('loginBlock');
@@ -367,15 +337,17 @@
         const micToggle = document.getElementById('micToggleButton');
         const participantListDiv = document.getElementById('participantList');
         const participantCountSpan = document.getElementById('participantCount');
-        
-        // Валидация пароля (хардкод)
+        const connectionStatus = document.getElementById('connectionStatus');
+
+        // Проверка логина/пароля
         function checkCredentials(login, pass) {
             return (login === 'test1' && pass === '12345') || (login === 'test2' && pass === '12345');
         }
-        
-        // Обновление списка участников (подписка на события комнаты)
+
+        // Обновление списка участников
         function updateParticipantsList() {
             if (!currentRoom) return;
+            
             const participants = Array.from(currentRoom.participants.values());
             const allParticipants = [currentRoom.localParticipant, ...participants];
             participantCountSpan.innerText = allParticipants.length;
@@ -388,10 +360,17 @@
             let htmlStr = '';
             allParticipants.forEach(p => {
                 const name = p.identity || 'unknown';
-                const isMuted = p.isMicrophoneEnabled === false;
+                // Проверяем статус микрофона
+                let isMuted = true;
+                let audioTrack = p.getTrackPublication('microphone');
+                if (audioTrack && audioTrack.track) {
+                    isMuted = !audioTrack.track.isEnabled;
+                }
+                
                 const micIcon = isMuted ? 'fa-microphone-slash' : 'fa-microphone';
                 const micColor = isMuted ? '#ef5350' : '#4caf50';
                 const localFlag = p === currentRoom.localParticipant ? ' (я)' : '';
+                
                 htmlStr += `
                     <div class="participant-item">
                         <div class="part-name"><i class="fas fa-user-circle"></i> ${name}${localFlag}</div>
@@ -401,82 +380,80 @@
             });
             participantListDiv.innerHTML = htmlStr;
         }
-        
-        // подключение к комнате
+
+        // Подключение к комнате
         async function connectToRoom(identity) {
             try {
-                // Опции подключения (без токена, если комната разрешает)
-                const connectOpts = { 
-                    autoSubscribe: true, 
-                    disconnectOnPageLeave: false,
-                };
+                connectionStatus.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> подключаемся...';
                 
-                // Создаем объект комнаты
-                const room = new client.Room({
+                // Создаём комнату
+                const room = new window.LiveKitClient.Room({
                     adaptiveStream: true,
                     dynacast: true,
-                    videoCaptureDefaults: {
-                        resolution: client.VideoPresets.h90.resolution,
-                    },
                     publishDefaults: {
-                        audioPreset: client.AudioPresets.musicStereo,
-                    },
+                        audioPreset: window.LiveKitClient.AudioPresets.musicStereo,
+                    }
+                });
+
+                // Подписываемся на события
+                room.on(window.LiveKitClient.RoomEvent.ParticipantConnected, () => updateParticipantsList());
+                room.on(window.LiveKitClient.RoomEvent.ParticipantDisconnected, () => updateParticipantsList());
+                room.on(window.LiveKitClient.RoomEvent.TrackPublished, () => updateParticipantsList());
+                room.on(window.LiveKitClient.RoomEvent.TrackSubscribed, () => updateParticipantsList());
+                room.on(window.LiveKitClient.RoomEvent.TrackUnpublished, () => updateParticipantsList());
+                room.on(window.LiveKitClient.RoomEvent.TrackMuted, () => updateParticipantsList());
+                room.on(window.LiveKitClient.RoomEvent.TrackUnmuted, () => updateParticipantsList());
+                room.on(window.LiveKitClient.RoomEvent.ConnectionStateChanged, (state) => {
+                    if (state === 'connected') {
+                        connectionStatus.innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50;"></i> подключено';
+                    } else if (state === 'disconnected') {
+                        connectionStatus.innerHTML = '<i class="fas fa-times-circle" style="color:#ef5350;"></i> отключено';
+                    } else if (state === 'connecting') {
+                        connectionStatus.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> соединяемся...';
+                    }
+                });
+
+                // Подключаемся
+                await room.connect(LIVEKIT_URL, '', { 
+                    autoSubscribe: true 
                 });
                 
-                // События обновления участников
-                room.on('participantConnected', () => updateParticipantsList());
-                room.on('participantDisconnected', () => updateParticipantsList());
-                room.on('trackPublished', () => updateParticipantsList());
-                room.on('trackSubscribed', () => updateParticipantsList());
-                room.on('trackUnpublished', () => updateParticipantsList());
-                room.on('trackMuted', () => updateParticipantsList());
-                room.on('trackUnmuted', () => updateParticipantsList());
-                room.on('localTrackPublished', () => updateParticipantsList());
-                room.on('localTrackUnpublished', () => updateParticipantsList());
-                
-                // Подключаемся
-                let token = '';
-                await room.connect(LIVEKIT_URL, token, connectOpts);
-                
-                // Публикуем микрофон (только аудио)
+                // Включаем микрофон
                 await room.localParticipant.setMicrophoneEnabled(true);
                 
-                // Отключаем видео полностью
-                room.localParticipant.setCameraEnabled(false).catch(() => {});
+                // Отключаем камеру (на всякий случай)
+                await room.localParticipant.setCameraEnabled(false).catch(() => {});
                 
                 currentRoom = room;
-                updateParticipantsList();
                 
-                // Следим за изменением mute состояния локального участника
-                room.localParticipant.on('trackMuted', (track) => {
-                    if (track.kind === 'audio') updateParticipantsList();
-                });
-                room.localParticipant.on('trackUnmuted', (track) => {
-                    if (track.kind === 'audio') updateParticipantsList();
-                });
-                
-                // текущий статус микрофона для кнопки
-                audioEnabled = true;
+                // Активируем кнопку микрофона
+                micToggle.disabled = false;
                 micToggle.innerHTML = '<i class="fas fa-microphone"></i> выключить микрофон';
                 micToggle.classList.remove('muted');
                 
+                updateParticipantsList();
+                
             } catch (e) {
-                alert('Ошибка подключения к брифингу: ' + e.message);
-                console.error(e);
+                connectionStatus.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ef5350;"></i> ошибка: ' + e.message;
+                console.error('Ошибка подключения:', e);
+                alert('Ошибка подключения: ' + e.message + '\n\nПроверь:\n1. Комната "' + ROOM_NAME + '" должна существовать\n2. В настройках комнаты должно быть разрешено "Join without token"\n3. URL сервера: ' + LIVEKIT_URL);
             }
         }
-        
-        // отключение от комнаты
+
+        // Отключение от комнаты
         async function disconnectRoom() {
             if (currentRoom) {
                 currentRoom.disconnect();
                 currentRoom = null;
                 participantListDiv.innerHTML = '<div style="color:#5a6678; text-align:center; padding:16px;">отключены</div>';
                 participantCountSpan.innerText = '0';
+                micToggle.disabled = true;
+                micToggle.innerHTML = '<i class="fas fa-microphone"></i> выключить микрофон';
+                connectionStatus.innerHTML = '<i class="fas fa-circle"></i> не подключено';
             }
         }
-        
-        // обработка входа
+
+        // Обработка входа
         loginBtn.addEventListener('click', async () => {
             const login = loginInput.value.trim();
             const pass = passwordInput.value.trim();
@@ -489,26 +466,26 @@
             currentUserLogin = login;
             displayNameSpan.innerText = login;
             
-            // переключаем видимость блоков
             loginBlock.style.display = 'none';
             roomBlock.style.display = 'block';
             
-            // подключаемся к комнате
             await connectToRoom(login);
         });
-        
-        // выход
+
+        // Выход
         logoutBtn.addEventListener('click', async () => {
             await disconnectRoom();
             loginBlock.style.display = 'block';
             roomBlock.style.display = 'none';
         });
-        
-        // кнопка микрофона
+
+        // Кнопка микрофона
         micToggle.addEventListener('click', async () => {
             if (!currentRoom) return;
+            
             const local = currentRoom.localParticipant;
             const newState = !local.isMicrophoneEnabled;
+            
             await local.setMicrophoneEnabled(newState);
             
             if (newState) {
@@ -518,20 +495,19 @@
                 micToggle.innerHTML = '<i class="fas fa-microphone-slash"></i> включить микрофон';
                 micToggle.classList.add('muted');
             }
+            
             updateParticipantsList();
         });
-        
-        // также обновляем список каждые 2 сек (запас)
+
+        // Обновление списка каждые 2 секунды
         setInterval(() => {
             if (currentRoom) updateParticipantsList();
         }, 2000);
-        
-        // при загрузке страницы — скрыть комнату, показать логин
+
+        // Начальное состояние
         roomBlock.style.display = 'none';
         loginBlock.style.display = 'block';
-        
-        // небольшая подсказка: проверь настройки комнаты LiveKit (allow anonymous)
-        console.log('Убедись, что комната briefing-room разрешает join without token');
+        micToggle.disabled = true;
     </script>
 </body>
 </html>
