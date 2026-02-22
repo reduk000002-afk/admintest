@@ -9,10 +9,12 @@
   * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter', sans-serif; }
   body { background:#0a0a0a; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; min-height:100vh; }
   header { background:#1e1f25; width:100%; padding:20px; text-align:center; color:#f0b90b; font-size:1.5rem; font-weight:bold; display:flex; justify-content:center; align-items:center; gap:10px; }
-  iframe { width:100%; flex:1; border:none; min-height:80vh; }
-  .btn-container { margin:20px; }
+  .btn-container { margin:20px; display:flex; gap:20px; }
   .btn { padding:12px 30px; border:none; border-radius:12px; background:#f0b90b; color:#0a0a0a; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:10px; font-size:1rem; }
   .btn:hover { background:#ffd53d; }
+  .conference { width:100%; max-width:900px; background:#1e1f25; border-radius:20px; overflow:hidden; flex:1; display:flex; flex-direction:column; align-items:center; padding:20px; margin-bottom:20px; }
+  #videoContainer { width:100%; height:500px; background:#000; display:flex; justify-content:center; align-items:center; color:#666; font-size:1.2rem; border-radius:12px; }
+  .controls { display:flex; gap:20px; margin-top:15px; }
 </style>
 </head>
 <body>
@@ -25,15 +27,56 @@
   <button class="btn" onclick="joinConference()"><i class="fas fa-headphones"></i> Приєднатися до брифінгу</button>
 </div>
 
-<iframe id="conferenceFrame" src="" allow="camera; microphone"></iframe>
+<div class="conference">
+  <div id="videoContainer">Конференція ще не підключена</div>
+  <div class="controls">
+    <button class="btn" id="micBtn" onclick="toggleMic()"><i class="fas fa-microphone"></i> Вимкнути/Увімкнути мікрофон</button>
+    <button class="btn" onclick="leaveConference()"><i class="fas fa-sign-out-alt"></i> Вийти</button>
+  </div>
+</div>
+
+<!-- Подключаем Whereby Embed -->
+<script src="https://cdn.jsdelivr.net/npm/@whereby/embed/dist/whereby-embed.min.js"></script>
 
 <script>
-  // Ссылка на комнату Whereby для участников
-  const roomUrl = "https://spam.whereby.com/spam-%D0%B5%D1%83%D1%84%D1%8C30421668-7aae-4d75-a986-16f5af820fbe";
+  // ---- ТВОЯ КОМНАТА WHEREBY ----
+  const ROOM_URL = "https://spam.whereby.com/spam-%D0%B5%D1%83%D1%84%D1%8C30421668-7aae-4d75-a986-16f5af820fbe";
+  const USER_NAME = "TestUser"; // имя пользователя для отображения
+
+  let embed = null;
+  let micEnabled = true;
 
   function joinConference() {
-    const frame = document.getElementById('conferenceFrame');
-    frame.src = roomUrl;
+    const container = document.getElementById('videoContainer');
+    container.innerHTML = ""; // очищаем место для видео
+
+    // Создаем Embed
+    embed = new Whereby.Embed(container, {
+      roomUrl: ROOM_URL,
+      displayName: USER_NAME,
+      theme: "dark",
+      audio: true,
+      video: true,
+      hideChat: false,       // показывать чат
+      hidePeople: false      // показывать список участников
+    });
+
+    embed.on('joined', () => {
+      container.innerHTML = ""; // iframe уже встроился
+    });
+  }
+
+  function toggleMic() {
+    if (!embed) return;
+    micEnabled = !micEnabled;
+    embed.setAudioEnabled(micEnabled);
+    document.getElementById('micBtn').innerHTML = micEnabled ? '<i class="fas fa-microphone"></i> Вимкнути мікрофон' : '<i class="fas fa-microphone-slash"></i> Увімкнути мікрофон';
+  }
+
+  function leaveConference() {
+    if (!embed) return;
+    embed.leave();
+    document.getElementById('videoContainer').innerHTML = "Конференція ще не підключена";
   }
 </script>
 
