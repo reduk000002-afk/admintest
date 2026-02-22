@@ -3,90 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Binance Brief · Особистий кабінет</title>
+<title>Binance Brief · Брифінг</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter', sans-serif; }
-  body { background:#0a0a0a; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
-  .card { background:#1e1f25; border:1px solid #2c2f36; border-radius:24px; padding:40px; width:100%; max-width:500px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); }
-  h1 { color:#f0b90b; font-size:2rem; margin-bottom:30px; display:flex; align-items:center; gap:10px; }
-  input { width:100%; padding:16px; background:#0c0f15; border:1px solid #2c2f36; border-radius:12px; color:white; font-size:1rem; margin-bottom:20px; }
-  input:focus { border-color:#f0b90b; outline:none; box-shadow:0 0 0 3px rgba(240,185,11,0.15); }
-  .btn { width:100%; padding:16px; background:#f0b90b; color:#0a0a0a; border:none; border-radius:12px; font-weight:bold; font-size:1.1rem; cursor:pointer; margin-bottom:10px; display:flex; justify-content:center; align-items:center; gap:10px; }
+  body { background:#0a0a0a; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; min-height:100vh; }
+  header { background:#1e1f25; width:100%; padding:20px; text-align:center; color:#f0b90b; font-size:1.5rem; font-weight:bold; display:flex; justify-content:center; align-items:center; gap:10px; }
+  iframe { width:100%; flex:1; border:none; min-height:80vh; }
+  .btn-container { margin:20px; }
+  .btn { padding:12px 30px; border:none; border-radius:12px; background:#f0b90b; color:#0a0a0a; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:10px; font-size:1rem; }
   .btn:hover { background:#ffd53d; }
-  .btn-secondary { background:#0c0f15; color:#f0b90b; border:1px solid #2c2f36; }
-  .btn-secondary:hover { border-color:#f0b90b; }
-  .separator { border-top:1px solid #2c2f36; margin:24px 0; }
-  .user-badge { display:inline-block; padding:8px 16px; background:#0c0f15; border:1px solid #2c2f36; border-radius:40px; color:#f0b90b; margin:5px; font-size:0.9rem; }
 </style>
 </head>
 <body>
-<div class="card">
-  <h1><i class="fas fa-microphone-alt"></i> Binance Brief</h1>
 
-  <!-- Вход -->
-  <div id="loginForm">
-    <input type="text" id="username" placeholder="Логін" value="admin">
-    <input type="password" id="password" placeholder="Пароль" value="12345">
-    <button class="btn" onclick="login()"><i class="fas fa-key"></i> Увійти</button>
+<header>
+  <i class="fas fa-microphone-alt"></i> Binance Brief
+</header>
 
-    <div class="separator"></div>
-    <div style="display:flex; flex-wrap:wrap; gap:5px; justify-content:center;">
-      <span class="user-badge"><i class="fas fa-user-cog"></i> admin / 12345</span>
-      <span class="user-badge"><i class="fas fa-user"></i> test1 / 12345</span>
-      <span class="user-badge"><i class="fas fa-user"></i> test2 / 12345</span>
-    </div>
-  </div>
-
-  <!-- Дашборд -->
-  <div id="dashboard" style="display:none;">
-    <h2 style="color:#f0b90b; font-size:1.5rem;"><i class="fas fa-user-circle"></i> <span id="displayName"></span></h2>
-
-    <div class="card" style="margin-top:20px;">
-      <div id="conferenceControls">
-        <button class="btn" onclick="joinConference()"><i class="fas fa-headphones"></i> Приєднатися до брифингу</button>
-      </div>
-    </div>
-
-    <button class="btn btn-secondary" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Вийти</button>
-  </div>
+<div class="btn-container">
+  <button class="btn" onclick="joinConference()"><i class="fas fa-headphones"></i> Приєднатися до брифінгу</button>
 </div>
 
+<iframe id="conferenceFrame" src="" allow="camera; microphone"></iframe>
+
 <script>
-  const users = {
-    admin:{role:'admin',name:'Адміністратор'},
-    test1:{role:'user',name:'Співробітник 1'},
-    test2:{role:'user',name:'Співробітник 2'}
-  };
-  const PASSWORD = '12345';
-  let currentUser = null;
-
-  function login() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-
-    if(!users[username] || password !== PASSWORD) { alert('Невірний логін або пароль'); return; }
-
-    currentUser = { login: username, role: users[username].role, name: users[username].name };
-
-    document.getElementById('loginForm').style.display='none';
-    document.getElementById('dashboard').style.display='block';
-    document.getElementById('displayName').textContent = `${currentUser.name} (@${username})`;
-  }
+  // Ссылка на комнату Whereby для участников
+  const roomUrl = "https://spam.whereby.com/spam-%D0%B5%D1%83%D1%84%D1%8C30421668-7aae-4d75-a986-16f5af820fbe";
 
   function joinConference() {
-    window.open(`room.html?user=${currentUser.login}`, '_blank');
+    const frame = document.getElementById('conferenceFrame');
+    frame.src = roomUrl;
   }
-
-  function logout() {
-    document.getElementById('loginForm').style.display='block';
-    document.getElementById('dashboard').style.display='none';
-    currentUser = null;
-  }
-
-  window.login=login;
-  window.joinConference=joinConference;
-  window.logout=logout;
 </script>
+
 </body>
 </html>
