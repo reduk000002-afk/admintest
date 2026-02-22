@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Secure Briefing - Выбор участника</title>
+    <title>Secure Briefing - Звук</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         * {
@@ -187,6 +187,11 @@
             border: 2px solid #f0b90b;
         }
 
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+
         #status {
             margin: 15px 0;
             padding: 12px 24px;
@@ -254,11 +259,26 @@
             background: #333;
         }
 
+        .mic-active {
+            color: #4caf50;
+        }
+
+        .mic-inactive {
+            color: #ff6b6b;
+        }
+
         .footer {
             margin-top: auto;
             padding: 20px;
             color: #444;
             font-size: 0.8rem;
+        }
+
+        #audioDebug {
+            font-size: 12px;
+            color: #888;
+            margin-top: 10px;
+            text-align: center;
         }
     </style>
 </head>
@@ -296,6 +316,8 @@
             <button class="btn" id="micBtn">🎤 Выключить микрофон</button>
             <button class="btn btn-secondary" id="leaveBtn">🚪 Выйти</button>
         </div>
+
+        <div id="audioDebug"></div>
     </div>
 
     <div class="footer">
@@ -327,10 +349,78 @@
         const participantsList = document.getElementById('participantsList');
         const micBtn = document.getElementById('micBtn');
         const leaveBtn = document.getElementById('leaveBtn');
+        const audioDebug = document.getElementById('audioDebug');
 
         let selectedUser = null;
         let room = null;
         let LiveKit = null;
+        let audioContext = null;
+
+        // Функция для принудительного запроса доступа к микрофону
+        async function requestMicrophoneAccess() {
+            try {
+                audioDebug.textContent = '🔄 Запрос доступа к микрофону...';
+                
+                // Явно запрашиваем доступ к микрофону
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }, 
+                    video: false 
+                });
+                
+                // Создаем аудиоконтекст для проверки
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Пробуем воспроизвести тестовый звук (не слышно для пользователя)
+                if (audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                }
+                
+                audioDebug.textContent = '✅ Микрофон доступен';
+                console.log('✅ Микрофон доступен, треки:', stream.getAudioTracks().length);
+                
+                // Останавливаем тестовый поток
+                stream.getTracks().forEach(track => track.stop());
+                
+                return true;
+            } catch (error) {
+                console.error('❌ Ошибка доступа к микрофону:', error);
+                audioDebug.textContent = '❌ Нет доступа к микрофону: ' + error.message;
+                return false;
+            }
+        }
+
+        // Функция для проверки и включения звука
+        async function ensureAudioEnabled() {
+            if (!room?.localParticipant) return false;
+            
+            try {
+                // Проверяем текущее состояние
+                const isEnabled = room.localParticipant.isMicrophoneEnabled;
+                audioDebug.textContent = `🔄 Микрофон ${isEnabled ? 'включен' : 'выключен'}`;
+                
+                if (!isEnabled) {
+                    // Пытаемся включить
+                    await room.localParticipant.setMicrophoneEnabled(true);
+                    audioDebug.textContent = '✅ Микрофон принудительно включен';
+                    
+                    // Проверяем через секунду
+                    setTimeout(() => {
+                        const nowEnabled = room.localParticipant.isMicrophoneEnabled;
+                        audioDebug.textContent = nowEnabled ? '✅ Микрофон работает' : '❌ Микрофон не включился';
+                    }, 1000);
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Ошибка включения микрофона:', error);
+                audioDebug.textContent = '❌ Ошибка: ' + error.message;
+                return false;
+            }
+        }
 
         // Выбор пользователя
         selectAdmin1.addEventListener('click', () => {
@@ -386,7 +476,7 @@
                         </span>
                         <span class="participant-status">
                             <span onclick="toggleCamera('${p.identity}')" title="Камера">${p.camera ? '📹' : '🚫📹'}</span>
-                            <span onclick="toggleMic('${p.identity}')" title="Микрофон">${p.mic ? '🎤' : '🔇'}</span>
+                            <span onclick="toggleMic('${p.identity}')" title="Микрофон" class="${p.mic ? 'mic-active' : 'mic-inactive'}">${p.mic ? '🎤' : '🔇'}</span>
                         </span>
                     </div>
                 `).join('');
@@ -395,7 +485,7 @@
             }
         }
 
-        // Функции для управления (только для локального участника)
+        // Функции для управления
         window.toggleCamera = async (identity) => {
             if (room?.localParticipant?.identity === identity) {
                 const enabled = room.localParticipant.isCameraEnabled;
@@ -410,6 +500,7 @@
                 await room.localParticipant.setMicrophoneEnabled(!enabled);
                 micBtn.textContent = enabled ? '🎤 Включить микрофон' : '🎤 Выключить микрофон';
                 updateParticipantsList();
+                audioDebug.textContent = enabled ? '🔇 Микрофон выключен' : '🎤 Микрофон включен';
             }
         };
 
@@ -423,12 +514,23 @@
                 statusEl.textContent = '🔄 Подключение...';
                 statusEl.classList.remove('status-success', 'status-error');
                 
+                // Сначала запрашиваем доступ к микрофону
+                const micAccess = await requestMicrophoneAccess();
+                if (!micAccess) {
+                    audioDebug.textContent = '⚠️ Продолжаем без микрофона, но звук не будет работать';
+                }
+                
                 // Получаем SDK
                 LiveKit = window.LivekitClient || window.LiveKit;
                 
                 room = new LiveKit.Room({
                     adaptiveStream: true,
-                    dynacast: true
+                    dynacast: true,
+                    audioCaptureDefaults: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
                 });
 
                 // Обработчики событий
@@ -447,7 +549,6 @@
                     console.log('📹 Видео от:', participant.identity);
                     
                     if (track.kind === 'video') {
-                        // Удаляем старое видео этого участника если есть
                         removeParticipantVideos(participant.identity);
                         
                         const wrapper = document.createElement('div');
@@ -466,14 +567,19 @@
                         wrapper.appendChild(label);
                         videoContainer.appendChild(wrapper);
                     }
+                    
+                    if (track.kind === 'audio') {
+                        console.log('🔊 Аудио трек от:', participant.identity);
+                        // Принудительно подключаем аудио
+                        const audioEl = track.attach();
+                        audioEl.volume = 1.0;
+                        audioEl.muted = false;
+                    }
                 });
 
                 room.on(LiveKit.RoomEvent.TrackUnsubscribed, (track) => {
-                    console.log('🗑️ Видео отписано');
-                    track.detach().forEach(el => {
-                        const wrapper = el.parentElement;
-                        if (wrapper) wrapper.remove();
-                    });
+                    console.log('🗑️ Трек отписан:', track.kind);
+                    track.detach().forEach(el => el.remove());
                 });
 
                 room.on(LiveKit.RoomEvent.Connected, () => {
@@ -481,6 +587,9 @@
                     statusEl.textContent = '✅ Подключено к комнате';
                     statusEl.classList.add('status-success');
                     updateParticipantsList();
+                    
+                    // Проверяем звук
+                    setTimeout(ensureAudioEnabled, 2000);
                 });
 
                 room.on(LiveKit.RoomEvent.Disconnected, () => {
@@ -489,6 +598,7 @@
                     statusEl.classList.remove('status-success');
                     videoContainer.innerHTML = '';
                     participantsList.innerHTML = '';
+                    audioDebug.textContent = '';
                 });
 
                 // Подключаемся
@@ -497,22 +607,36 @@
                     autoSubscribe: true
                 });
 
-                // Даем время на установку соединения
+                // Включаем устройства с проверкой
                 setTimeout(async () => {
                     try {
-                        // Включаем камеру и микрофон
                         await room.localParticipant.setCameraEnabled(true);
                         await room.localParticipant.setMicrophoneEnabled(true);
+                        
+                        // Дополнительная проверка звука
+                        setTimeout(async () => {
+                            const micState = room.localParticipant.isMicrophoneEnabled;
+                            audioDebug.textContent = micState ? '✅ Микрофон активен' : '❌ Микрофон не активен';
+                            
+                            // Если микрофон не включился, пробуем еще раз
+                            if (!micState) {
+                                await room.localParticipant.setMicrophoneEnabled(true);
+                                audioDebug.textContent = '🔄 Повторная попытка включить микрофон';
+                            }
+                        }, 2000);
+                        
                         updateParticipantsList();
                     } catch (err) {
                         console.warn('Ошибка включения устройств:', err);
+                        audioDebug.textContent = '❌ Ошибка включения микрофона';
                     }
-                }, 1000);
+                }, 1500);
 
             } catch (error) {
                 console.error('❌ Ошибка:', error);
                 statusEl.textContent = '❌ Ошибка: ' + error.message;
                 statusEl.classList.add('status-error');
+                audioDebug.textContent = '❌ ' + error.message;
             }
         }
 
@@ -534,9 +658,11 @@
                 const enabled = room.localParticipant.isMicrophoneEnabled;
                 await room.localParticipant.setMicrophoneEnabled(!enabled);
                 micBtn.textContent = enabled ? '🎤 Включить микрофон' : '🎤 Выключить микрофон';
+                audioDebug.textContent = enabled ? '🔇 Микрофон выключен' : '🎤 Микрофон включен';
                 updateParticipantsList();
             } catch (error) {
                 console.error('Ошибка:', error);
+                audioDebug.textContent = '❌ Ошибка переключения микрофона';
             }
         });
 
@@ -552,6 +678,12 @@
                 connectBtn.disabled = true;
                 connectBtn.textContent = 'Выберите участника';
                 videoContainer.innerHTML = '';
+                audioDebug.textContent = '';
+                
+                // Закрываем аудиоконтекст
+                if (audioContext) {
+                    audioContext.close();
+                }
             }
         });
 
@@ -561,6 +693,20 @@
                 statusEl.textContent = '❌ SDK не загружен';
             }
         });
+
+        // Дополнительная проверка: если пользователь кликает по странице, пробуем включить звук
+        document.addEventListener('click', async () => {
+            if (room?.localParticipant && !room.localParticipant.isMicrophoneEnabled) {
+                console.log('👆 Пользователь кликнул, пробуем включить микрофон');
+                await room.localParticipant.setMicrophoneEnabled(true);
+                updateParticipantsList();
+            }
+            
+            // Пробуждаем аудиоконтекст
+            if (audioContext && audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+        }, { once: false });
     </script>
 </body>
 </html>
