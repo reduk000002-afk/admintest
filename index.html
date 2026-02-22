@@ -142,7 +142,7 @@
 <body>
     <h1>🔐 Secure Briefing</h1>
     
-    <div id="status">⏳ Загрузка...</div>
+    <div id="status">⏳ Загрузка SDK...</div>
     
     <div id="videoContainer"></div>
 
@@ -155,7 +155,7 @@
         внутренний сервис для брифингов • черно-желтый стиль
     </div>
 
-    <!-- Используем локальный файл livekit.js -->
+    <!-- Подключаем локальный файл livekit.js -->
     <script src="livekit.js"></script>
 
     <script>
@@ -171,19 +171,55 @@
         const leaveBtn = document.getElementById('leaveBtn');
 
         let room = null;
+        let LiveKit = null;
 
         // Функция обновления статуса
         function updateStatus(text, type = 'info') {
             statusEl.textContent = text;
-            statusEl.classList.remove('status-success', 'status-error');
+            statusEl.className = '';
             if (type === 'success') statusEl.classList.add('status-success');
             if (type === 'error') statusEl.classList.add('status-error');
         }
 
-        // Функция подключения к комнате
+        // Проверяем загрузку SDK (правильное имя из документации - LivekitClient)
+        function checkSDK() {
+            console.log('Проверка глобальных переменных:', Object.keys(window).filter(key => 
+                key.includes('Livekit') || key.includes('LiveKit')
+            ));
+
+            // Сначала проверяем LivekitClient (из документации)
+            if (typeof window.LivekitClient !== 'undefined') {
+                console.log('✅ Найден LivekitClient');
+                LiveKit = window.LivekitClient;
+                updateStatus('✅ SDK загружен (LivekitClient)', 'success');
+                enableButtons();
+                connectToRoom();
+                return;
+            }
+            
+            // Проверяем LiveKit как запасной вариант
+            if (typeof window.LiveKit !== 'undefined') {
+                console.log('✅ Найден LiveKit');
+                LiveKit = window.LiveKit;
+                updateStatus('✅ SDK загружен (LiveKit)', 'success');
+                enableButtons();
+                connectToRoom();
+                return;
+            }
+
+            // Если ничего не найдено
+            console.error('❌ SDK не загружен');
+            updateStatus('❌ Ошибка: LiveKit SDK не загружен', 'error');
+        }
+
+        function enableButtons() {
+            micBtn.disabled = false;
+            leaveBtn.disabled = false;
+        }
+
         async function connectToRoom() {
             try {
-                updateStatus('🔄 Подключение к комнате...');
+                updateStatus('🔄 Подключаюсь к комнате...');
 
                 // Создаем комнату
                 room = new LiveKit.Room({
@@ -227,8 +263,10 @@
                         room.localParticipant.setMicrophoneEnabled(true)
                     ]).then(() => {
                         console.log('🎥 Камера и микрофон включены');
+                        updateStatus('✅ Камера и микрофон активны', 'success');
                     }).catch(err => {
                         console.warn('⚠️ Не удалось включить устройства:', err);
+                        updateStatus('⚠️ Не удалось включить камеру/микрофон', 'error');
                     });
                 });
 
@@ -261,34 +299,19 @@
             }
         }
 
-        // Проверяем загрузку LiveKit
-        function checkLiveKit() {
-            if (typeof LiveKit !== 'undefined' && LiveKit) {
-                console.log('✅ LiveKit SDK загружен');
-                updateStatus('✅ SDK загружен, подключаемся...');
-                
-                // Активируем кнопки
-                micBtn.disabled = false;
-                leaveBtn.disabled = false;
-                
-                // Подключаемся
-                connectToRoom();
-            } else {
-                console.error('❌ LiveKit SDK не загружен');
-                updateStatus('❌ Ошибка: LiveKit SDK не загружен', 'error');
-            }
-        }
-
-        // Ждем загрузки скрипта
+        // Ждем загрузки страницы и проверяем SDK
         if (document.readyState === 'complete') {
-            checkLiveKit();
+            checkSDK();
         } else {
-            window.addEventListener('load', checkLiveKit);
+            window.addEventListener('load', checkSDK);
         }
 
         // Обработчики кнопок
         micBtn.addEventListener('click', async () => {
-            if (!room?.localParticipant) return;
+            if (!room?.localParticipant) {
+                alert('Сначала подключитесь к комнате');
+                return;
+            }
             
             try {
                 const isEnabled = room.localParticipant.isMicrophoneEnabled;
