@@ -1,34 +1,147 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Binance Brief · Брифінг</title>
-<script src="https://cdn.whereby.com/embed.js"></script>
-<style>
-  html, body { margin:0; padding:0; height:100%; background:#0a0a0a; }
-  #meeting { width:100%; height:100%; }
-</style>
+  <meta charset="UTF-8">
+  <title>Secure Briefing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background: #0a0a0a;
+      color: #f0b90b;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    #videoContainer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      width: 100%;
+      max-width: 900px;
+      margin-bottom: 20px;
+    }
+    video {
+      border-radius: 12px;
+      border: 2px solid #f0b90b;
+      width: 300px;
+      height: 200px;
+      background: black;
+    }
+    .btn {
+      background: #f0b90b;
+      color: #0a0a0a;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: bold;
+      margin: 5px;
+      cursor: pointer;
+    }
+    .btn:hover { background: #ffd53d; }
+    .btn-secondary {
+      background: #0c0f15;
+      color: #f0b90b;
+      border: 1px solid #2c2f36;
+    }
+    .btn-secondary:hover { background: #1e1f25; }
+  </style>
+  <!-- LiveKit JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js"></script>
 </head>
 <body>
-<div id="meeting"></div>
+
+<h1>Secure Briefing</h1>
+
+<div id="videoContainer"></div>
+
+<div>
+  <button class="btn" id="micBtn">Выкл/Вкл Микрофон</button>
+  <button class="btn btn-secondary" id="leaveBtn">Выйти</button>
+</div>
 
 <script>
-  // Имя сотрудника из URL
-  const params = new URLSearchParams(window.location.search);
-  const userName = params.get('user') || 'Guest';
+  // --- Настройки подключения ---
+  const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
+  const TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE3ODgxMDMsImlkZW50aXR5IjoiYWRtaW4iLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE3ODgxMDMsInN1YiI6ImFkbWluIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6IldlYnNvY2tldCBVUkwgd3NzOi8vdGVzdHp2b25vay0zcTEwejQ0ai5saXZla2l0LmNsb3VkICBBUEkga2V5IEFQSThoZm5odzdZeW54TiAgQVBJIHNlY3JldCB1SGdlVFo1cW9PZTh0SU81YWJib3V6dnY5RXpqWld4UEN2MWkwQTMwb3oiLCJyb29tSm9pbiI6dHJ1ZX19.rsT7SKsOQKBv9NItq3WnQ-jVBcoGQFjTOKkpjzYgKNA';
+  const ROOM_NAME = 'secure-stack-1k5b95';
 
-  // Ссылка участников
-  const roomUrl = "https://spam.whereby.com/spam-%D0%B5%D1%83%D1%84%D1%8C30421668-7aae-4d75-a986-16f5af820fbe";
+  const videoContainer = document.getElementById('videoContainer');
+  let room;
 
-  Whereby.embed("meeting", {
-    room: roomUrl,
-    displayName: userName,
-    theme: "dark",
-    hideChat: true,     // Скрыть чат
-    hidePeople: true,   // Скрыть участников
-    skipPrejoin: true   // Пропустить экран "Подключение"
-  });
+  async function initRoom() {
+    if (typeof LiveKit === 'undefined') {
+      alert('❌ LiveKit SDK не загружен');
+      return;
+    }
+
+    room = new LiveKit.Room();
+
+    // --- События ---
+    room.on(LiveKit.RoomEvent.Disconnected, () => {
+      console.log('Disconnected');
+      videoContainer.innerHTML = '';
+    });
+
+    room.on(LiveKit.RoomEvent.ParticipantConnected, participant => {
+      console.log('Participant connected:', participant.identity);
+    });
+
+    room.on(LiveKit.RoomEvent.ParticipantDisconnected, participant => {
+      console.log('Participant disconnected:', participant.identity);
+    });
+
+    room.on(LiveKit.RoomEvent.TrackSubscribed, (track, publication, participant) => {
+      if (track.kind === 'video') {
+        const videoEl = track.attach();
+        videoContainer.appendChild(videoEl);
+      }
+    });
+
+    room.on(LiveKit.RoomEvent.TrackUnsubscribed, (track, publication, participant) => {
+      if (track.kind === 'video') {
+        const elements = track.detach();
+        elements.forEach(el => el.remove());
+      }
+    });
+
+    try {
+      await room.connect(LIVEKIT_URL, TOKEN, { roomName: ROOM_NAME });
+      console.log('✅ Подключено к комнате');
+      await room.localParticipant.setMicrophoneEnabled(true);
+
+      // Подписка на существующие треки
+      room.participants.forEach(p => {
+        p.audioTracks.forEach(pub => pub.track && pub.track.attach());
+        p.videoTracks.forEach(pub => pub.track && pub.track.attach());
+      });
+
+    } catch (err) {
+      console.error('Ошибка подключения:', err);
+    }
+  }
+
+  // --- Кнопка микрофона ---
+  document.getElementById('micBtn').onclick = async () => {
+    if (!room) return;
+    const enabled = room.localParticipant.isMicrophoneEnabled;
+    await room.localParticipant.setMicrophoneEnabled(!enabled);
+  };
+
+  // --- Кнопка выхода ---
+  document.getElementById('leaveBtn').onclick = () => {
+    if (room) room.disconnect();
+  };
+
+  // --- Инициализация ---
+  window.addEventListener('load', initRoom);
 </script>
+
 </body>
 </html>
