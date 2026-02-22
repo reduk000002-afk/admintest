@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Secure Briefing</title>
+    <title>Secure Briefing - Выбор участника</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         * {
@@ -30,31 +30,130 @@
             text-shadow: 0 0 10px rgba(240, 185, 11, 0.3);
         }
 
+        .login-container {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid #f0b90b;
+            width: 100%;
+            max-width: 400px;
+            margin: 20px 0;
+        }
+
+        .login-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .user-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .user-btn {
+            background: transparent;
+            color: #f0b90b;
+            border: 2px solid #f0b90b;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+        }
+
+        .user-btn:hover {
+            background: #f0b90b;
+            color: #0a0a0a;
+            transform: translateY(-2px);
+        }
+
+        .user-btn.selected {
+            background: #f0b90b;
+            color: #0a0a0a;
+        }
+
+        .user-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .room-info {
+            text-align: center;
+            margin: 15px 0;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .connect-btn {
+            background: #f0b90b;
+            color: #0a0a0a;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .connect-btn:hover:not(:disabled) {
+            background: #ffd700;
+            transform: scale(1.02);
+        }
+
+        .connect-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         #videoContainer {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 20px;
             justify-content: center;
             width: 100%;
             max-width: 1200px;
             margin: 20px 0;
-            min-height: 200px;
+        }
+
+        .video-wrapper {
+            position: relative;
+            display: inline-block;
         }
 
         video {
             border-radius: 16px;
             border: 3px solid #f0b90b;
-            width: 320px;
-            height: 240px;
+            width: 400px;
+            height: 300px;
             background: #1a1a1a;
             object-fit: cover;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            transition: transform 0.3s;
         }
 
-        video:hover {
-            transform: scale(1.02);
+        .participant-label {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            color: #f0b90b;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 1px solid #f0b90b;
+            backdrop-filter: blur(5px);
+        }
+
+        .participant-label.local {
+            background: rgba(240, 185, 11, 0.2);
             border-color: #ffd700;
+            color: #ffd700;
         }
 
         .controls {
@@ -75,37 +174,22 @@
             font-size: 1rem;
             cursor: pointer;
             transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 6px rgba(240, 185, 11, 0.2);
         }
 
         .btn:hover:not(:disabled) {
             background: #ffd700;
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(240, 185, 11, 0.3);
-        }
-
-        .btn:active:not(:disabled) {
-            transform: translateY(0);
         }
 
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            background: #666;
         }
 
         .btn-secondary {
             background: transparent;
             color: #f0b90b;
             border: 2px solid #f0b90b;
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-            background: rgba(240, 185, 11, 0.1);
-            color: #ffd700;
-            border-color: #ffd700;
         }
 
         #status {
@@ -116,7 +200,6 @@
             color: #f0b90b;
             font-size: 0.9rem;
             border: 1px solid #333;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
         }
 
         .status-success {
@@ -131,6 +214,37 @@
             border-color: #ff6b6b;
         }
 
+        .participants-panel {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #333;
+        }
+
+        .participants-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #f0b90b;
+        }
+
+        .participant-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 3px solid #f0b90b;
+            background: #0a0a0a;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .participant-status {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
         .footer {
             margin-top: auto;
             padding: 20px;
@@ -141,199 +255,262 @@
 </head>
 <body>
     <h1>🔐 Secure Briefing</h1>
-    
-    <div id="status">⏳ Загрузка SDK...</div>
-    
-    <div id="videoContainer"></div>
 
-    <div class="controls">
-        <button class="btn" id="micBtn" disabled>🎤 Включить микрофон</button>
-        <button class="btn btn-secondary" id="leaveBtn" disabled>🚪 Выйти из комнаты</button>
+    <!-- Экран входа -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-title">Выберите участника</div>
+        
+        <div class="user-buttons">
+            <button class="user-btn" id="selectAdmin1">admin1</button>
+            <button class="user-btn" id="selectAdmin2">admin2</button>
+        </div>
+
+        <div class="room-info">
+            Комната: secure-stack-1k5b95
+        </div>
+
+        <button class="connect-btn" id="connectBtn" disabled>Выберите участника</button>
+    </div>
+
+    <!-- Основной интерфейс (скрыт до подключения) -->
+    <div id="mainInterface" style="display: none; width: 100%; display: flex; flex-direction: column; align-items: center;">
+        <div id="status">⏳ Подключение...</div>
+        
+        <div class="participants-panel">
+            <div class="participants-title">👥 Участники в комнате</div>
+            <div id="participantsList"></div>
+        </div>
+        
+        <div id="videoContainer"></div>
+
+        <div class="controls">
+            <button class="btn" id="micBtn">🎤 Выключить микрофон</button>
+            <button class="btn btn-secondary" id="leaveBtn">🚪 Выйти</button>
+        </div>
     </div>
 
     <div class="footer">
-        внутренний сервис для брифингов • черно-желтый стиль
+        внутренний сервис для брифингов • выберите admin1 или admin2
     </div>
 
-    <!-- Подключаем локальный файл livekit.js -->
+    <!-- Подключаем локальный SDK -->
     <script src="livekit.js"></script>
 
     <script>
         // Конфигурация
         const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
-        const TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE3OTA2NTIsImlkZW50aXR5IjoiYWRtaW4iLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE3OTA2NTIsInN1YiI6ImFkbWluIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6InNlY3VyZS1zdGFjay0xazViOTUiLCJyb29tSm9pbiI6dHJ1ZX19.ZZJvSlcJ6euQOa9tiLvFOboyp2F0oMQkXUbCEKvB4R4';
         const ROOM_NAME = 'secure-stack-1k5b95';
+        
+        // Токены для разных пользователей
+        const TOKENS = {
+            admin1: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE3OTA2NTIsImlkZW50aXR5IjoiYWRtaW4iLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE3OTA2NTIsInN1YiI6ImFkbWluIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6InNlY3VyZS1zdGFjay0xazViOTUiLCJyb29tSm9pbiI6dHJ1ZX19.ZZJvSlcJ6euQOa9tiLvFOboyp2F0oMQkXUbCEKvB4R4',
+            admin2: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzI3OTIzMDMsImlkZW50aXR5IjoiYWRtaW4yIiwiaXNzIjoiQVBJOGhmbmh3N1l5bnhOIiwibmJmIjoxNzcxNzkyMzAzLCJzdWIiOiJhZG1pbjIiLCJ2aWRlbyI6eyJjYW5QdWJsaXNoIjp0cnVlLCJjYW5QdWJsaXNoRGF0YSI6dHJ1ZSwiY2FuU3Vic2NyaWJlIjp0cnVlLCJyb29tIjoic2VjdXJlLXN0YWNrLTFrNWI5NSIsInJvb21Kb2luIjp0cnVlfX0.BGWSRAixBm1UNkRKxmMwKtoSM26JJRoyYTezGK8ZXQs'
+        };
 
         // DOM элементы
+        const loginScreen = document.getElementById('loginScreen');
+        const mainInterface = document.getElementById('mainInterface');
+        const selectAdmin1 = document.getElementById('selectAdmin1');
+        const selectAdmin2 = document.getElementById('selectAdmin2');
+        const connectBtn = document.getElementById('connectBtn');
         const statusEl = document.getElementById('status');
         const videoContainer = document.getElementById('videoContainer');
+        const participantsList = document.getElementById('participantsList');
         const micBtn = document.getElementById('micBtn');
         const leaveBtn = document.getElementById('leaveBtn');
 
+        let selectedUser = null;
         let room = null;
         let LiveKit = null;
 
-        // Функция обновления статуса
-        function updateStatus(text, type = 'info') {
-            statusEl.textContent = text;
-            statusEl.className = '';
-            if (type === 'success') statusEl.classList.add('status-success');
-            if (type === 'error') statusEl.classList.add('status-error');
-        }
+        // Выбор пользователя
+        selectAdmin1.addEventListener('click', () => {
+            selectedUser = 'admin1';
+            selectAdmin1.classList.add('selected');
+            selectAdmin2.classList.remove('selected');
+            connectBtn.disabled = false;
+            connectBtn.textContent = `Войти как admin1`;
+        });
 
-        // Проверяем загрузку SDK (правильное имя из документации - LivekitClient)
-        function checkSDK() {
-            console.log('Проверка глобальных переменных:', Object.keys(window).filter(key => 
-                key.includes('Livekit') || key.includes('LiveKit')
-            ));
+        selectAdmin2.addEventListener('click', () => {
+            selectedUser = 'admin2';
+            selectAdmin2.classList.add('selected');
+            selectAdmin1.classList.remove('selected');
+            connectBtn.disabled = false;
+            connectBtn.textContent = `Войти как admin2`;
+        });
 
-            // Сначала проверяем LivekitClient (из документации)
-            if (typeof window.LivekitClient !== 'undefined') {
-                console.log('✅ Найден LivekitClient');
-                LiveKit = window.LivekitClient;
-                updateStatus('✅ SDK загружен (LivekitClient)', 'success');
-                enableButtons();
-                connectToRoom();
-                return;
-            }
+        // Подключение к комнате
+        connectBtn.addEventListener('click', async () => {
+            if (!selectedUser) return;
             
-            // Проверяем LiveKit как запасной вариант
-            if (typeof window.LiveKit !== 'undefined') {
-                console.log('✅ Найден LiveKit');
-                LiveKit = window.LiveKit;
-                updateStatus('✅ SDK загружен (LiveKit)', 'success');
-                enableButtons();
-                connectToRoom();
+            // Прячем экран входа, показываем основной интерфейс
+            loginScreen.style.display = 'none';
+            mainInterface.style.display = 'flex';
+            
+            // Получаем SDK
+            LiveKit = window.LivekitClient || window.LiveKit;
+            
+            if (!LiveKit) {
+                statusEl.textContent = '❌ SDK не загружен';
                 return;
             }
 
-            // Если ничего не найдено
-            console.error('❌ SDK не загружен');
-            updateStatus('❌ Ошибка: LiveKit SDK не загружен', 'error');
-        }
+            await connectToRoom(selectedUser);
+        });
 
-        function enableButtons() {
-            micBtn.disabled = false;
-            leaveBtn.disabled = false;
-        }
-
-        async function connectToRoom() {
+        async function connectToRoom(username) {
             try {
-                updateStatus('🔄 Подключаюсь к комнате...');
-
-                // Создаем комнату
+                statusEl.textContent = '🔄 Подключение...';
+                
                 room = new LiveKit.Room({
                     adaptiveStream: true,
-                    dynacast: true,
-                    videoCaptureDefaults: {
-                        resolution: {
-                            width: 640,
-                            height: 480
-                        }
-                    }
+                    dynacast: true
                 });
 
-                // Обработчик новых видео треков
+                // Обработчики событий
+                room.on(LiveKit.RoomEvent.ParticipantConnected, (participant) => {
+                    console.log('👤 Участник подключился:', participant.identity);
+                    updateParticipantsList();
+                });
+
+                room.on(LiveKit.RoomEvent.ParticipantDisconnected, (participant) => {
+                    console.log('👤 Участник отключился:', participant.identity);
+                    updateParticipantsList();
+                    removeParticipantVideos(participant.identity);
+                });
+
                 room.on(LiveKit.RoomEvent.TrackSubscribed, (track, publication, participant) => {
-                    console.log('📹 Получен видео трек от:', participant.identity);
+                    console.log('📹 Видео от:', participant.identity);
                     
-                    if (track.kind === 'video' || track.kind === 'screen') {
-                        const videoElement = track.attach();
-                        videoElement.setAttribute('data-participant', participant.identity);
-                        videoContainer.appendChild(videoElement);
+                    if (track.kind === 'video') {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'video-wrapper';
+                        wrapper.setAttribute('data-participant', participant.identity);
+                        
+                        const label = document.createElement('div');
+                        label.className = `participant-label ${participant.identity === room.localParticipant.identity ? 'local' : ''}`;
+                        label.textContent = participant.identity + (participant.identity === room.localParticipant.identity ? ' (Вы)' : '');
+                        
+                        const videoEl = track.attach();
+                        wrapper.appendChild(videoEl);
+                        wrapper.appendChild(label);
+                        videoContainer.appendChild(wrapper);
                     }
                 });
 
-                // Обработчик отписки от треков
                 room.on(LiveKit.RoomEvent.TrackUnsubscribed, (track) => {
-                    console.log('🗑️ Трек отписан');
-                    if (track.kind === 'video' || track.kind === 'screen') {
-                        track.detach().forEach(el => el.remove());
-                    }
-                });
-
-                // Обработчик подключения
-                room.on(LiveKit.RoomEvent.Connected, () => {
-                    console.log('✅ Подключено к комнате');
-                    updateStatus('✅ Подключено к комнате', 'success');
-                    
-                    // Включаем камеру и микрофон
-                    Promise.all([
-                        room.localParticipant.setCameraEnabled(true),
-                        room.localParticipant.setMicrophoneEnabled(true)
-                    ]).then(() => {
-                        console.log('🎥 Камера и микрофон включены');
-                        updateStatus('✅ Камера и микрофон активны', 'success');
-                    }).catch(err => {
-                        console.warn('⚠️ Не удалось включить устройства:', err);
-                        updateStatus('⚠️ Не удалось включить камеру/микрофон', 'error');
+                    track.detach().forEach(el => {
+                        const wrapper = el.parentElement;
+                        if (wrapper) wrapper.remove();
                     });
                 });
 
-                // Обработчик отключения
-                room.on(LiveKit.RoomEvent.Disconnected, () => {
-                    console.log('📴 Отключено от комнаты');
-                    updateStatus('📴 Отключено от комнаты');
-                    videoContainer.innerHTML = '';
-                    micBtn.textContent = '🎤 Включить микрофон';
+                room.on(LiveKit.RoomEvent.Connected, () => {
+                    console.log('✅ Подключено');
+                    statusEl.textContent = '✅ Подключено к комнате';
+                    statusEl.classList.add('status-success');
                 });
 
-                // Запрашиваем разрешения на устройства
-                try {
-                    await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                    console.log('✅ Разрешения получены');
-                } catch (mediaError) {
-                    console.warn('⚠️ Нет разрешений на медиа:', mediaError);
-                    updateStatus('⚠️ Разрешите доступ к камере и микрофону', 'error');
-                }
+                room.on(LiveKit.RoomEvent.Disconnected, () => {
+                    console.log('📴 Отключено');
+                    statusEl.textContent = '📴 Отключено';
+                    statusEl.classList.remove('status-success');
+                    videoContainer.innerHTML = '';
+                    participantsList.innerHTML = '';
+                });
 
-                // Подключаемся
-                await room.connect(LIVEKIT_URL, TOKEN, { 
+                // Подключаемся с токеном выбранного пользователя
+                await room.connect(LIVEKIT_URL, TOKENS[username], { 
                     roomName: ROOM_NAME,
                     autoSubscribe: true
                 });
 
+                // Включаем камеру и микрофон
+                await room.localParticipant.setCameraEnabled(true);
+                await room.localParticipant.setMicrophoneEnabled(true);
+
+                // Обновляем список участников
+                updateParticipantsList();
+
             } catch (error) {
-                console.error('❌ Ошибка подключения:', error);
-                updateStatus(`❌ Ошибка: ${error.message}`, 'error');
+                console.error('❌ Ошибка:', error);
+                statusEl.textContent = '❌ Ошибка: ' + error.message;
+                statusEl.classList.add('status-error');
             }
         }
 
-        // Ждем загрузки страницы и проверяем SDK
-        if (document.readyState === 'complete') {
-            checkSDK();
-        } else {
-            window.addEventListener('load', checkSDK);
-        }
-
-        // Обработчики кнопок
-        micBtn.addEventListener('click', async () => {
-            if (!room?.localParticipant) {
-                alert('Сначала подключитесь к комнате');
-                return;
+        function updateParticipantsList() {
+            if (!room) return;
+            
+            const participants = [];
+            
+            // Локальный участник
+            if (room.localParticipant) {
+                participants.push({
+                    identity: room.localParticipant.identity,
+                    isLocal: true,
+                    camera: room.localParticipant.isCameraEnabled,
+                    mic: room.localParticipant.isMicrophoneEnabled
+                });
             }
             
-            try {
-                const isEnabled = room.localParticipant.isMicrophoneEnabled;
-                await room.localParticipant.setMicrophoneEnabled(!isEnabled);
-                micBtn.textContent = isEnabled ? '🎤 Включить микрофон' : '🎤 Выключить микрофон';
-            } catch (error) {
-                console.error('Ошибка переключения микрофона:', error);
-            }
+            // Удаленные участники
+            room.remoteParticipants.forEach((participant) => {
+                participants.push({
+                    identity: participant.identity,
+                    isLocal: false,
+                    camera: participant.isCameraEnabled,
+                    mic: participant.isMicrophoneEnabled
+                });
+            });
+            
+            // Отрисовка списка
+            participantsList.innerHTML = participants.map(p => `
+                <div class="participant-item">
+                    <span>
+                        ${p.isLocal ? '👤 (Вы)' : '👥'} ${p.identity}
+                    </span>
+                    <span class="participant-status">
+                        ${p.camera ? '📹' : '🚫📹'} ${p.mic ? '🎤' : '🔇'}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function removeParticipantVideos(identity) {
+            document.querySelectorAll(`[data-participant="${identity}"]`).forEach(el => el.remove());
+        }
+
+        // Управление микрофоном
+        micBtn.addEventListener('click', async () => {
+            if (!room?.localParticipant) return;
+            
+            const enabled = room.localParticipant.isMicrophoneEnabled;
+            await room.localParticipant.setMicrophoneEnabled(!enabled);
+            micBtn.textContent = enabled ? '🎤 Включить микрофон' : '🎤 Выключить микрофон';
+            updateParticipantsList();
         });
 
+        // Выход
         leaveBtn.addEventListener('click', () => {
             if (room) {
                 room.disconnect();
-                micBtn.textContent = '🎤 Включить микрофон';
+                // Возвращаемся к экрану входа
+                loginScreen.style.display = 'block';
+                mainInterface.style.display = 'none';
+                selectedUser = null;
+                selectAdmin1.classList.remove('selected');
+                selectAdmin2.classList.remove('selected');
+                connectBtn.disabled = true;
+                connectBtn.textContent = 'Выберите участника';
             }
         });
 
-        // Обработка ошибок загрузки
-        window.addEventListener('error', (e) => {
-            if (e.target?.src?.includes('livekit.js')) {
-                console.error('Ошибка загрузки livekit.js');
-                updateStatus('❌ Ошибка загрузки livekit.js', 'error');
+        // Проверка загрузки SDK
+        window.addEventListener('load', () => {
+            if (!window.LivekitClient && !window.LiveKit) {
+                statusEl.textContent = '❌ SDK не загружен';
             }
         });
     </script>
