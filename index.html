@@ -2,95 +2,317 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Тест LiveKit</title>
+    <title>Secure Briefing</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { background: #0a0a0a; color: #f0b90b; font-family: Arial; text-align: center; padding: 20px; }
-        video { width: 300px; height: 200px; border: 2px solid #f0b90b; border-radius: 12px; margin: 5px; }
-        button { background: #f0b90b; color: black; border: none; padding: 10px 20px; margin: 5px; border-radius: 8px; cursor: pointer; }
-        #status { margin: 20px; padding: 10px; background: #1a1a1a; border-radius: 8px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #f0b90b;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(240, 185, 11, 0.3);
+        }
+
+        #videoContainer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px 0;
+            min-height: 200px;
+        }
+
+        video {
+            border-radius: 16px;
+            border: 3px solid #f0b90b;
+            width: 320px;
+            height: 240px;
+            background: #1a1a1a;
+            object-fit: cover;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            transition: transform 0.3s;
+        }
+
+        video:hover {
+            transform: scale(1.02);
+            border-color: #ffd700;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: #f0b90b;
+            color: #0a0a0a;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 6px rgba(240, 185, 11, 0.2);
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #ffd700;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(240, 185, 11, 0.3);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #666;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #f0b90b;
+            border: 2px solid #f0b90b;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(240, 185, 11, 0.1);
+            color: #ffd700;
+            border-color: #ffd700;
+        }
+
+        #status {
+            margin: 15px 0;
+            padding: 12px 24px;
+            border-radius: 50px;
+            background: #1a1a1a;
+            color: #f0b90b;
+            font-size: 0.9rem;
+            border: 1px solid #333;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .status-success {
+            background: #1a2a1a;
+            color: #4caf50;
+            border-color: #4caf50;
+        }
+
+        .status-error {
+            background: #2a1a1a;
+            color: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+
+        .footer {
+            margin-top: auto;
+            padding: 20px;
+            color: #444;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
-    <h1>🔧 Тест подключения</h1>
+    <h1>🔐 Secure Briefing</h1>
+    
     <div id="status">⏳ Загрузка...</div>
-    <div id="videos"></div>
-    <div>
-        <button id="micBtn">🎤 Вкл/Выкл микрофон</button>
-        <button id="leaveBtn">🚪 Выйти</button>
+    
+    <div id="videoContainer"></div>
+
+    <div class="controls">
+        <button class="btn" id="micBtn" disabled>🎤 Включить микрофон</button>
+        <button class="btn btn-secondary" id="leaveBtn" disabled>🚪 Выйти из комнаты</button>
     </div>
 
-    <!-- Подключаем LiveKit через CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js"></script>
+    <div class="footer">
+        внутренний сервис для брифингов • черно-желтый стиль
+    </div>
+
+    <!-- Используем локальный файл livekit.js -->
+    <script src="livekit.js"></script>
 
     <script>
+        // Конфигурация
         const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
         const TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE3OTA2NTIsImlkZW50aXR5IjoiYWRtaW4iLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE3OTA2NTIsInN1YiI6ImFkbWluIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6InNlY3VyZS1zdGFjay0xazViOTUiLCJyb29tSm9pbiI6dHJ1ZX19.ZZJvSlcJ6euQOa9tiLvFOboyp2F0oMQkXUbCEKvB4R4';
         const ROOM_NAME = 'secure-stack-1k5b95';
 
-        let room;
+        // DOM элементы
         const statusEl = document.getElementById('status');
-        const videosEl = document.getElementById('videos');
+        const videoContainer = document.getElementById('videoContainer');
+        const micBtn = document.getElementById('micBtn');
+        const leaveBtn = document.getElementById('leaveBtn');
 
-        async function connect() {
-            if (!window.LiveKit) {
-                statusEl.innerHTML = '❌ LiveKit не загрузился';
-                return;
-            }
+        let room = null;
 
+        // Функция обновления статуса
+        function updateStatus(text, type = 'info') {
+            statusEl.textContent = text;
+            statusEl.classList.remove('status-success', 'status-error');
+            if (type === 'success') statusEl.classList.add('status-success');
+            if (type === 'error') statusEl.classList.add('status-error');
+        }
+
+        // Функция подключения к комнате
+        async function connectToRoom() {
             try {
-                statusEl.innerHTML = '🔄 Подключаемся...';
-                
-                room = new LiveKit.Room();
-                
-                room.on(LiveKit.RoomEvent.TrackSubscribed, (track) => {
-                    if (track.kind === 'video') {
-                        const el = track.attach();
-                        videosEl.appendChild(el);
-                        statusEl.innerHTML = '✅ Видео получено';
+                updateStatus('🔄 Подключение к комнате...');
+
+                // Создаем комнату
+                room = new LiveKit.Room({
+                    adaptiveStream: true,
+                    dynacast: true,
+                    videoCaptureDefaults: {
+                        resolution: {
+                            width: 640,
+                            height: 480
+                        }
                     }
                 });
 
-                room.on(LiveKit.RoomEvent.Disconnected, () => {
-                    statusEl.innerHTML = '📴 Отключено';
-                    videosEl.innerHTML = '';
+                // Обработчик новых видео треков
+                room.on(LiveKit.RoomEvent.TrackSubscribed, (track, publication, participant) => {
+                    console.log('📹 Получен видео трек от:', participant.identity);
+                    
+                    if (track.kind === 'video' || track.kind === 'screen') {
+                        const videoElement = track.attach();
+                        videoElement.setAttribute('data-participant', participant.identity);
+                        videoContainer.appendChild(videoElement);
+                    }
                 });
 
+                // Обработчик отписки от треков
+                room.on(LiveKit.RoomEvent.TrackUnsubscribed, (track) => {
+                    console.log('🗑️ Трек отписан');
+                    if (track.kind === 'video' || track.kind === 'screen') {
+                        track.detach().forEach(el => el.remove());
+                    }
+                });
+
+                // Обработчик подключения
                 room.on(LiveKit.RoomEvent.Connected, () => {
-                    statusEl.innerHTML = '✅ Подключено!';
+                    console.log('✅ Подключено к комнате');
+                    updateStatus('✅ Подключено к комнате', 'success');
+                    
+                    // Включаем камеру и микрофон
+                    Promise.all([
+                        room.localParticipant.setCameraEnabled(true),
+                        room.localParticipant.setMicrophoneEnabled(true)
+                    ]).then(() => {
+                        console.log('🎥 Камера и микрофон включены');
+                    }).catch(err => {
+                        console.warn('⚠️ Не удалось включить устройства:', err);
+                    });
                 });
 
-                await room.connect(LIVEKIT_URL, TOKEN, { roomName: ROOM_NAME });
-                
-                // Включаем камеру и микрофон
-                await room.localParticipant.setCameraEnabled(true);
-                await room.localParticipant.setMicrophoneEnabled(true);
+                // Обработчик отключения
+                room.on(LiveKit.RoomEvent.Disconnected, () => {
+                    console.log('📴 Отключено от комнаты');
+                    updateStatus('📴 Отключено от комнаты');
+                    videoContainer.innerHTML = '';
+                    micBtn.textContent = '🎤 Включить микрофон';
+                });
 
-            } catch (err) {
-                statusEl.innerHTML = '❌ Ошибка: ' + err.message;
-                console.error(err);
+                // Запрашиваем разрешения на устройства
+                try {
+                    await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    console.log('✅ Разрешения получены');
+                } catch (mediaError) {
+                    console.warn('⚠️ Нет разрешений на медиа:', mediaError);
+                    updateStatus('⚠️ Разрешите доступ к камере и микрофону', 'error');
+                }
+
+                // Подключаемся
+                await room.connect(LIVEKIT_URL, TOKEN, { 
+                    roomName: ROOM_NAME,
+                    autoSubscribe: true
+                });
+
+            } catch (error) {
+                console.error('❌ Ошибка подключения:', error);
+                updateStatus(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Проверяем загрузку LiveKit
+        function checkLiveKit() {
+            if (typeof LiveKit !== 'undefined' && LiveKit) {
+                console.log('✅ LiveKit SDK загружен');
+                updateStatus('✅ SDK загружен, подключаемся...');
+                
+                // Активируем кнопки
+                micBtn.disabled = false;
+                leaveBtn.disabled = false;
+                
+                // Подключаемся
+                connectToRoom();
+            } else {
+                console.error('❌ LiveKit SDK не загружен');
+                updateStatus('❌ Ошибка: LiveKit SDK не загружен', 'error');
             }
         }
 
         // Ждем загрузки скрипта
-        setTimeout(() => {
-            if (window.LiveKit) {
-                connect();
-            } else {
-                statusEl.innerHTML = '❌ LiveKit не загрузился';
-            }
-        }, 1000);
+        if (document.readyState === 'complete') {
+            checkLiveKit();
+        } else {
+            window.addEventListener('load', checkLiveKit);
+        }
 
-        // Кнопки
-        document.getElementById('micBtn').onclick = () => {
-            if (room?.localParticipant) {
-                const enabled = room.localParticipant.isMicrophoneEnabled;
-                room.localParticipant.setMicrophoneEnabled(!enabled);
+        // Обработчики кнопок
+        micBtn.addEventListener('click', async () => {
+            if (!room?.localParticipant) return;
+            
+            try {
+                const isEnabled = room.localParticipant.isMicrophoneEnabled;
+                await room.localParticipant.setMicrophoneEnabled(!isEnabled);
+                micBtn.textContent = isEnabled ? '🎤 Включить микрофон' : '🎤 Выключить микрофон';
+            } catch (error) {
+                console.error('Ошибка переключения микрофона:', error);
             }
-        };
+        });
 
-        document.getElementById('leaveBtn').onclick = () => {
-            if (room) room.disconnect();
-        };
+        leaveBtn.addEventListener('click', () => {
+            if (room) {
+                room.disconnect();
+                micBtn.textContent = '🎤 Включить микрофон';
+            }
+        });
+
+        // Обработка ошибок загрузки
+        window.addEventListener('error', (e) => {
+            if (e.target?.src?.includes('livekit.js')) {
+                console.error('Ошибка загрузки livekit.js');
+                updateStatus('❌ Ошибка загрузки livekit.js', 'error');
+            }
+        });
     </script>
 </body>
 </html>
