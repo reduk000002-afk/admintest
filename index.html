@@ -1,109 +1,141 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
   <meta charset="UTF-8">
+  <title>Secure Briefing</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Binance Briefing</title>
   <style>
     body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
       background: #0a0a0a;
       color: #f0b90b;
+      font-family: 'Inter', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      height: 100vh;
+      min-height: 100vh;
+      padding: 20px;
     }
-
     h1 {
-      margin: 20px 0;
-      font-size: 2rem;
-      color: #f0b90b;
-    }
-
-    #briefingContainer {
-      width: 90%;
-      max-width: 1000px;
-      height: 600px;
-      background: #1e1f25;
-      border: 2px solid #f0b90b;
-      border-radius: 16px;
-      overflow: hidden;
       margin-bottom: 20px;
     }
-
-    button {
+    #videoContainer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      width: 100%;
+      max-width: 900px;
+      margin-bottom: 20px;
+    }
+    video {
+      border-radius: 12px;
+      border: 2px solid #f0b90b;
+      width: 300px;
+      height: 200px;
+      background: black;
+    }
+    .btn {
       background: #f0b90b;
+      color: #0a0a0a;
       border: none;
       padding: 12px 24px;
       border-radius: 12px;
-      color: #0a0a0a;
       font-weight: bold;
-      cursor: pointer;
       margin: 5px;
+      cursor: pointer;
     }
-
-    button:hover {
-      background: #ffd53d;
+    .btn:hover { background: #ffd53d; }
+    .btn-secondary {
+      background: #0c0f15;
+      color: #f0b90b;
+      border: 1px solid #2c2f36;
     }
-
-    #controls {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
+    .btn-secondary:hover { background: #1e1f25; }
   </style>
+
+  <!-- Подключаем LiveKit JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js"></script>
 </head>
 <body>
-  <h1>Binance Briefing</h1>
 
-  <!-- Контейнер для Embed SDK -->
-  <div id="briefingContainer"></div>
+<h1>Secure Briefing</h1>
 
-  <!-- Кастомные кнопки управления -->
-  <div id="controls">
-    <button id="micBtn">Включить микрофон</button>
-    <button id="leaveBtn">Выйти из брифинга</button>
-  </div>
+<div id="videoContainer"></div>
 
-  <!-- Подключаем Embed SDK -->
-  <script src="https://cdn.whereby.dev/embed-sdk/1.3.0/whereby-embed.min.js"></script>
-  <script>
-    // Контейнер
-    const container = document.getElementById("briefingContainer");
+<div>
+  <button class="btn" id="micBtn">Выкл/Вкл Микрофон</button>
+  <button class="btn btn-secondary" id="leaveBtn">Выйти</button>
+</div>
 
-    // Вставляем свои данные
-    const roomUrl = "https://whereby.com/briefing-room"; // твой roomUrl
-    const roomKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmFwcGVhci5pbiIsImF1ZCI6Imh0dHBzOi8vYXBpLmFwcGVhci5pbi92MSIsImV4cCI6OTAwNzE5OTI1NDc0MDk5MSwiaWF0IjoxNzcxNzg2NTcwLCJvcmdhbml6YXRpb25JZCI6MzM1MjY5LCJqdGkiOiJlZDA1ODAxMy04N2U2LTQ0YmEtODk2OC1kYTQ5YmMwZjliM2UifQ.hsQAyMp2Y6rP1UGlqZ_BySqBnG1K7WEr19f3tFusi_o";
-    const displayName = "Admin"; // Имя пользователя
+<script>
+  const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
+  const TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE3ODgxMDMsImlkZW50aXR5IjoiYWRtaW4iLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE3ODgxMDMsInN1YiI6ImFkbWluIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6IldlYnNvY2tldCBVUkwgd3NzOi8vdGVzdHp2b25vay0zcTEwejQ0ai5saXZla2l0LmNsb3VkICBBUEkga2V5IEFQSThoZm5odzdZeW54TiAgQVBJIHNlY3JldCB1SGdlVFo1cW9PZTh0SU81YWJib3V6dnY5RXpqWld4UEN2MWkwQTMwb3oiLCJyb29tSm9pbiI6dHJ1ZX19.rsT7SKsOQKBv9NItq3WnQ-jVBcoGQFjTOKkpjzYgKNA';
+  const ROOM_NAME = 'secure-stack-1k5b95';
 
-    // Создаем Embed
-    const embed = new WherebyEmbed(container, {
-      roomUrl: roomUrl,
-      roomKey: roomKey,
-      displayName: displayName,
-      hidePeople: true,   // скрываем список участников
-      hideChat: true,     // скрываем чат
-      showMic: true,      // включаем микрофон
-      showVideo: false    // отключаем камеру по умолчанию
+  const videoContainer = document.getElementById('videoContainer');
+  let room;
+
+  async function init() {
+    room = new LiveKit.Room();
+
+    room.on(LiveKit.RoomEvent.Disconnected, () => {
+      console.log('Disconnected');
+      videoContainer.innerHTML = '';
     });
 
-    // Кастомная кнопка микрофона
-    const micBtn = document.getElementById("micBtn");
-    micBtn.onclick = () => {
-      const micState = embed.getMicState();
-      embed.setMicEnabled(!micState);
-      micBtn.innerText = micState ? "Включить микрофон" : "Выключить микрофон";
-    };
+    room.on(LiveKit.RoomEvent.ParticipantConnected, participant => {
+      console.log('Participant connected:', participant.identity);
+    });
 
-    // Кнопка выхода
-    const leaveBtn = document.getElementById("leaveBtn");
-    leaveBtn.onclick = () => {
-      embed.leave();
-      alert("Вы вышли из брифинга");
-    };
-  </script>
+    room.on(LiveKit.RoomEvent.ParticipantDisconnected, participant => {
+      console.log('Participant disconnected:', participant.identity);
+    });
+
+    room.on(LiveKit.RoomEvent.TrackSubscribed, (track, publication, participant) => {
+      if (track.kind === 'video') {
+        const videoEl = track.attach();
+        videoContainer.appendChild(videoEl);
+      }
+    });
+
+    room.on(LiveKit.RoomEvent.TrackUnsubscribed, (track, publication, participant) => {
+      if (track.kind === 'video') {
+        const elements = track.detach();
+        elements.forEach(el => el.remove());
+      }
+    });
+
+    try {
+      await room.connect(LIVEKIT_URL, TOKEN, { roomName: ROOM_NAME });
+      await room.localParticipant.setMicrophoneEnabled(true);
+      console.log('Connected as local participant');
+
+      // Авто-подписка на существующие треки
+      room.participants.forEach(p => {
+        p.audioTracks.forEach(pub => pub.track && pub.track.attach());
+        p.videoTracks.forEach(pub => pub.track && pub.track.attach());
+      });
+
+    } catch (err) {
+      console.error('Connection error:', err);
+    }
+  }
+
+  // Кнопка микрофона
+  document.getElementById('micBtn').onclick = async () => {
+    if (!room) return;
+    const current = room.localParticipant.isMicrophoneEnabled;
+    await room.localParticipant.setMicrophoneEnabled(!current);
+  };
+
+  // Кнопка выхода
+  document.getElementById('leaveBtn').onclick = () => {
+    if (room) room.disconnect();
+  };
+
+  init();
+</script>
+
 </body>
 </html>
