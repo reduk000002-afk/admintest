@@ -15,9 +15,7 @@
       min-height: 100vh;
       padding: 20px;
     }
-    h1 {
-      margin-bottom: 20px;
-    }
+    h1 { margin-bottom: 20px; }
     #videoContainer {
       display: flex;
       flex-wrap: wrap;
@@ -67,7 +65,6 @@
 </div>
 
 <script>
-  // --- Настройки подключения ---
   const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
   const TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE3ODgxMDMsImlkZW50aXR5IjoiYWRtaW4iLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE3ODgxMDMsInN1YiI6ImFkbWluIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6IldlYnNvY2tldCBVUkwgd3NzOi8vdGVzdHp2b25vay0zcTEwejQ0ai5saXZla2l0LmNsb3VkICBBUEkga2V5IEFQSThoZm5odzdZeW54TiAgQVBJIHNlY3JldCB1SGdlVFo1cW9PZTh0SU81YWJib3V6dnY5RXpqWld4UEN2MWkwQTMwb3oiLCJyb29tSm9pbiI6dHJ1ZX19.rsT7SKsOQKBv9NItq3WnQ-jVBcoGQFjTOKkpjzYgKNA';
   const ROOM_NAME = 'secure-stack-1k5b95';
@@ -83,18 +80,9 @@
 
     room = new LiveKit.Room();
 
-    // --- События ---
     room.on(LiveKit.RoomEvent.Disconnected, () => {
       console.log('Disconnected');
       videoContainer.innerHTML = '';
-    });
-
-    room.on(LiveKit.RoomEvent.ParticipantConnected, participant => {
-      console.log('Participant connected:', participant.identity);
-    });
-
-    room.on(LiveKit.RoomEvent.ParticipantDisconnected, participant => {
-      console.log('Participant disconnected:', participant.identity);
     });
 
     room.on(LiveKit.RoomEvent.TrackSubscribed, (track, publication, participant) => {
@@ -116,30 +104,21 @@
       console.log('✅ Подключено к комнате');
       await room.localParticipant.setMicrophoneEnabled(true);
 
-      // Подписка на существующие треки
-      room.participants.forEach(p => {
-        p.audioTracks.forEach(pub => pub.track && pub.track.attach());
-        p.videoTracks.forEach(pub => pub.track && pub.track.attach());
-      });
-
     } catch (err) {
       console.error('Ошибка подключения:', err);
     }
   }
 
-  // --- Кнопка микрофона ---
   document.getElementById('micBtn').onclick = async () => {
     if (!room) return;
     const enabled = room.localParticipant.isMicrophoneEnabled;
     await room.localParticipant.setMicrophoneEnabled(!enabled);
   };
 
-  // --- Кнопка выхода ---
   document.getElementById('leaveBtn').onclick = () => {
     if (room) room.disconnect();
   };
 
-  // --- Инициализация ---
   window.addEventListener('load', initRoom);
 </script>
 
