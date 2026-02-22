@@ -30,53 +30,33 @@
 <div class="conference">
   <div id="videoContainer">Конференція ще не підключена</div>
   <div class="controls">
-    <button class="btn" id="micBtn" onclick="toggleMic()"><i class="fas fa-microphone"></i> Вимкнути/Увімкнути мікрофон</button>
     <button class="btn" onclick="leaveConference()"><i class="fas fa-sign-out-alt"></i> Вийти</button>
   </div>
 </div>
 
-<!-- Подключаем Whereby Embed -->
-<script src="https://cdn.jsdelivr.net/npm/@whereby/embed/dist/whereby-embed.min.js"></script>
-
 <script>
-  // ---- ТВОЯ КОМНАТА WHEREBY ----
+  // Ссылка на вашу комнату Whereby
   const ROOM_URL = "https://spam.whereby.com/spam-%D0%B5%D1%83%D1%84%D1%8C30421668-7aae-4d75-a986-16f5af820fbe";
-  const USER_NAME = "TestUser"; // имя пользователя для отображения
-
-  let embed = null;
-  let micEnabled = true;
 
   function joinConference() {
     const container = document.getElementById('videoContainer');
-    container.innerHTML = ""; // очищаем место для видео
+    container.innerHTML = "";
 
-    // Создаем Embed
-    embed = new Whereby.Embed(container, {
-      roomUrl: ROOM_URL,
-      displayName: USER_NAME,
-      theme: "dark",
-      audio: true,
-      video: true,
-      hideChat: false,       // показывать чат
-      hidePeople: false      // показывать список участников
-    });
-
-    embed.on('joined', () => {
-      container.innerHTML = ""; // iframe уже встроился
-    });
-  }
-
-  function toggleMic() {
-    if (!embed) return;
-    micEnabled = !micEnabled;
-    embed.setAudioEnabled(micEnabled);
-    document.getElementById('micBtn').innerHTML = micEnabled ? '<i class="fas fa-microphone"></i> Вимкнути мікрофон' : '<i class="fas fa-microphone-slash"></i> Увімкнути мікрофон';
+    // Вставляем iframe с комнатой
+    const iframe = document.createElement('iframe');
+    iframe.src = ROOM_URL;
+    iframe.width = "100%";
+    iframe.height = "500";
+    iframe.style.border = "0";
+    iframe.style.borderRadius = "12px";
+    iframe.allow = "camera; microphone; fullscreen; display-capture";
+    
+    container.appendChild(iframe);
   }
 
   function leaveConference() {
-    if (!embed) return;
-    embed.leave();
-    document.getElementById('videoContainer').innerHTML = "Конференція ще не підключена";
+    const container = document.getElementById('videoContainer');
+    container.innerHTML = "Конференція ще не підключена";
   }
 </script>
 
