@@ -1,130 +1,34 @@
 <!DOCTYPE html>
-<html>
+<html lang="uk">
 <head>
-    <title>Binance Brief · конференція</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-        body { background: #0a0a0a; color: #f0b90b; min-height: 100vh; display: flex; justify-content: center; align-items: center; }
-        .card { background: #1e1f25; padding: 40px; border-radius: 20px; width: 600px; border: 1px solid #2c2f36; }
-        .navbar { display: flex; justify-content: space-between; margin-bottom: 30px; }
-        .logo { color: #f0b90b; font-size: 1.5rem; font-weight: bold; }
-        .status { background: #0c0f15; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; }
-        .participant { background: #0c0f15; padding: 10px; margin: 5px 0; border-radius: 8px; display: flex; justify-content: space-between; }
-        button { background: #f0b90b; color: black; padding: 15px 30px; border: none; border-radius: 10px; font-weight: bold; margin: 5px; cursor: pointer; }
-        .btn-danger { background: #0c0f15; color: #ef5350; border: 1px solid #2c2f36; }
-    </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- ОФІЦІЙНИЙ CDN LIVEKIT (завжди працює) -->
-    <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binance Brief · Брифінг</title>
+<script src="https://cdn.whereby.com/embed.js"></script>
+<style>
+  html, body { margin:0; padding:0; height:100%; background:#0a0a0a; }
+  #meeting { width:100%; height:100%; }
+</style>
 </head>
 <body>
-    <div class="card">
-        <div class="navbar">
-            <div class="logo"><i class="fas fa-microphone-alt"></i> BINANCE BRIEF</div>
-            <div class="room-tag" id="roomDisplay"></div>
-        </div>
+<div id="meeting"></div>
 
-        <div class="status" id="connectionStatus">
-            <i class="fas fa-circle-notch fa-spin"></i> Підключення...
-        </div>
+<script>
+  // Имя сотрудника из URL
+  const params = new URLSearchParams(window.location.search);
+  const userName = params.get('user') || 'Guest';
 
-        <div id="participantsList"></div>
+  // Ссылка участников
+  const roomUrl = "https://spam.whereby.com/spam-%D0%B5%D1%83%D1%84%D1%8C30421668-7aae-4d75-a986-16f5af820fbe";
 
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button onclick="toggleMic()" id="micBtn" style="flex: 1;">
-                <i class="fas fa-microphone"></i> <span id="micText">Мікрофон</span>
-            </button>
-            <button onclick="leaveRoom()" class="btn-danger" style="flex: 1;">
-                <i class="fas fa-sign-out-alt"></i> Вийти
-            </button>
-        </div>
-    </div>
-
-    <script>
-        // Перевіряємо чи завантажився LiveKit (правильна назва - LiveKit)
-        if (typeof LiveKit === 'undefined') {
-            document.getElementById('connectionStatus').innerHTML = '❌ Помилка: LiveKit не завантажився';
-            throw new Error('LiveKit not loaded');
-        }
-
-        console.log('✅ LiveKit завантажено', LiveKit);
-
-        // Отримуємо назву кімнати з URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const roomName = urlParams.get('room') || 'test';
-        const userName = urlParams.get('user') || 'User_' + Math.random().toString(36).substring(7);
-        
-        document.getElementById('roomDisplay').innerHTML = `<i class="fas fa-door-open"></i> ${roomName}`;
-
-        // Дані для підключення
-        const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
-        
-        // Створюємо кімнату (правильно - LiveKit.Room)
-        const room = new LiveKit.Room();
-
-        // Обробники подій
-        room.on(LiveKit.RoomEvent.Connected, () => {
-            document.getElementById('connectionStatus').innerHTML = '✅ Підключено до кімнати ' + roomName;
-            updateParticipantsList();
-        });
-
-        room.on(LiveKit.RoomEvent.Disconnected, () => {
-            document.getElementById('connectionStatus').innerHTML = '❌ Відключено';
-        });
-
-        room.on(LiveKit.RoomEvent.ParticipantConnected, () => updateParticipantsList());
-        room.on(LiveKit.RoomEvent.ParticipantDisconnected, () => updateParticipantsList());
-        room.on(LiveKit.RoomEvent.TrackMuted, () => updateParticipantsList());
-        room.on(LiveKit.RoomEvent.TrackUnmuted, () => updateParticipantsList());
-
-        // Функція оновлення списку учасників
-        function updateParticipantsList() {
-            if (!room || !room.localParticipant) return;
-            
-            const participants = [room.localParticipant, ...room.participants.values()];
-            let html = '<h3>Учасники:</h3>';
-            
-            participants.forEach(p => {
-                const isMe = p === room.localParticipant ? ' (ви)' : '';
-                const micStatus = p.isMicrophoneEnabled ? '🎤' : '🔇';
-                html += `<div class="participant"><span><i class="fas fa-user-circle"></i> ${p.identity}${isMe}</span> <span>${micStatus}</span></div>`;
-            });
-            
-            document.getElementById('participantsList').innerHTML = html;
-        }
-
-        // Підключаємось
-        room.connect(LIVEKIT_URL, '', {
-            identity: userName,
-            roomName: roomName
-        }).then(() => {
-            return room.localParticipant.setMicrophoneEnabled(true);
-        }).then(() => {
-            updateParticipantsList();
-        }).catch(e => {
-            document.getElementById('connectionStatus').innerHTML = '❌ Помилка: ' + e.message;
-            console.error('Connection error:', e);
-        });
-
-        // Функції для кнопок (оголошуємо глобально)
-        window.toggleMic = function() {
-            if (room && room.localParticipant) {
-                const newState = !room.localParticipant.isMicrophoneEnabled;
-                room.localParticipant.setMicrophoneEnabled(newState).then(() => {
-                    document.getElementById('micText').textContent = newState ? 'Вимкнути мікрофон' : 'Увімкнути мікрофон';
-                    updateParticipantsList();
-                });
-            }
-        };
-
-        window.leaveRoom = function() {
-            if (room) {
-                room.disconnect();
-            }
-            window.location.href = '/admintest/';
-        };
-    </script>
+  Whereby.embed("meeting", {
+    room: roomUrl,
+    displayName: userName,
+    theme: "dark",
+    hideChat: true,     // Скрыть чат
+    hidePeople: true,   // Скрыть участников
+    skipPrejoin: true   // Пропустить экран "Подключение"
+  });
+</script>
 </body>
 </html>
