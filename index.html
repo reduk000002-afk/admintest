@@ -25,6 +25,7 @@
       width: 100%;
       max-width: 900px;
       margin-bottom: 20px;
+      min-height: 200px;
     }
     video {
       border-radius: 12px;
@@ -46,13 +47,17 @@
       font-size: 16px;
       transition: all 0.3s;
     }
-    .btn:hover { background: #ffd53d; transform: scale(1.05); }
+    .btn:hover:not(:disabled) { background: #ffd53d; transform: scale(1.05); }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
     .btn-secondary {
       background: #0c0f15;
       color: #f0b90b;
       border: 1px solid #2c2f36;
     }
-    .btn-secondary:hover { background: #1e1f25; }
+    .btn-secondary:hover:not(:disabled) { background: #1e1f25; }
     #status {
       margin: 10px 0;
       color: #888;
@@ -63,6 +68,9 @@
     }
     .error {
       color: #ff6b6b;
+    }
+    .success {
+      color: #4caf50;
     }
   </style>
 </head>
@@ -77,64 +85,26 @@
   <button class="btn btn-secondary" id="leaveBtn" disabled>🚪 Выйти</button>
 </div>
 
-<!-- Пробуем разные CDN для загрузки LiveKit -->
-<script>
-  // Функция для загрузки скрипта с проверкой
-  function loadScript(url, callback) {
-    const script = document.createElement('script');
-    script.src = url;
-    script.onload = callback;
-    script.onerror = function() {
-      console.error('Не удалось загрузить:', url);
-      // Пробуем следующий CDN
-      loadNextCDN();
-    };
-    document.head.appendChild(script);
-  }
-
-  // Список CDN для проброса
-  const cdnList = [
-    'https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.umd.min.js',
-    'https://unpkg.com/livekit-client@1.15.4/dist/livekit-client.umd.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/livekit-client/1.15.4/livekit-client.umd.min.js'
-  ];
-
-  let currentCdnIndex = 0;
-
-  function loadNextCDN() {
-    if (currentCdnIndex < cdnList.length) {
-      console.log('Пробуем CDN:', cdnList[currentCdnIndex]);
-      loadScript(cdnList[currentCdnIndex], function() {
-        console.log('Скрипт загружен, проверяем LiveKit...');
-        setTimeout(checkLiveKit, 500);
-      });
-      currentCdnIndex++;
-    } else {
-      document.getElementById('status').innerHTML = '❌ Не удалось загрузить LiveKit SDK. Проверьте интернет-соединение.';
-      document.getElementById('status').classList.add('error');
+<!-- Используем import map и модульный подход -->
+<script type="importmap">
+  {
+    "imports": {
+      "livekit-client": "https://cdn.jsdelivr.net/npm/livekit-client@1.15.4/dist/livekit-client.esm.js"
     }
   }
+</script>
 
-  function checkLiveKit() {
-    if (typeof LiveKit !== 'undefined') {
-      console.log('✅ LiveKit успешно загружен!');
-      document.getElementById('status').innerHTML = '✅ SDK загружен, подключаемся...';
-      document.getElementById('micBtn').disabled = false;
-      document.getElementById('leaveBtn').disabled = false;
-      initRoom();
-    } else {
-      console.log('LiveKit всё ещё не загружен');
-      loadNextCDN();
-    }
-  }
-
-  // Начинаем загрузку
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM загружен, начинаем загрузку LiveKit...');
-    loadNextCDN();
-  });
-
-  // Конфигурация LiveKit
+<script type="module">
+  import { Room, RoomEvent } from 'livekit-client';
+  
+  console.log('✅ Модуль livekit-client загружен');
+  
+  // Активируем кнопки
+  document.getElementById('micBtn').disabled = false;
+  document.getElementById('leaveBtn').disabled = false;
+  document.getElementById('status').innerHTML = '✅ SDK загружен, подключаемся...';
+  
+  // Конфигурация
   const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
   const TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE3ODgxMDMsImlkZW50aXR5IjoiYWRtaW4iLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE3ODgxMDMsInN1YiI6ImFkbWluIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6IldlYnNvY2tldCBVUkwgd3NzOi8vdGVzdHp2b25vay0zcTEwejQ0ai5saXZla2l0LmNsb3VkICBBUEkga2V5IEFQSThoZm5odzdZeW54TiAgQVBJIHNlY3JldCB1SGdlVFo1cW9PZTh0SU81YWJib3V6dnY5RXpqWld4UEN2MWkwQTMwb3oiLCJyb29tSm9pbiI6dHJ1ZX19.rsT7SKsOQKBv9NItq3WnQ-jVBcoGQFjTOKkpjzYgKNA';
   const ROOM_NAME = 'secure-stack-1k5b95';
@@ -146,66 +116,115 @@
   async function initRoom() {
     try {
       statusEl.innerHTML = '🔄 Подключаемся к комнате...';
+      statusEl.classList.remove('error', 'success');
       
       // Создаем комнату
-      room = new LiveKit.Room();
+      room = new Room({
+        adaptiveStream: true,
+        dynacast: true,
+        videoCaptureDefaults: {
+          resolution: {
+            width: 640,
+            height: 480
+          }
+        }
+      });
 
       // Обработчик новых видео-треков
-      room.on(LiveKit.RoomEvent.TrackSubscribed, (track, publication, participant) => {
-        console.log('Получен трек:', track.kind, 'от', participant.identity);
-        if (track.kind === 'video') {
+      room.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
+        console.log('📹 Получен трек:', track.kind, 'от', participant.identity);
+        if (track.kind === 'video' || track.kind === 'screen') {
           const videoEl = track.attach();
           videoEl.style.width = '300px';
           videoEl.style.height = '200px';
+          videoEl.setAttribute('data-participant', participant.identity);
           videoContainer.appendChild(videoEl);
+          console.log('✅ Видео добавлено');
         }
       });
 
       // Обработчик удаления треков
-      room.on(LiveKit.RoomEvent.TrackUnsubscribed, (track, publication, participant) => {
-        console.log('Трек отписан:', track.kind);
-        if (track.kind === 'video') {
+      room.on(RoomEvent.TrackUnsubscribed, (track, publication, participant) => {
+        console.log('🗑️ Трек отписан:', track.kind);
+        if (track.kind === 'video' || track.kind === 'screen') {
           track.detach().forEach(el => el.remove());
         }
       });
 
       // Обработчик новых участников
-      room.on(LiveKit.RoomEvent.ParticipantConnected, (participant) => {
-        console.log('Участник подключился:', participant.identity);
+      room.on(RoomEvent.ParticipantConnected, (participant) => {
+        console.log('👤 Участник подключился:', participant.identity);
+        statusEl.innerHTML = `👤 Участник ${participant.identity} подключился`;
+      });
+
+      // Обработчик отключения участников
+      room.on(RoomEvent.ParticipantDisconnected, (participant) => {
+        console.log('👤 Участник отключился:', participant.identity);
+        statusEl.innerHTML = `👤 Участник ${participant.identity} отключился`;
+        
+        // Удаляем видео отключившегося участника
+        document.querySelectorAll(`[data-participant="${participant.identity}"]`).forEach(el => el.remove());
+      });
+
+      // Обработчик подключения
+      room.on(RoomEvent.Connected, () => {
+        console.log('🔌 Подключено к комнате');
+        statusEl.innerHTML = '✅ Подключено к комнате';
+        statusEl.classList.add('success');
       });
 
       // Обработчик отключения
-      room.on(LiveKit.RoomEvent.Disconnected, () => {
-        console.log('Отключено от комнаты');
+      room.on(RoomEvent.Disconnected, () => {
+        console.log('📴 Отключено от комнаты');
         statusEl.innerHTML = '📴 Отключено';
+        statusEl.classList.remove('success');
         videoContainer.innerHTML = '';
       });
 
-      // Подключаемся
-      await room.connect(LIVEKIT_URL, TOKEN, { 
-        autoSubscribe: true,
-        roomName: ROOM_NAME 
+      // Обработчик ошибок
+      room.on(RoomEvent.MediaDevicesError, (error) => {
+        console.error('📹 Ошибка медиаустройств:', error);
+        statusEl.innerHTML = '❌ Ошибка доступа к камере/микрофону';
+        statusEl.classList.add('error');
       });
-      
-      console.log('✅ Успешно подключено к комнате');
-      statusEl.innerHTML = '✅ Подключено к комнате';
 
-      // Включаем микрофон
-      await room.localParticipant.setMicrophoneEnabled(true);
+      // Запрашиваем разрешения перед подключением
+      try {
+        await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        console.log('✅ Разрешения получены');
+      } catch (mediaError) {
+        console.warn('⚠️ Нет разрешений на медиа:', mediaError);
+        statusEl.innerHTML = '⚠️ Разрешите доступ к камере и микрофону';
+      }
+
+      // Подключаемся
+      await room.connect(LIVEKIT_URL, TOKEN);
+      console.log('✅ Успешно подключено к комнате');
       
-      // Включаем камеру
-      await room.localParticipant.setCameraEnabled(true);
+      // Включаем микрофон и камеру с небольшой задержкой
+      setTimeout(async () => {
+        try {
+          await room.localParticipant.setMicrophoneEnabled(true);
+          await room.localParticipant.setCameraEnabled(true);
+          console.log('🎤 Микрофон и камера включены');
+        } catch (pubError) {
+          console.error('Ошибка публикации:', pubError);
+        }
+      }, 1000);
 
     } catch (error) {
-      console.error('Ошибка подключения:', error);
-      statusEl.innerHTML = '❌ Ошибка: ' + error.message;
+      console.error('❌ Ошибка подключения:', error);
+      statusEl.innerHTML = '❌ Ошибка: ' + (error.message || 'Неизвестная ошибка');
       statusEl.classList.add('error');
     }
   }
 
+  // Запускаем подключение
+  initRoom();
+
   // Кнопка микрофона
   document.getElementById('micBtn').addEventListener('click', async () => {
-    if (!room || !room.localParticipant) {
+    if (!room?.localParticipant) {
       alert('Сначала подключитесь к комнате');
       return;
     }
@@ -215,6 +234,7 @@
       await room.localParticipant.setMicrophoneEnabled(!isEnabled);
       document.getElementById('micBtn').textContent = 
         !isEnabled ? '🎤 Выключить микрофон' : '🎤 Включить микрофон';
+      console.log('🎤 Микрофон:', !isEnabled ? 'включен' : 'выключен');
     } catch (error) {
       console.error('Ошибка при переключении микрофона:', error);
     }
@@ -228,6 +248,21 @@
       statusEl.innerHTML = '📴 Отключено';
     }
   });
+
+  // Обработка ошибок загрузки модуля
+  window.addEventListener('error', (e) => {
+    if (e.message?.includes('livekit-client')) {
+      console.error('Ошибка загрузки модуля livekit-client:', e);
+      statusEl.innerHTML = '❌ Ошибка загрузки LiveKit SDK';
+      statusEl.classList.add('error');
+    }
+  });
+</script>
+
+<!-- Резервный вариант на случай проблем с модулями -->
+<script nomodule>
+  document.getElementById('status').innerHTML = '❌ Ваш браузер не поддерживает ES модули. Пожалуйста, обновите браузер.';
+  document.getElementById('status').classList.add('error');
 </script>
 
 </body>
