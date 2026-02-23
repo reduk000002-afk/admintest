@@ -758,7 +758,7 @@
         <div class="chat-panel">
             <div class="chat-header">
                 <div class="chat-title" id="currentChatTitle">Выберите чат</div>
-                <button class="conference-btn" id="conferenceBtn" style="display: none;">Начать конференцию</button>
+                <button class="conference-btn" id="conferenceBtn" style="display: none;">Присоединиться к конференции</button>
             </div>
             <div class="messages-container" id="messagesContainer">
                 <div style="text-align: center; color: #666; margin-top: 50px;">Выберите чат чтобы начать общение</div>
@@ -997,7 +997,7 @@
         });
 
         // ===============================================
-        // ФУНКЦИИ ДЛЯ МИКРОФОНА (из рабочего кода)
+        // ФУНКЦИИ ДЛЯ МИКРОФОНА
         // ===============================================
 
         async function requestMicrophoneAccess() {
@@ -1256,14 +1256,10 @@
                 loadGroupMessages();
                 unreadCounts['group'] = 0;
                 
+                // ПОКАЗЫВАЕМ КНОПКУ КОНФЕРЕНЦИИ ДЛЯ ВСЕХ
                 conferenceBtn.style.display = 'block';
-                if (currentUser.username === 'German') {
-                    conferenceBtn.textContent = 'Начать конференцию';
-                    conferenceBtn.classList.remove('join');
-                } else {
-                    conferenceBtn.textContent = 'Подключиться к конференции';
-                    conferenceBtn.classList.add('join');
-                }
+                conferenceBtn.textContent = 'Присоединиться к конференции';
+                conferenceBtn.classList.add('join');
             } else {
                 const chatElement = Array.from(document.querySelectorAll('.chat-item')).find(el => 
                     el.getAttribute('onclick')?.includes(`'${chatId}', 'private'`)
@@ -1769,26 +1765,24 @@
         };
 
         // ===============================================
-        // ВИДЕОКОНФЕРЕНЦИЯ - ИСПРАВЛЕНО (как в рабочем коде)
+        // ВИДЕОКОНФЕРЕНЦИЯ - ТЕПЕРЬ ДЛЯ ВСЕХ!
         // ===============================================
 
         conferenceBtn.addEventListener('click', async () => {
-            if (currentUser.username !== 'German') {
-                alert('Только администратор может начинать конференцию');
-                return;
-            }
-
+            // УБРАЛ ПРОВЕРКУ НА АДМИНА - теперь любой может
             if (!currentUser.livekit_token) {
-                alert('У вас нет токена для конференции');
+                alert('У вас нет токена для конференции. Попросите админа выдать токен.');
                 return;
             }
 
+            // Очищаем предыдущую сессию
+            videoGrid.innerHTML = '';
             videoModal.style.display = 'flex';
             startConference();
         });
 
         async function startConference() {
-            // Получаем LiveKit с проверкой (как в рабочем коде)
+            // Получаем LiveKit с проверкой
             const LiveKit = window.LivekitClient || window.LiveKit;
             
             if (!LiveKit) {
