@@ -640,7 +640,6 @@
             color: white;
         }
 
-        /* НОВЫЙ ИНТЕРФЕЙС КОНФЕРЕНЦИИ */
         .video-modal {
             display: none;
             position: fixed;
@@ -1000,7 +999,6 @@
         </div>
     </div>
 
-    <!-- НОВЫЙ ИНТЕРФЕЙС КОНФЕРЕНЦИИ -->
     <div class="video-modal" id="videoModal">
         <div class="video-header">
             <div class="video-title">🔐 Secure Briefing - Конференция</div>
@@ -1038,10 +1036,10 @@
         const ROOM_NAME = 'secure-stack-1k5b95';
         const GROUP_NAME = 'Spam команда Германа';
 
-        // Токены для пользователей
+        // Токены для пользователей - ТОЛЬКО user1 и user2
         const TOKENS = {
-            German: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE3OTA2NTIsImlkZW50aXR5IjoiYWRtaW4iLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE3OTA2NTIsInN1YiI6ImFkbWluIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6InNlY3VyZS1zdGFjay0xazViOTUiLCJyb29tSm9pbiI6dHJ1ZX19.ZZJvSlcJ6euQOa9tiLvFOboyp2F0oMQkXUbCEKvB4R4',
-            user1: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzI3OTIzMDMsImlkZW50aXR5IjoiYWRtaW4yIiwiaXNzIjoiQVBJOGhmbmh3N1l5bnhOIiwibmJmIjoxNzcxNzkyMzAzLCJzdWIiOiJhZG1pbjIiLCJ2aWRlbyI6eyJjYW5QdWJsaXNoIjp0cnVlLCJjYW5QdWJsaXNoRGF0YSI6dHJ1ZSwiY2FuU3Vic2NyaWJlIjp0cnVlLCJyb29tIjoic2VjdXJlLXN0YWNrLTFrNWI5NSIsInJvb21Kb2luIjp0cnVlfX0.BGWSRAixBm1UNkRKxmMwKtoSM26JJRoyYTezGK8ZXQs'
+            user1: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE3OTA2NTIsImlkZW50aXR5IjoiYWRtaW4iLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE3OTA2NTIsInN1YiI6ImFkbWluIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6InNlY3VyZS1zdGFjay0xazViOTUiLCJyb29tSm9pbiI6dHJ1ZX19.ZZJvSlcJ6euQOa9tiLvFOboyp2F0oMQkXUbCEKvB4R4',
+            user2: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzI3OTIzMDMsImlkZW50aXR5IjoiYWRtaW4yIiwiaXNzIjoiQVBJOGhmbmh3N1l5bnhOIiwibmJmIjoxNzcxNzkyMzAzLCJzdWIiOiJhZG1pbjIiLCJ2aWRlbyI6eyJjYW5QdWJsaXNoIjp0cnVlLCJjYW5QdWJsaXNoRGF0YSI6dHJ1ZSwiY2FuU3Vic2NyaWJlIjp0cnVlLCJyb29tIjoic2VjdXJlLXN0YWNrLTFrNWI5NSIsInJvb21Kb2luIjp0cnVlfX0.BGWSRAixBm1UNkRKxmMwKtoSM26JJRoyYTezGK8ZXQs'
         };
 
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1901,12 +1899,12 @@
         };
 
         // ===============================================
-        // ВИДЕОКОНФЕРЕНЦИЯ - НОВЫЙ ИНТЕРФЕЙС
+        // ВИДЕОКОНФЕРЕНЦИЯ
         // ===============================================
 
         conferenceBtn.addEventListener('click', async () => {
-            if (!currentUser.livekit_token) {
-                alert('У вас нет токена для конференции. Попросите админа выдать токен.');
+            if (!currentUser.livekit_token && !TOKENS[currentUser.username]) {
+                alert('У вас нет токена для конференции');
                 return;
             }
 
@@ -1941,40 +1939,50 @@
 
                 // Обновление списка участников
                 function updateParticipantsList() {
-                    const participants = [];
+                    if (!room) return;
                     
-                    if (room.localParticipant) {
-                        participants.push({
-                            identity: room.localParticipant.identity,
-                            isLocal: true,
-                            camera: room.localParticipant.isCameraEnabled,
-                            mic: room.localParticipant.isMicrophoneEnabled
-                        });
-                    }
-                    
-                    room.remoteParticipants.forEach((participant) => {
-                        participants.push({
-                            identity: participant.identity,
-                            isLocal: false,
-                            camera: participant.isCameraEnabled,
-                            mic: participant.isMicrophoneEnabled
-                        });
-                    });
-                    
-                    participantsCount.textContent = `👥 ${participants.length} участников`;
-                    
-                    conferenceParticipants.innerHTML = participants.map(p => `
-                        <div class="participant-item ${p.isLocal ? 'local' : ''}">
-                            <div class="participant-avatar">${p.identity[0].toUpperCase()}</div>
-                            <div class="participant-info">
-                                <div class="participant-name">${p.identity} ${p.isLocal ? '(Вы)' : ''}</div>
-                                <div class="participant-status">
-                                    <span class="${p.camera ? 'active' : 'inactive'}">${p.camera ? '📹' : '🚫📹'}</span>
-                                    <span class="${p.mic ? 'active' : 'inactive'}">${p.mic ? '🎤' : '🔇'}</span>
+                    try {
+                        const participants = [];
+                        
+                        if (room.localParticipant) {
+                            participants.push({
+                                identity: room.localParticipant.identity || 'Unknown',
+                                isLocal: true,
+                                camera: room.localParticipant.isCameraEnabled || false,
+                                mic: room.localParticipant.isMicrophoneEnabled || false
+                            });
+                        }
+                        
+                        if (room.remoteParticipants && typeof room.remoteParticipants.forEach === 'function') {
+                            room.remoteParticipants.forEach((participant) => {
+                                if (participant) {
+                                    participants.push({
+                                        identity: participant.identity || 'Unknown',
+                                        isLocal: false,
+                                        camera: participant.isCameraEnabled || false,
+                                        mic: participant.isMicrophoneEnabled || false
+                                    });
+                                }
+                            });
+                        }
+                        
+                        participantsCount.textContent = `👥 ${participants.length} участников`;
+                        
+                        conferenceParticipants.innerHTML = participants.map(p => `
+                            <div class="participant-item ${p.isLocal ? 'local' : ''}">
+                                <div class="participant-avatar">${p.identity ? p.identity[0].toUpperCase() : '?'}</div>
+                                <div class="participant-info">
+                                    <div class="participant-name">${p.identity} ${p.isLocal ? '(Вы)' : ''}</div>
+                                    <div class="participant-status">
+                                        <span class="${p.camera ? 'active' : 'inactive'}">${p.camera ? '📹' : '🚫📹'}</span>
+                                        <span class="${p.mic ? 'active' : 'inactive'}">${p.mic ? '🎤' : '🔇'}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    `).join('');
+                        `).join('');
+                    } catch (error) {
+                        console.error('Ошибка обновления списка:', error);
+                    }
                 }
 
                 room.on(LiveKit.RoomEvent.TrackSubscribed, (track, publication, participant) => {
@@ -2026,6 +2034,16 @@
                     console.log('✅ Подключено к комнате');
                     audioDebug.textContent = '✅ Подключено к комнате';
                     updateParticipantsList();
+                    
+                    // Включаем устройства
+                    setTimeout(async () => {
+                        try {
+                            await room.localParticipant.setCameraEnabled(true);
+                            await room.localParticipant.setMicrophoneEnabled(true);
+                        } catch (err) {
+                            console.warn('Ошибка включения устройств:', err);
+                        }
+                    }, 1000);
                 });
 
                 room.on(LiveKit.RoomEvent.Disconnected, () => {
@@ -2048,14 +2066,12 @@
 
                 // Подключаемся
                 audioDebug.textContent = '🔄 Подключение...';
-                await room.connect(
-                    currentUser.livekit_url || LIVEKIT_URL, 
-                    currentUser.livekit_token || TOKENS[currentUser.username] || TOKENS.user1,
-                    {
-                        roomName: ROOM_NAME,
-                        autoSubscribe: true
-                    }
-                );
+                
+                const token = currentUser.livekit_token || TOKENS[currentUser.username];
+                await room.connect(LIVEKIT_URL, token, {
+                    roomName: ROOM_NAME,
+                    autoSubscribe: true
+                });
 
                 audioDebug.textContent = '✅ Подключено';
 
