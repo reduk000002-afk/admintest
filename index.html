@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Secure Briefing</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <style>
         * {
             margin: 0;
@@ -16,6 +16,7 @@
             color: #f0b90b;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             min-height: 100vh;
+            overflow: hidden;
         }
 
         /* Авторизация */
@@ -34,7 +35,6 @@
             padding: 40px 20px;
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 20px 40px rgba(240, 185, 11, 0.1);
         }
 
         .auth-title {
@@ -67,25 +67,25 @@
             cursor: pointer;
         }
 
-        /* Основной интерфейс - десктоп версия */
+        /* Основной интерфейс */
         .main-container {
             display: none;
             height: 100vh;
             grid-template-columns: 280px 1fr 320px;
             background: #0a0a0a;
+            position: relative;
         }
 
-        /* Телефонная версия */
+        /* Мобильная версия */
         @media (max-width: 768px) {
             .main-container {
                 grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr auto;
+                grid-template-rows: 1fr;
                 height: 100vh;
                 overflow: hidden;
             }
 
             .users-panel {
-                display: none;
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -93,66 +93,242 @@
                 bottom: 0;
                 z-index: 100;
                 background: #111;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
                 overflow-y: auto;
+                width: 85%;
+                max-width: 300px;
             }
 
             .users-panel.active {
-                display: block;
-            }
-
-            .chat-panel {
-                height: 100vh;
-                display: flex;
-                flex-direction: column;
+                transform: translateX(0);
+                box-shadow: 2px 0 10px rgba(0,0,0,0.5);
             }
 
             .profile-panel {
-                display: none;
                 position: fixed;
                 top: 0;
-                left: 0;
                 right: 0;
                 bottom: 0;
+                width: 85%;
+                max-width: 300px;
                 z-index: 100;
                 background: #111;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
                 overflow-y: auto;
+                border-left: 1px solid #333;
             }
 
             .profile-panel.active {
-                display: block;
+                transform: translateX(0);
+                box-shadow: -2px 0 10px rgba(0,0,0,0.5);
             }
 
             .mobile-header {
                 display: flex;
-                justify-content: space-between;
                 align-items: center;
-                padding: 10px 15px;
+                padding: 12px 16px;
                 background: #111;
                 border-bottom: 1px solid #333;
-            }
-
-            .mobile-btn {
-                background: transparent;
-                border: 1px solid #f0b90b;
-                color: #f0b90b;
-                padding: 8px 15px;
-                border-radius: 20px;
-                font-size: 14px;
-                cursor: pointer;
+                height: 60px;
+                position: sticky;
+                top: 0;
+                z-index: 10;
             }
 
             .back-btn {
                 font-size: 24px;
                 cursor: pointer;
                 color: #f0b90b;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: background 0.2s;
+            }
+
+            .back-btn:hover {
+                background: #1a1a1a;
+            }
+
+            .mobile-title {
+                flex: 1;
+                font-size: 18px;
+                font-weight: 600;
+                text-align: center;
+                color: #f0b90b;
+            }
+
+            .mobile-profile-btn {
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: transparent;
+                border: 1px solid #f0b90b;
+                border-radius: 50%;
+                color: #f0b90b;
+                font-size: 20px;
+                cursor: pointer;
+            }
+
+            .chat-panel {
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                background: #0a0a0a;
+                padding-top: 60px; /* Высота мобильного хедера */
+            }
+
+            .chat-header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 60px;
+                background: #111;
+                border-bottom: 1px solid #333;
+                padding: 0 16px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                z-index: 20;
+            }
+
+            .chat-header .back-btn {
+                display: flex;
+            }
+
+            .chat-header .chat-title {
+                flex: 1;
+                font-size: 16px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .chat-header .conference-btn {
+                font-size: 14px;
+                padding: 8px 16px;
+                white-space: nowrap;
+            }
+
+            .messages-container {
+                flex: 1;
+                overflow-y: auto;
+                padding: 16px;
+                padding-bottom: 80px; /* Отступ для поля ввода */
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .message {
+                max-width: 85%;
+            }
+
+            .message-content {
+                padding: 10px 14px;
+                font-size: 14px;
+            }
+
+            .empty-messages {
+                text-align: center;
+                color: #666;
+                margin-top: 30px;
+                font-size: 14px;
+                padding: 20px;
+            }
+
+            .chat-input-area {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: #111;
+                border-top: 1px solid #333;
+                padding: 12px 16px;
+                display: flex;
+                gap: 10px;
+                z-index: 20;
+                height: 70px;
+            }
+
+            .chat-input {
+                flex: 1;
+                padding: 12px 16px;
+                background: #1a1a1a;
+                border: 1px solid #333;
+                border-radius: 24px;
+                color: #f0b90b;
+                font-size: 15px;
+            }
+
+            .send-btn {
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                background: #f0b90b;
+                border: none;
+                color: #0a0a0a;
+                font-size: 18px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .send-btn:disabled {
+                opacity: 0.5;
+                background: #333;
+                cursor: not-allowed;
+            }
+
+            .mobile-menu-btn {
+                display: flex;
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                width: 56px;
+                height: 56px;
+                border-radius: 50%;
+                background: #f0b90b;
+                color: #0a0a0a;
+                align-items: center;
+                justify-content: center;
+                font-size: 28px;
+                border: none;
+                z-index: 90;
+                box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3);
+            }
+
+            .mobile-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 95;
+            }
+
+            .mobile-overlay.active {
+                display: block;
             }
         }
 
-        .mobile-header {
+        /* Десктоп версия */
+        .mobile-header, .mobile-menu-btn, .mobile-overlay {
             display: none;
         }
 
-        /* Левая панель */
         .users-panel {
             background: #111;
             border-right: 1px solid #333;
@@ -264,28 +440,28 @@
             max-width: 150px;
         }
 
-        @media (max-width: 768px) {
-            .last-message {
-                max-width: 200px;
-            }
-        }
-
-        /* Центральная панель */
         .chat-panel {
             display: flex;
             flex-direction: column;
             background: #0a0a0a;
+            height: 100vh;
         }
 
         .chat-header {
             padding: 20px;
             border-bottom: 1px solid #333;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 15px;
+            background: #111;
+        }
+
+        .chat-header .back-btn {
+            display: none;
         }
 
         .chat-title {
+            flex: 1;
             font-size: 18px;
             font-weight: 600;
         }
@@ -313,6 +489,13 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+        }
+
+        .empty-messages {
+            text-align: center;
+            color: #666;
+            margin-top: 50px;
+            font-size: 14px;
         }
 
         .message {
@@ -361,6 +544,7 @@
             border-top: 1px solid #333;
             display: flex;
             gap: 10px;
+            background: #111;
         }
 
         .chat-input {
@@ -383,7 +567,12 @@
             cursor: pointer;
         }
 
-        /* Правая панель */
+        .send-btn:disabled {
+            opacity: 0.5;
+            background: #333;
+            cursor: not-allowed;
+        }
+
         .profile-panel {
             background: #111;
             border-left: 1px solid #333;
@@ -463,7 +652,6 @@
             color: #ff4444;
         }
 
-        /* Админ панель */
         .admin-panel {
             display: none;
             position: fixed;
@@ -518,7 +706,6 @@
             border-color: #4caf50;
         }
 
-        /* Модальные окна */
         .modal {
             display: none;
             position: fixed;
@@ -818,34 +1005,12 @@
             border: 1px solid #333;
             z-index: 2100;
         }
-
-        .mobile-menu-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #f0b90b;
-            color: #0a0a0a;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            border: none;
-            z-index: 90;
-        }
-
-        @media (max-width: 768px) {
-            .mobile-menu-btn {
-                display: flex;
-            }
-        }
     </style>
 </head>
 <body>
     <!-- Кнопка мобильного меню -->
     <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+    <div class="mobile-overlay" id="mobileOverlay"></div>
 
     <!-- Авторизация -->
     <div class="auth-container" id="authContainer">
@@ -860,13 +1025,6 @@
 
     <!-- Основной интерфейс -->
     <div class="main-container" id="mainContainer">
-        <!-- Мобильный хедер -->
-        <div class="mobile-header">
-            <span class="back-btn" id="backBtn" style="display: none;">←</span>
-            <span id="mobileTitle">Spam команда Германа</span>
-            <span class="mobile-btn" id="mobileProfileBtn">👤</span>
-        </div>
-
         <!-- Левая панель - пользователи -->
         <div class="users-panel" id="usersPanel">
             <div class="panel-header">
@@ -882,11 +1040,12 @@
         <!-- Центральная панель - чат -->
         <div class="chat-panel">
             <div class="chat-header">
-                <div class="chat-title" id="currentChatTitle">Spam команда Германа</div>
-                <button class="conference-btn" id="conferenceBtn" style="display: none;">Присоединиться к конференции</button>
+                <span class="back-btn" id="chatBackBtn">←</span>
+                <span class="chat-title" id="currentChatTitle">Spam команда Германа</span>
+                <button class="conference-btn" id="conferenceBtn" style="display: none;">Присоединиться</button>
             </div>
             <div class="messages-container" id="messagesContainer">
-                <div style="text-align: center; color: #666; margin-top: 50px;">Выберите чат чтобы начать общение</div>
+                <div class="empty-messages">Выберите чат чтобы начать общение</div>
             </div>
             <div class="chat-input-area">
                 <input type="text" class="chat-input" id="messageInput" placeholder="Сообщение..." disabled>
@@ -954,7 +1113,6 @@
         <div class="video-header">
             <div class="video-title">🔐 Secure Briefing</div>
             <div class="participants-count" id="participantsCount">👥 0</div>
-            <button class="mobile-btn" id="mobileParticipantsBtn" style="display: none;">👥</button>
         </div>
         
         <div class="video-grid-container">
@@ -1051,16 +1209,14 @@
         const participantsCount = document.getElementById('participantsCount');
         const conferenceParticipants = document.getElementById('conferenceParticipants');
         const participantsSidebar = document.getElementById('participantsSidebar');
-        const mobileParticipantsBtn = document.getElementById('mobileParticipantsBtn');
         const audioDebug = document.getElementById('audioDebug');
 
         // Мобильные элементы
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileOverlay = document.getElementById('mobileOverlay');
         const usersPanel = document.getElementById('usersPanel');
         const profilePanel = document.getElementById('profilePanel');
-        const mobileProfileBtn = document.getElementById('mobileProfileBtn');
-        const backBtn = document.getElementById('backBtn');
-        const mobileTitle = document.getElementById('mobileTitle');
+        const chatBackBtn = document.getElementById('chatBackBtn');
 
         // ===============================================
         // МОБИЛЬНАЯ НАВИГАЦИЯ
@@ -1071,33 +1227,52 @@
         }
 
         function showUsersPanel() {
+            if (!isMobile()) return;
             usersPanel.classList.add('active');
-            profilePanel.classList.remove('active');
-            backBtn.style.display = 'inline-block';
-            mobileTitle.textContent = 'Контакты';
+            mobileOverlay.classList.add('active');
+        }
+
+        function hideUsersPanel() {
+            usersPanel.classList.remove('active');
+            mobileOverlay.classList.remove('active');
         }
 
         function showProfilePanel() {
+            if (!isMobile()) return;
             profilePanel.classList.add('active');
-            usersPanel.classList.remove('active');
-            backBtn.style.display = 'inline-block';
-            mobileTitle.textContent = 'Профиль';
+            mobileOverlay.classList.add('active');
         }
 
-        function hidePanels() {
-            usersPanel.classList.remove('active');
+        function hideProfilePanel() {
             profilePanel.classList.remove('active');
-            backBtn.style.display = 'none';
-            mobileTitle.textContent = currentChatType === 'group' ? GROUP_NAME : 'Чат';
+            if (!usersPanel.classList.contains('active')) {
+                mobileOverlay.classList.remove('active');
+            }
+        }
+
+        function goToChatList() {
+            if (isMobile()) {
+                // На телефоне - показываем список чатов
+                showUsersPanel();
+            } else {
+                // На компе - выходим в групповой чат
+                selectChat('group', 'group');
+            }
         }
 
         mobileMenuBtn.addEventListener('click', showUsersPanel);
-        mobileProfileBtn.addEventListener('click', showProfilePanel);
-        backBtn.addEventListener('click', hidePanels);
+        mobileOverlay.addEventListener('click', () => {
+            hideUsersPanel();
+            hideProfilePanel();
+        });
+
+        // Кнопка назад в чате
+        chatBackBtn.addEventListener('click', goToChatList);
 
         window.addEventListener('resize', () => {
             if (!isMobile()) {
-                hidePanels();
+                hideUsersPanel();
+                hideProfilePanel();
             }
         });
 
@@ -1129,6 +1304,7 @@
                         updateProfilePanel();
                         loadChats();
                         setupRealtimeSubscriptions();
+                        selectChat('group', 'group');
                     } else {
                         localStorage.removeItem('currentUser');
                     }
@@ -1177,8 +1353,6 @@
                     updateProfilePanel();
                     loadChats();
                     setupRealtimeSubscriptions();
-                    
-                    // Автоматически открываем групповой чат
                     selectChat('group', 'group');
                 } else {
                     authError.textContent = 'Неверный логин или пароль';
@@ -1292,7 +1466,7 @@
                 unreadCounts['group'] = 0;
                 
                 conferenceBtn.style.display = 'block';
-                conferenceBtn.textContent = 'Присоединиться к конференции';
+                conferenceBtn.textContent = isMobile() ? '📹' : 'Присоединиться к конференции';
                 conferenceBtn.classList.add('join');
             } else {
                 const chatElement = Array.from(document.querySelectorAll('.chat-item')).find(el => 
@@ -1311,7 +1485,7 @@
             loadChats();
             
             if (isMobile()) {
-                hidePanels();
+                hideUsersPanel();
             }
         };
 
@@ -1352,7 +1526,7 @@
 
         function renderMessages(messages, type) {
             if (!messages || messages.length === 0) {
-                messagesContainer.innerHTML = '<div style="text-align: center; color: #666; margin-top: 50px;">Нет сообщений. Напишите первое сообщение!</div>';
+                messagesContainer.innerHTML = '<div class="empty-messages">Нет сообщений. Напишите первое сообщение!</div>';
                 return;
             }
 
@@ -1820,7 +1994,6 @@
         // ВИДЕОКОНФЕРЕНЦИЯ
         // ===============================================
 
-        // Функция переподключения аудио (каждые 3 минуты)
         function startAudioReconnectTimer() {
             if (audioReconnectTimer) {
                 clearInterval(audioReconnectTimer);
@@ -1833,13 +2006,11 @@
                 audioDebug.textContent = '🔄 Переподключение аудио...';
                 
                 try {
-                    // Перезапускаем аудио
                     const enabled = room.localParticipant.isMicrophoneEnabled;
                     await room.localParticipant.setMicrophoneEnabled(false);
                     await new Promise(r => setTimeout(r, 500));
                     await room.localParticipant.setMicrophoneEnabled(enabled);
                     
-                    // Перезапускаем аудио-контекст
                     if (audioContext) {
                         if (audioContext.state === 'suspended') {
                             await audioContext.resume();
@@ -1853,7 +2024,7 @@
                 } catch (e) {
                     console.warn('Ошибка переподключения аудио:', e);
                 }
-            }, 180000); // 3 минуты
+            }, 180000);
         }
 
         conferenceBtn.addEventListener('click', async () => {
@@ -1893,7 +2064,6 @@
                     dynacast: true
                 });
 
-                // Обновление списка участников
                 function updateParticipantsList() {
                     if (!room) return;
                     
@@ -1995,14 +2165,11 @@
                     audioDebug.textContent = '✅ Подключено';
                     updateParticipantsList();
                     
-                    // Включаем устройства
                     setTimeout(async () => {
                         try {
                             await room.localParticipant.setCameraEnabled(true);
                             await room.localParticipant.setMicrophoneEnabled(true);
                             updateParticipantsList();
-                            
-                            // Запускаем таймер переподключения аудио
                             startAudioReconnectTimer();
                         } catch (err) {
                             console.warn('Ошибка включения устройств:', err);
@@ -2020,7 +2187,6 @@
                     }
                 });
 
-                // Запрашиваем доступ к устройствам
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ 
                         audio: true, 
@@ -2031,7 +2197,6 @@
                     console.warn('⚠️ Нет разрешений на медиа:', mediaError);
                 }
 
-                // Подключаемся
                 await room.connect(LIVEKIT_URL, token, {
                     roomName: ROOM_NAME,
                     autoSubscribe: true
@@ -2050,7 +2215,6 @@
             }
         }
 
-        // Управление микрофоном
         videoMicBtn.addEventListener('click', async () => {
             if (room?.localParticipant) {
                 try {
@@ -2058,28 +2222,33 @@
                     await room.localParticipant.setMicrophoneEnabled(!enabled);
                     videoMicBtn.classList.toggle('mic-off', !enabled);
                     videoMicBtn.textContent = enabled ? '🎤' : '🔇';
-                    updateParticipantsList();
+                    if (room.localParticipant) {
+                        const participants = [];
+                        participants.push({
+                            identity: room.localParticipant.identity,
+                            isLocal: true,
+                            camera: room.localParticipant.isCameraEnabled,
+                            mic: !enabled
+                        });
+                    }
                 } catch (e) {
                     console.warn('Ошибка микрофона:', e);
                 }
             }
         });
 
-        // Управление камерой
         videoCamBtn.addEventListener('click', async () => {
             if (room?.localParticipant) {
                 try {
                     const enabled = room.localParticipant.isCameraEnabled;
                     await room.localParticipant.setCameraEnabled(!enabled);
                     videoCamBtn.textContent = enabled ? '📹' : '🚫';
-                    updateParticipantsList();
                 } catch (e) {
                     console.warn('Ошибка камеры:', e);
                 }
             }
         });
 
-        // Выход
         videoLeaveBtn.addEventListener('click', () => {
             if (room) {
                 room.disconnect();
@@ -2093,30 +2262,37 @@
             }
         });
 
-        // Мобильная кнопка участников
-        mobileParticipantsBtn.addEventListener('click', () => {
-            participantsSidebar.classList.toggle('active');
-        });
-
-        // Закрытие по ESC
+        // Обработка ESC
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && videoModal.style.display === 'block') {
-                if (room) {
-                    room.disconnect();
+            if (e.key === 'Escape') {
+                if (videoModal.style.display === 'block') {
+                    if (room) {
+                        room.disconnect();
+                    }
+                    videoModal.style.display = 'none';
                 }
-                videoModal.style.display = 'none';
-            }
-            if (e.target === editModal) {
-                editModal.style.display = 'none';
+                if (editModal.style.display === 'flex') {
+                    editModal.style.display = 'none';
+                }
+                if (adminPanel.style.display === 'block') {
+                    adminPanel.style.display = 'none';
+                }
+                if (isMobile()) {
+                    hideUsersPanel();
+                    hideProfilePanel();
+                } else {
+                    // На компе ESC возвращает в групповой чат
+                    if (currentChat !== 'group') {
+                        selectChat('group', 'group');
+                    }
+                }
             }
         });
 
-        // Клик для активации аудио
         document.addEventListener('click', async () => {
             if (room?.localParticipant && !room.localParticipant.isMicrophoneEnabled) {
                 try {
                     await room.localParticipant.setMicrophoneEnabled(true);
-                    updateParticipantsList();
                 } catch (e) {}
             }
             if (audioContext && audioContext.state === 'suspended') {
@@ -2124,7 +2300,6 @@
             }
         }, { once: false });
 
-        // Проверка сессии
         (function checkImpersonation() {
             const impersonateData = localStorage.getItem('impersonateUser');
             if (impersonateData) {
