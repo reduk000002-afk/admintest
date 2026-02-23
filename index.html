@@ -729,34 +729,6 @@
             backdrop-filter: blur(5px);
         }
 
-        .video-controls {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            gap: 5px;
-        }
-
-        .video-control-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.7);
-            border: 1px solid #f0b90b;
-            color: #f0b90b;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        .video-control-btn:hover {
-            background: #f0b90b;
-            color: #0a0a0a;
-        }
-
         .participants-sidebar {
             background: #111;
             border-left: 1px solid #333;
@@ -777,7 +749,6 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            margin-bottom: 20px;
         }
 
         .participant-item {
@@ -1899,7 +1870,7 @@
         };
 
         // ===============================================
-        // ВИДЕОКОНФЕРЕНЦИЯ
+        // ВИДЕОКОНФЕРЕНЦИЯ - С ЗВУКОМ И ПРАВИЛЬНЫМ СПИСКОМ
         // ===============================================
 
         conferenceBtn.addEventListener('click', async () => {
@@ -1947,6 +1918,7 @@
                     try {
                         const participants = [];
                         
+                        // Добавляем себя
                         if (room.localParticipant) {
                             participants.push({
                                 identity: room.localParticipant.identity || 'Unknown',
@@ -1956,7 +1928,8 @@
                             });
                         }
                         
-                        if (room.remoteParticipants && typeof room.remoteParticipants.forEach === 'function') {
+                        // Добавляем всех остальных
+                        if (room.remoteParticipants) {
                             room.remoteParticipants.forEach((participant) => {
                                 if (participant) {
                                     participants.push({
@@ -1992,6 +1965,7 @@
                     console.log('📹 Трек подписан:', track.kind, 'от', participant.identity);
                     
                     if (track.kind === 'video') {
+                        // Удаляем старое видео если есть
                         const existingVideo = document.querySelector(`[data-participant="${participant.identity}"]`);
                         if (existingVideo) {
                             existingVideo.remove();
@@ -2006,18 +1980,34 @@
                         label.textContent = participant.identity;
                         
                         const videoEl = track.attach();
+                        videoEl.style.width = '100%';
+                        videoEl.style.height = '100%';
+                        
                         wrapper.appendChild(videoEl);
                         wrapper.appendChild(label);
                         videoGrid.appendChild(wrapper);
+                    }
+                    
+                    if (track.kind === 'audio') {
+                        console.log('🔊 Аудио трек от:', participant.identity);
+                        // ВАЖНО: принудительно включаем звук
+                        const audioEl = track.attach();
+                        audioEl.volume = 1.0;
+                        audioEl.muted = false;
+                        // Пробуем воспроизвести аудио
+                        audioEl.play().catch(e => console.warn('Ошибка воспроизведения аудио:', e));
                     }
                     
                     updateParticipantsList();
                 });
 
                 room.on(LiveKit.RoomEvent.TrackUnsubscribed, (track) => {
+                    console.log('🗑️ Трек отписан:', track.kind);
                     track.detach().forEach(el => {
                         const wrapper = el.parentElement;
-                        if (wrapper) wrapper.remove();
+                        if (wrapper && wrapper.classList.contains('video-wrapper')) {
+                            wrapper.remove();
+                        }
                     });
                     updateParticipantsList();
                 });
@@ -2043,8 +2033,12 @@
                         try {
                             await room.localParticipant.setCameraEnabled(true);
                             await room.localParticipant.setMicrophoneEnabled(true);
+                            console.log('🎥 Камера и микрофон включены');
+                            audioDebug.textContent = '✅ Камера и микрофон активны';
+                            updateParticipantsList();
                         } catch (err) {
                             console.warn('Ошибка включения устройств:', err);
+                            audioDebug.textContent = '⚠️ Ошибка включения устройств';
                         }
                     }, 1000);
                 });
@@ -2060,11 +2054,21 @@
                     console.log('🔄 Состояние:', state);
                 });
 
-                // Запрашиваем доступ к устройствам
+                // ВАЖНО: принудительно запрашиваем доступ к аудио
                 try {
-                    await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true
+                        }, 
+                        video: true 
+                    });
+                    console.log('✅ Доступ к устройствам получен');
+                    // Не останавливаем стрим, пусть LiveKit сам им управляет
                 } catch (mediaError) {
-                    console.warn('⚠️ Нет разрешений:', mediaError);
+                    console.warn('⚠️ Нет разрешений на медиа:', mediaError);
+                    audioDebug.textContent = '⚠️ Нет доступа к микрофону/камере';
                 }
 
                 // Подключаемся с правильным токеном
@@ -2097,6 +2101,7 @@
                     await room.localParticipant.setMicrophoneEnabled(!enabled);
                     videoMicBtn.classList.toggle('mic-off', !enabled);
                     videoMicBtn.textContent = enabled ? '🎤' : '🔇';
+                    updateParticipantsList(); // Обновляем список после изменения
                 } catch (e) {
                     console.warn('Ошибка микрофона:', e);
                 }
@@ -2110,6 +2115,7 @@
                     const enabled = room.localParticipant.isCameraEnabled;
                     await room.localParticipant.setCameraEnabled(!enabled);
                     videoCamBtn.textContent = enabled ? '📹' : '🚫';
+                    updateParticipantsList(); // Обновляем список после изменения
                 } catch (e) {
                     console.warn('Ошибка камеры:', e);
                 }
@@ -2125,6 +2131,16 @@
                 videoModal.style.display = 'none';
             }
         });
+
+        // Клик по странице для активации аудио (важно для браузеров)
+        document.addEventListener('click', async () => {
+            if (room?.localParticipant && !room.localParticipant.isMicrophoneEnabled) {
+                try {
+                    await room.localParticipant.setMicrophoneEnabled(true);
+                    updateParticipantsList();
+                } catch (e) {}
+            }
+        }, { once: false });
 
         // Закрытие по ESC
         document.addEventListener('keydown', (e) => {
