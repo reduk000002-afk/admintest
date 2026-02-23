@@ -2,8 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Briefing</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         * {
             margin: 0;
@@ -14,8 +14,20 @@
         body {
             background: #0a0a0a;
             color: #f0b90b;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(240, 185, 11, 0.3);
         }
 
         .auth-container {
@@ -711,6 +723,13 @@
             font-size: 12px;
             margin-top: 5px;
         }
+
+        #audioDebug {
+            font-size: 12px;
+            color: #888;
+            margin-top: 10px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -817,28 +836,33 @@
         </div>
     </div>
 
+    <div id="audioDebug"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="livekit.js"></script>
 
     <script>
+        // Конфигурация Supabase
         const SUPABASE_URL = 'https://mqqlcfcwufdqwslukziy.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_pj766xnnI6WD4kiw7_kSSg_oaIiSYIr';
+        
+        // LiveKit конфигурация
         const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
-        const GROUP_ID = 'spam-command-group';
+        const ROOM_NAME = 'secure-stack-1k5b95';
         const GROUP_NAME = 'Spam команда Германа';
 
+        // Инициализация Supabase
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // Глобальные переменные
         let currentUser = null;
         let currentChat = null;
         let currentChatType = null;
         let messagesSubscription = null;
         let contactsSubscription = null;
-        let adminSubscription = null;
-        let groupSubscription = null;
         let unreadCounts = {};
         let room = null;
-        const LiveKit = window.LivekitClient || window.LiveKit;
+        let audioContext = null;
 
         // DOM элементы
         const authContainer = document.getElementById('authContainer');
@@ -881,6 +905,7 @@
         const videoGrid = document.getElementById('videoGrid');
         const videoMicBtn = document.getElementById('videoMicBtn');
         const videoLeaveBtn = document.getElementById('videoLeaveBtn');
+        const audioDebug = document.getElementById('audioDebug');
 
         // ===============================================
         // ПРОВЕРКА СОХРАНЕННОЙ СЕССИИ
@@ -972,6 +997,65 @@
         });
 
         // ===============================================
+        // ФУНКЦИИ ДЛЯ МИКРОФОНА (из рабочего кода)
+        // ===============================================
+
+        async function requestMicrophoneAccess() {
+            try {
+                audioDebug.textContent = '🔄 Запрос доступа к микрофону...';
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }, 
+                    video: false 
+                });
+                
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                if (audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                }
+                
+                audioDebug.textContent = '✅ Микрофон доступен';
+                stream.getTracks().forEach(track => track.stop());
+                
+                return true;
+            } catch (error) {
+                console.error('❌ Ошибка доступа к микрофону:', error);
+                audioDebug.textContent = '❌ Нет доступа к микрофону: ' + error.message;
+                return false;
+            }
+        }
+
+        async function ensureAudioEnabled() {
+            if (!room?.localParticipant) return false;
+            
+            try {
+                const isEnabled = room.localParticipant.isMicrophoneEnabled;
+                audioDebug.textContent = `🔄 Микрофон ${isEnabled ? 'включен' : 'выключен'}`;
+                
+                if (!isEnabled) {
+                    await room.localParticipant.setMicrophoneEnabled(true);
+                    audioDebug.textContent = '✅ Микрофон принудительно включен';
+                    
+                    setTimeout(() => {
+                        const nowEnabled = room.localParticipant.isMicrophoneEnabled;
+                        audioDebug.textContent = nowEnabled ? '✅ Микрофон работает' : '❌ Микрофон не включился';
+                    }, 1000);
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Ошибка включения микрофона:', error);
+                audioDebug.textContent = '❌ Ошибка: ' + error.message;
+                return false;
+            }
+        }
+
+        // ===============================================
         // НАСТРОЙКА ПОДПИСОК (РИАЛТАЙМ)
         // ===============================================
 
@@ -986,8 +1070,6 @@
                         filter: `receiver_id=eq.${currentUser.id}`
                     },
                     async (payload) => {
-                        console.log('Новое сообщение получено:', payload);
-                        
                         const { data: sender } = await supabaseClient
                             .from('users')
                             .select('*')
@@ -1089,7 +1171,7 @@
                         .maybeSingle();
 
                     chats.push({
-                        id: GROUP_ID,
+                        id: 'group',
                         name: GROUP_NAME,
                         type: 'group',
                         avatar: '👥',
@@ -1241,15 +1323,15 @@
             }
 
             messagesContainer.innerHTML = messages.map(msg => {
-                let isOwn, senderName, sender;
+                let isOwn, senderName;
                 
                 if (type === 'group') {
                     isOwn = msg.user_id === currentUser.id;
-                    sender = msg.users || {};
+                    const sender = msg.users || {};
                     senderName = sender.display_name !== '---' ? sender.display_name : sender.username;
                 } else {
                     isOwn = msg.sender_id === currentUser.id;
-                    sender = msg.sender || {};
+                    const sender = msg.sender || {};
                     senderName = isOwn ? 'Вы' : (sender.display_name !== '---' ? sender.display_name : sender.username);
                 }
                 
@@ -1261,7 +1343,7 @@
                             <span class="message-sender">${senderName}</span>
                             <span class="message-time">${time}</span>
                         </div>
-                        <div class="message-content">${msg.message || msg.text}</div>
+                        <div class="message-content">${msg.message}</div>
                     </div>
                 `;
             }).join('');
@@ -1687,10 +1769,15 @@
         };
 
         // ===============================================
-        // ВИДЕОКОНФЕРЕНЦИЯ - ИСПРАВЛЕНО
+        // ВИДЕОКОНФЕРЕНЦИЯ - ИСПРАВЛЕНО (как в рабочем коде)
         // ===============================================
 
         conferenceBtn.addEventListener('click', async () => {
+            if (currentUser.username !== 'German') {
+                alert('Только администратор может начинать конференцию');
+                return;
+            }
+
             if (!currentUser.livekit_token) {
                 alert('У вас нет токена для конференции');
                 return;
@@ -1701,13 +1788,19 @@
         });
 
         async function startConference() {
+            // Получаем LiveKit с проверкой (как в рабочем коде)
+            const LiveKit = window.LivekitClient || window.LiveKit;
+            
             if (!LiveKit) {
                 alert('LiveKit SDK не загружен');
                 return;
             }
 
             try {
-                room = new LiveKit.Room();
+                room = new LiveKit.Room({
+                    adaptiveStream: true,
+                    dynacast: true
+                });
 
                 room.on(LiveKit.RoomEvent.TrackSubscribed, (track, publication, participant) => {
                     if (track.kind === 'video') {
@@ -1723,33 +1816,52 @@
                         wrapper.appendChild(label);
                         videoGrid.appendChild(wrapper);
                     }
+                    
+                    if (track.kind === 'audio') {
+                        console.log('🔊 Аудио трек от:', participant.identity);
+                        const audioEl = track.attach();
+                        audioEl.volume = 1.0;
+                        audioEl.muted = false;
+                    }
                 });
 
                 room.on(LiveKit.RoomEvent.TrackUnsubscribed, (track) => {
                     track.detach().forEach(el => el.remove());
                 });
 
-                // Сначала подключаемся
+                room.on(LiveKit.RoomEvent.Connected, () => {
+                    console.log('✅ Подключено к комнате');
+                });
+
+                room.on(LiveKit.RoomEvent.Disconnected, () => {
+                    console.log('📴 Отключено от комнаты');
+                    videoGrid.innerHTML = '';
+                });
+
+                // Запрашиваем доступ к микрофону перед подключением
+                await requestMicrophoneAccess();
+
+                // Подключаемся
                 await room.connect(currentUser.livekit_url || LIVEKIT_URL, currentUser.livekit_token, {
-                    roomName: 'secure-stack-1k5b95',
+                    roomName: ROOM_NAME,
                     autoSubscribe: true
                 });
 
-                console.log('✅ Подключено к комнате, включаем устройства...');
-                
-                // Даем небольшую задержку после подключения
+                console.log('✅ Подключено, включаем устройства...');
+
+                // Включаем устройства после подключения
                 setTimeout(async () => {
                     try {
                         await room.localParticipant.setCameraEnabled(true);
                         await room.localParticipant.setMicrophoneEnabled(true);
                         console.log('🎥 Камера и микрофон включены');
                     } catch (err) {
-                        console.error('Ошибка включения устройств:', err);
+                        console.warn('Ошибка включения устройств:', err);
                     }
-                }, 1000);
+                }, 1500);
 
             } catch (error) {
-                console.error('Ошибка конференции:', error);
+                console.error('❌ Ошибка конференции:', error);
                 alert('Ошибка подключения к конференции: ' + error.message);
             }
         }
@@ -1770,6 +1882,16 @@
             }
         });
 
+        // Клик по странице для активации аудио
+        document.addEventListener('click', async () => {
+            if (room?.localParticipant && !room.localParticipant.isMicrophoneEnabled) {
+                await room.localParticipant.setMicrophoneEnabled(true);
+            }
+            if (audioContext && audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+        }, { once: false });
+
         window.addEventListener('click', (e) => {
             if (e.target === editModal) editModal.style.display = 'none';
             if (e.target === videoModal) {
@@ -1780,6 +1902,10 @@
                 videoModal.style.display = 'none';
             }
         });
+
+        // ===============================================
+        // ПРОВЕРКА ИМПЕРСОНАЦИИ
+        // ===============================================
 
         (function checkImpersonation() {
             const impersonateData = localStorage.getItem('impersonateUser');
@@ -1805,6 +1931,7 @@
             }
         })();
 
+        // Запускаем проверку сохраненной сессии при загрузке
         checkSavedSession();
     </script>
 </body>
