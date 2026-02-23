@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Briefing</title>
     <style>
+        /* Все стили без изменений */
         * {
             margin: 0;
             padding: 0;
@@ -18,7 +19,6 @@
             min-height: 100vh;
         }
 
-        /* Авторизация */
         .auth-container {
             min-height: 100vh;
             display: flex;
@@ -81,7 +81,6 @@
             transform: translateY(-2px);
         }
 
-        /* Основной интерфейс */
         .main-container {
             display: none;
             height: 100vh;
@@ -89,7 +88,6 @@
             background: #0a0a0a;
         }
 
-        /* Левая панель - пользователи */
         .users-panel {
             background: #111;
             border-right: 1px solid #333;
@@ -181,7 +179,6 @@
             background: #888;
         }
 
-        /* Центральная панель - чат */
         .chat-panel {
             display: flex;
             flex-direction: column;
@@ -300,7 +297,6 @@
             transition: all 0.3s;
         }
 
-        /* Правая панель - профиль */
         .profile-panel {
             background: #111;
             border-left: 1px solid #333;
@@ -395,7 +391,6 @@
             color: #0a0a0a;
         }
 
-        /* Админ-панель */
         .admin-panel {
             display: none;
             position: fixed;
@@ -507,7 +502,6 @@
             color: white;
         }
 
-        /* Модальные окна */
         .modal {
             display: none;
             position: fixed;
@@ -571,7 +565,6 @@
             color: white;
         }
 
-        /* Видеоконференция */
         .video-container {
             position: fixed;
             top: 50%;
@@ -650,7 +643,6 @@
 
     <!-- Основной интерфейс -->
     <div class="main-container" id="mainContainer">
-        <!-- Левая панель - пользователи -->
         <div class="users-panel">
             <div class="panel-header">
                 <div class="panel-title">Участники</div>
@@ -659,7 +651,6 @@
             <div class="user-list" id="userList"></div>
         </div>
 
-        <!-- Центральная панель - чат -->
         <div class="chat-panel">
             <div class="chat-header">
                 <div class="chat-title" id="currentChatTitle">Общий чат</div>
@@ -672,7 +663,6 @@
             </div>
         </div>
 
-        <!-- Правая панель - профиль -->
         <div class="profile-panel" id="profilePanel">
             <div class="profile-header">
                 <div class="profile-avatar" id="profileAvatar">?</div>
@@ -696,8 +686,6 @@
             <button class="profile-btn" id="editProfileBtn">Редактировать профиль</button>
             <button class="profile-btn" id="changePasswordBtn">Изменить пароль</button>
             <button class="profile-btn danger" id="logoutBtn">Выйти</button>
-            
-            <!-- Админ-кнопка (только для German) -->
             <button class="profile-btn" id="adminPanelBtn" style="display: none; margin-top: 20px; border-color: #ff4444; color: #ff4444;">👑 Админ-панель</button>
         </div>
     </div>
@@ -755,16 +743,16 @@
         // LiveKit конфигурация
         const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
 
-        // Инициализация Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Инициализация Supabase (используем другое имя, чтобы избежать конфликта)
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Глобальные переменные
         let currentUser = null;
-        let currentChat = 'group'; // 'group' или ID пользователя
+        let currentChat = 'group';
         let messagesSubscription = null;
         let usersSubscription = null;
         let room = null;
-        let LiveKit = window.LivekitClient || window.LiveKit;
+        const LiveKit = window.LivekitClient || window.LiveKit;
 
         // DOM элементы
         const authContainer = document.getElementById('authContainer');
@@ -821,7 +809,7 @@
             }
 
             try {
-                const { data: users, error } = await supabase
+                const { data: users, error } = await supabaseClient
                     .from('users')
                     .select('*')
                     .eq('username', username)
@@ -841,7 +829,6 @@
                     authContainer.style.display = 'none';
                     mainContainer.style.display = 'grid';
                     
-                    // Показываем админ-кнопку если админ
                     if (user.username === 'German') {
                         adminPanelBtn.style.display = 'block';
                     }
@@ -866,7 +853,7 @@
 
         async function loadUsers() {
             try {
-                const { data: users, error } = await supabase
+                const { data: users, error } = await supabaseClient
                     .from('users')
                     .select('*')
                     .neq('id', currentUser.id)
@@ -900,12 +887,7 @@
             `).join('');
         }
 
-        // Поиск пользователей
         userSearch.addEventListener('input', loadUsers);
-
-        // ===============================================
-        // ЧАТ
-        // ===============================================
 
         window.selectChat = function(userId) {
             currentChat = userId;
@@ -919,12 +901,12 @@
                 
                 if (chatId === 'group') {
                     currentChatTitle.textContent = 'Spam команда Германа';
-                    query = supabase
+                    query = supabaseClient
                         .from('group_messages')
                         .select('*, users!inner(*)')
                         .order('created_at', { ascending: true });
                 } else {
-                    query = supabase
+                    query = supabaseClient
                         .from('private_messages')
                         .select('*, users!inner(*)')
                         .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
@@ -973,7 +955,7 @@
 
             try {
                 if (currentChat === 'group') {
-                    await supabase
+                    await supabaseClient
                         .from('group_messages')
                         .insert([{
                             user_id: currentUser.id,
@@ -981,7 +963,7 @@
                             created_at: new Date()
                         }]);
                 } else {
-                    await supabase
+                    await supabaseClient
                         .from('private_messages')
                         .insert([{
                             sender_id: currentUser.id,
@@ -997,16 +979,12 @@
             }
         }
 
-        // ===============================================
-        // ПОДПИСКИ (РИАЛТАЙМ)
-        // ===============================================
-
         function subscribeToMessages() {
             if (messagesSubscription) {
-                supabase.removeChannel(messagesSubscription);
+                supabaseClient.removeChannel(messagesSubscription);
             }
 
-            messagesSubscription = supabase
+            messagesSubscription = supabaseClient
                 .channel('messages')
                 .on('postgres_changes', 
                     { event: 'INSERT', schema: 'public', table: 'group_messages' },
@@ -1029,10 +1007,10 @@
 
         function subscribeToUsers() {
             if (usersSubscription) {
-                supabase.removeChannel(usersSubscription);
+                supabaseClient.removeChannel(usersSubscription);
             }
 
-            usersSubscription = supabase
+            usersSubscription = supabaseClient
                 .channel('users')
                 .on('postgres_changes',
                     { event: 'UPDATE', schema: 'public', table: 'users' },
@@ -1042,10 +1020,6 @@
                 )
                 .subscribe();
         }
-
-        // ===============================================
-        // ПРОФИЛЬ
-        // ===============================================
 
         function updateProfilePanel() {
             if (!currentUser) return;
@@ -1079,7 +1053,7 @@
                 if (modalInput3.value) updates.password = modalInput3.value;
                 
                 if (Object.keys(updates).length > 0) {
-                    await supabase
+                    await supabaseClient
                         .from('users')
                         .update(updates)
                         .eq('id', currentUser.id);
@@ -1104,7 +1078,7 @@
             
             modalSaveBtn.onclick = async () => {
                 if (modalInput3.value) {
-                    await supabase
+                    await supabaseClient
                         .from('users')
                         .update({ password: modalInput3.value })
                         .eq('id', currentUser.id);
@@ -1128,16 +1102,12 @@
             authError.textContent = '';
             
             if (messagesSubscription) {
-                supabase.removeChannel(messagesSubscription);
+                supabaseClient.removeChannel(messagesSubscription);
             }
             if (usersSubscription) {
-                supabase.removeChannel(usersSubscription);
+                supabaseClient.removeChannel(usersSubscription);
             }
         });
-
-        // ===============================================
-        // АДМИН-ПАНЕЛЬ
-        // ===============================================
 
         adminPanelBtn.addEventListener('click', () => {
             if (currentUser && currentUser.username === 'German') {
@@ -1152,7 +1122,7 @@
 
         async function loadAdminUsers() {
             try {
-                const { data: users, error } = await supabase
+                const { data: users, error } = await supabaseClient
                     .from('users')
                     .select('*')
                     .order('username');
@@ -1195,7 +1165,7 @@
         }
 
         window.markUser = async function(userId, color) {
-            await supabase
+            await supabaseClient
                 .from('users')
                 .update({ color_mark: color })
                 .eq('id', userId);
@@ -1204,15 +1174,15 @@
         };
 
         window.blockUser = async function(userId) {
-            const user = await supabase
+            const { data: user } = await supabaseClient
                 .from('users')
                 .select('status')
                 .eq('id', userId)
                 .single();
 
-            const newStatus = user.data?.status === 'blocked' ? 'active' : 'blocked';
+            const newStatus = user?.status === 'blocked' ? 'active' : 'blocked';
             
-            await supabase
+            await supabaseClient
                 .from('users')
                 .update({ status: newStatus })
                 .eq('id', userId);
@@ -1221,14 +1191,13 @@
         };
 
         window.impersonateUser = async function(userId) {
-            const { data: user, error } = await supabase
+            const { data: user, error } = await supabaseClient
                 .from('users')
                 .select('*')
                 .eq('id', userId)
                 .single();
 
             if (!error && user) {
-                // Временно сохраняем текущего админа
                 sessionStorage.setItem('adminUser', JSON.stringify(currentUser));
                 currentUser = user;
                 updateProfilePanel();
@@ -1259,7 +1228,7 @@
                 if (modalInput3.value) updates.password = modalInput3.value;
                 
                 if (Object.keys(updates).length > 0) {
-                    await supabase
+                    await supabaseClient
                         .from('users')
                         .update(updates)
                         .eq('id', userId);
@@ -1289,7 +1258,7 @@
                 if (modalInput2.value && modalInput3.value) {
                     const userId = 'USER' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
                     
-                    await supabase
+                    await supabaseClient
                         .from('users')
                         .insert([{
                             username: modalInput2.value,
@@ -1308,11 +1277,9 @@
         });
 
         window.issueLiveKitToken = async function(userId) {
-            // Здесь должен быть запрос к вашему серверу для генерации токена
-            // Для теста просто выдаем тестовый токен
             const testToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE3OTA2NTIsImlkZW50aXR5IjoiYWRtaW4iLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE3OTA2NTIsInN1YiI6ImFkbWluIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6InNlY3VyZS1zdGFjay0xazViOTUiLCJyb29tSm9pbiI6dHJ1ZX19.ZZJvSlcJ6euQOa9tiLvFOboyp2F0oMQkXUbCEKvB4R4';
             
-            await supabase
+            await supabaseClient
                 .from('users')
                 .update({ 
                     livekit_token: testToken,
@@ -1323,12 +1290,7 @@
             loadAdminUsers();
         };
 
-        // ===============================================
-        // ВИДЕОКОНФЕРЕНЦИЯ
-        // ===============================================
-
         conferenceBtn.addEventListener('click', async () => {
-            // Только админ может начинать
             if (currentUser.username !== 'German') {
                 alert('Только администратор может начинать конференцию');
                 return;
@@ -1406,7 +1368,6 @@
             }
         });
 
-        // Закрытие модалок по клику вне
         window.addEventListener('click', (e) => {
             if (e.target === editModal) {
                 editModal.style.display = 'none';
@@ -1420,9 +1381,7 @@
             }
         });
 
-        // Проверка авторизации при загрузке
         (async () => {
-            // Проверяем, есть ли админ в сессии
             const adminData = sessionStorage.getItem('adminUser');
             if (adminData) {
                 currentUser = JSON.parse(adminData);
