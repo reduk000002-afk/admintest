@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Briefing</title>
     <style>
-        /* Все стили без изменений */
         * {
             margin: 0;
             padding: 0;
@@ -107,14 +106,30 @@
             margin-bottom: 15px;
         }
 
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
         .search-input {
-            width: 100%;
+            flex: 1;
             padding: 10px 15px;
             background: #1a1a1a;
             border: 1px solid #333;
             border-radius: 12px;
             color: #f0b90b;
             font-size: 14px;
+        }
+
+        .search-btn {
+            padding: 10px 20px;
+            background: #f0b90b;
+            border: none;
+            border-radius: 12px;
+            color: #0a0a0a;
+            font-weight: 600;
+            cursor: pointer;
         }
 
         .user-list {
@@ -168,17 +183,6 @@
             font-size: 12px;
         }
 
-        .user-status {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #4caf50;
-        }
-
-        .user-status.offline {
-            background: #888;
-        }
-
         .chat-panel {
             display: flex;
             flex-direction: column;
@@ -213,10 +217,6 @@
             opacity: 0.5;
             cursor: not-allowed;
             background: #333;
-        }
-
-        .conference-btn.active {
-            background: #4caf50;
         }
 
         .messages-container {
@@ -294,7 +294,6 @@
             color: #0a0a0a;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
         }
 
         .profile-panel {
@@ -386,11 +385,6 @@
             color: #ff4444;
         }
 
-        .profile-btn.danger:hover {
-            background: #ff4444;
-            color: #0a0a0a;
-        }
-
         .admin-panel {
             display: none;
             position: fixed;
@@ -402,104 +396,6 @@
             z-index: 1000;
             padding: 40px;
             overflow-y: auto;
-        }
-
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .admin-title {
-            font-size: 28px;
-            font-weight: 600;
-        }
-
-        .admin-close {
-            font-size: 32px;
-            cursor: pointer;
-            color: #f0b90b;
-        }
-
-        .admin-users-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .admin-user-card {
-            background: #1a1a1a;
-            border-radius: 16px;
-            padding: 20px;
-            border: 2px solid #333;
-            transition: all 0.3s;
-        }
-
-        .admin-user-card.red {
-            border-color: #ff4444;
-        }
-
-        .admin-user-card.green {
-            border-color: #4caf50;
-        }
-
-        .admin-user-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .admin-user-name {
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .admin-user-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .admin-user-btn {
-            padding: 8px 12px;
-            background: #0a0a0a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: #f0b90b;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .color-buttons {
-            display: flex;
-            gap: 10px;
-            margin: 15px 0;
-        }
-
-        .color-btn {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        .color-btn.red {
-            background: #ff4444;
-            color: white;
-        }
-
-        .color-btn.green {
-            background: #4caf50;
-            color: white;
-        }
-
-        .color-btn.clear {
-            background: #333;
-            color: white;
         }
 
         .modal {
@@ -609,28 +505,9 @@
             border-radius: 20px;
             font-size: 12px;
         }
-
-        .video-controls {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            gap: 5px;
-        }
-
-        .video-control-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.7);
-            border: 2px solid #f0b90b;
-            color: #f0b90b;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
-    <!-- Авторизация -->
     <div class="auth-container" id="authContainer">
         <div class="auth-box">
             <div class="auth-title">Вход в систему</div>
@@ -641,12 +518,14 @@
         </div>
     </div>
 
-    <!-- Основной интерфейс -->
     <div class="main-container" id="mainContainer">
         <div class="users-panel">
             <div class="panel-header">
-                <div class="panel-title">Участники</div>
-                <input type="text" class="search-input" id="userSearch" placeholder="Поиск по ID...">
+                <div class="panel-title">Контакты</div>
+                <div class="search-container">
+                    <input type="text" class="search-input" id="userSearch" placeholder="Введите ID (7 цифр)">
+                    <button class="search-btn" id="searchBtn">Найти</button>
+                </div>
             </div>
             <div class="user-list" id="userList"></div>
         </div>
@@ -679,8 +558,8 @@
                     <span class="info-value" id="profileStatus">-</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">LiveKit токен</span>
-                    <span class="info-value" id="profileToken">-</span>
+                    <span class="info-label">Мой ID</span>
+                    <span class="info-value" id="profileMyId">-</span>
                 </div>
             </div>
             <button class="profile-btn" id="editProfileBtn">Редактировать профиль</button>
@@ -690,22 +569,14 @@
         </div>
     </div>
 
-    <!-- Админ-панель -->
     <div class="admin-panel" id="adminPanel">
-        <div class="admin-header">
-            <div class="admin-title">👑 Панель администратора</div>
-            <div class="admin-close" id="closeAdminBtn">×</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <div style="font-size: 28px; font-weight: 600;">👑 Панель администратора</div>
+            <div style="font-size: 32px; cursor: pointer; color: #f0b90b;" id="closeAdminBtn">×</div>
         </div>
-        
-        <div class="admin-users-grid" id="adminUsersGrid"></div>
-
-        <div style="margin-top: 30px;">
-            <button class="profile-btn" id="addUserBtn" style="width: auto; padding: 15px 30px;">➕ Добавить пользователя</button>
-            <button class="profile-btn danger" id="blockedUsersBtn" style="width: auto; padding: 15px 30px;">🚫 Заблокированные</button>
-        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;" id="adminUsersGrid"></div>
     </div>
 
-    <!-- Модальное окно редактирования -->
     <div class="modal" id="editModal">
         <div class="modal-content">
             <div class="modal-title" id="modalTitle">Редактирование</div>
@@ -719,7 +590,6 @@
         </div>
     </div>
 
-    <!-- Видеоконференция -->
     <div class="modal" id="videoModal">
         <div class="video-container">
             <div class="video-grid" id="videoGrid"></div>
@@ -730,27 +600,21 @@
         </div>
     </div>
 
-    <!-- Подключаем Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- LiveKit SDK -->
     <script src="livekit.js"></script>
 
     <script>
-        // Конфигурация Supabase
         const SUPABASE_URL = 'https://mqqlcfcwufdqwslukziy.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_pj766xnnI6WD4kiw7_kSSg_oaIiSYIr';
-        
-        // LiveKit конфигурация
         const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
 
-        // Инициализация Supabase (используем другое имя, чтобы избежать конфликта)
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Глобальные переменные
         let currentUser = null;
         let currentChat = 'group';
         let messagesSubscription = null;
         let usersSubscription = null;
+        let contactsSubscription = null;
         let room = null;
         const LiveKit = window.LivekitClient || window.LiveKit;
 
@@ -763,6 +627,7 @@
         const authError = document.getElementById('authError');
         const userList = document.getElementById('userList');
         const userSearch = document.getElementById('userSearch');
+        const searchBtn = document.getElementById('searchBtn');
         const messagesContainer = document.getElementById('messagesContainer');
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
@@ -772,7 +637,7 @@
         const profileId = document.getElementById('profileId');
         const profileLogin = document.getElementById('profileLogin');
         const profileStatus = document.getElementById('profileStatus');
-        const profileToken = document.getElementById('profileToken');
+        const profileMyId = document.getElementById('profileMyId');
         const profileAvatar = document.getElementById('profileAvatar');
         const editProfileBtn = document.getElementById('editProfileBtn');
         const changePasswordBtn = document.getElementById('changePasswordBtn');
@@ -781,8 +646,6 @@
         const adminPanel = document.getElementById('adminPanel');
         const closeAdminBtn = document.getElementById('closeAdminBtn');
         const adminUsersGrid = document.getElementById('adminUsersGrid');
-        const addUserBtn = document.getElementById('addUserBtn');
-        const blockedUsersBtn = document.getElementById('blockedUsersBtn');
         const editModal = document.getElementById('editModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalInput1 = document.getElementById('modalInput1');
@@ -834,10 +697,9 @@
                     }
                     
                     updateProfilePanel();
-                    loadUsers();
-                    loadMessages('group');
+                    loadContacts();
+                    subscribeToContacts();
                     subscribeToMessages();
-                    subscribeToUsers();
                 } else {
                     authError.textContent = 'Неверный логин или пароль';
                 }
@@ -848,73 +710,101 @@
         });
 
         // ===============================================
-        // ЗАГРУЗКА ПОЛЬЗОВАТЕЛЕЙ
+        // ПОИСК ПОЛЬЗОВАТЕЛЕЙ ПО ID
         // ===============================================
 
-        async function loadUsers() {
+        searchBtn.addEventListener('click', searchUserById);
+        userSearch.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchUserById();
+        });
+
+        async function searchUserById() {
+            const searchId = userSearch.value.trim();
+            if (!searchId || searchId.length !== 7 || isNaN(searchId)) {
+                alert('Введите 7-значный ID');
+                return;
+            }
+
             try {
                 const { data: users, error } = await supabaseClient
                     .from('users')
                     .select('*')
-                    .neq('id', currentUser.id)
-                    .order('display_name');
+                    .eq('user_id_string', searchId)
+                    .neq('id', currentUser.id);
 
                 if (error) throw error;
 
-                renderUserList(users);
+                if (users && users.length > 0) {
+                    const foundUser = users[0];
+                    
+                    // Добавляем в контакты
+                    await supabaseClient
+                        .from('user_contacts')
+                        .insert([{
+                            user_id: currentUser.id,
+                            contact_id: foundUser.id
+                        }])
+                        .maybeSingle();
+
+                    loadContacts();
+                    userSearch.value = '';
+                } else {
+                    alert('Пользователь с таким ID не найден');
+                }
             } catch (error) {
-                console.error('Ошибка загрузки пользователей:', error);
+                console.error('Ошибка поиска:', error);
+            }
+        }
+
+        // ===============================================
+        // ЗАГРУЗКА КОНТАКТОВ
+        // ===============================================
+
+        async function loadContacts() {
+            try {
+                const { data: contacts, error } = await supabaseClient
+                    .from('user_contacts')
+                    .select('contact_id, users!user_contacts_contact_id_fkey(*)')
+                    .eq('user_id', currentUser.id);
+
+                if (error) throw error;
+
+                const contactUsers = contacts.map(c => c.users);
+                renderUserList(contactUsers);
+            } catch (error) {
+                console.error('Ошибка загрузки контактов:', error);
             }
         }
 
         function renderUserList(users) {
-            const searchTerm = userSearch.value.toLowerCase();
-            
-            const filteredUsers = users.filter(user => 
-                user.user_id_string.toLowerCase().includes(searchTerm) ||
-                (user.display_name && user.display_name.toLowerCase().includes(searchTerm))
-            );
-
-            userList.innerHTML = filteredUsers.map(user => `
-                <div class="user-item ${currentChat === user.id ? 'active' : ''}" onclick="selectChat('${user.id}')">
-                    <div class="user-avatar">${user.display_name && user.display_name !== '---' ? user.display_name[0] : '?'}</div>
+            userList.innerHTML = users.map(user => `
+                <div class="user-item ${currentChat === user.id ? 'active' : ''}" onclick="selectChat('${user.id}', '${user.display_name !== '---' ? user.display_name : user.username}')">
+                    <div class="user-avatar">${user.display_name && user.display_name !== '---' ? user.display_name[0] : user.username[0].toUpperCase()}</div>
                     <div class="user-info">
                         <div class="user-name">${user.display_name !== '---' ? user.display_name : user.username}</div>
-                        <div class="user-id">${user.user_id_string}</div>
+                        <div class="user-id">ID: ${user.user_id_string}</div>
                     </div>
-                    <div class="user-status ${user.status === 'active' ? '' : 'offline'}"></div>
                 </div>
             `).join('');
         }
 
-        userSearch.addEventListener('input', loadUsers);
-
-        window.selectChat = function(userId) {
+        window.selectChat = function(userId, userName) {
             currentChat = userId;
-            currentChatTitle.textContent = 'Личный чат';
-            loadMessages(userId);
+            currentChatTitle.textContent = `Чат с ${userName}`;
+            loadPrivateMessages(userId);
         };
 
-        async function loadMessages(chatId) {
-            try {
-                let query;
-                
-                if (chatId === 'group') {
-                    currentChatTitle.textContent = 'Spam команда Германа';
-                    query = supabaseClient
-                        .from('group_messages')
-                        .select('*, users!inner(*)')
-                        .order('created_at', { ascending: true });
-                } else {
-                    query = supabaseClient
-                        .from('private_messages')
-                        .select('*, users!inner(*)')
-                        .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
-                        .or(`sender_id.eq.${chatId},receiver_id.eq.${chatId}`)
-                        .order('created_at', { ascending: true });
-                }
+        // ===============================================
+        // ЗАГРУЗКА СООБЩЕНИЙ
+        // ===============================================
 
-                const { data: messages, error } = await query;
+        async function loadPrivateMessages(otherUserId) {
+            try {
+                const { data: messages, error } = await supabaseClient
+                    .from('private_messages')
+                    .select('*, sender:sender_id(*)')
+                    .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUser.id})`)
+                    .order('created_at', { ascending: true });
 
                 if (error) throw error;
 
@@ -926,23 +816,27 @@
 
         function renderMessages(messages) {
             messagesContainer.innerHTML = messages.map(msg => {
-                const isOwn = msg.user_id === currentUser.id || msg.sender_id === currentUser.id;
-                const sender = msg.users || {};
+                const isOwn = msg.sender_id === currentUser.id;
+                const sender = msg.sender || {};
                 const time = new Date(msg.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
                 
                 return `
                     <div class="message ${isOwn ? 'own' : ''}">
                         <div class="message-header">
-                            <span class="message-sender">${sender.display_name !== '---' ? sender.display_name : sender.username}</span>
+                            <span class="message-sender">${isOwn ? 'Вы' : (sender.display_name !== '---' ? sender.display_name : sender.username)}</span>
                             <span class="message-time">${time}</span>
                         </div>
-                        <div class="message-content">${msg.message || msg.text}</div>
+                        <div class="message-content">${msg.message}</div>
                     </div>
                 `;
             }).join('');
             
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
+
+        // ===============================================
+        // ОТПРАВКА СООБЩЕНИЙ
+        // ===============================================
 
         sendBtn.addEventListener('click', sendMessage);
         messageInput.addEventListener('keypress', (e) => {
@@ -951,33 +845,29 @@
 
         async function sendMessage() {
             const text = messageInput.value.trim();
-            if (!text) return;
+            if (!text || currentChat === 'group') return;
 
             try {
-                if (currentChat === 'group') {
-                    await supabaseClient
-                        .from('group_messages')
-                        .insert([{
-                            user_id: currentUser.id,
-                            message: text,
-                            created_at: new Date()
-                        }]);
-                } else {
-                    await supabaseClient
-                        .from('private_messages')
-                        .insert([{
-                            sender_id: currentUser.id,
-                            receiver_id: currentChat,
-                            message: text,
-                            created_at: new Date()
-                        }]);
-                }
+                const { error } = await supabaseClient
+                    .from('private_messages')
+                    .insert([{
+                        sender_id: currentUser.id,
+                        receiver_id: currentChat,
+                        message: text,
+                        created_at: new Date()
+                    }]);
+
+                if (error) throw error;
 
                 messageInput.value = '';
             } catch (error) {
                 console.error('Ошибка отправки:', error);
             }
         }
+
+        // ===============================================
+        // ПОДПИСКИ (РИАЛТАЙМ)
+        // ===============================================
 
         function subscribeToMessages() {
             if (messagesSubscription) {
@@ -986,40 +876,37 @@
 
             messagesSubscription = supabaseClient
                 .channel('messages')
-                .on('postgres_changes', 
-                    { event: 'INSERT', schema: 'public', table: 'group_messages' },
-                    (payload) => {
-                        if (currentChat === 'group') {
-                            loadMessages('group');
-                        }
-                    }
-                )
                 .on('postgres_changes',
                     { event: 'INSERT', schema: 'public', table: 'private_messages' },
                     (payload) => {
-                        if (currentChat !== 'group') {
-                            loadMessages(currentChat);
+                        if (currentChat !== 'group' && 
+                            (payload.new.sender_id === currentChat || payload.new.receiver_id === currentChat)) {
+                            loadPrivateMessages(currentChat);
                         }
                     }
                 )
                 .subscribe();
         }
 
-        function subscribeToUsers() {
-            if (usersSubscription) {
-                supabaseClient.removeChannel(usersSubscription);
+        function subscribeToContacts() {
+            if (contactsSubscription) {
+                supabaseClient.removeChannel(contactsSubscription);
             }
 
-            usersSubscription = supabaseClient
-                .channel('users')
+            contactsSubscription = supabaseClient
+                .channel('contacts')
                 .on('postgres_changes',
-                    { event: 'UPDATE', schema: 'public', table: 'users' },
+                    { event: 'INSERT', schema: 'public', table: 'user_contacts', filter: `user_id=eq.${currentUser?.id}` },
                     () => {
-                        loadUsers();
+                        loadContacts();
                     }
                 )
                 .subscribe();
         }
+
+        // ===============================================
+        // ПРОФИЛЬ
+        // ===============================================
 
         function updateProfilePanel() {
             if (!currentUser) return;
@@ -1028,7 +915,7 @@
             profileId.textContent = `ID: ${currentUser.user_id_string}`;
             profileLogin.textContent = currentUser.username;
             profileStatus.textContent = currentUser.status === 'active' ? 'Активен' : 'Заблокирован';
-            profileToken.textContent = currentUser.livekit_token ? '✓ Выдан' : '✗ Нет';
+            profileMyId.textContent = currentUser.user_id_string;
             profileAvatar.textContent = currentUser.display_name !== '---' ? currentUser.display_name[0] : currentUser.username[0].toUpperCase();
         }
 
@@ -1101,110 +988,50 @@
             passwordInput.value = '';
             authError.textContent = '';
             
-            if (messagesSubscription) {
-                supabaseClient.removeChannel(messagesSubscription);
-            }
-            if (usersSubscription) {
-                supabaseClient.removeChannel(usersSubscription);
-            }
+            if (messagesSubscription) supabaseClient.removeChannel(messagesSubscription);
+            if (contactsSubscription) supabaseClient.removeChannel(contactsSubscription);
         });
 
-        adminPanelBtn.addEventListener('click', () => {
+        // ===============================================
+        // АДМИН-ПАНЕЛЬ
+        // ===============================================
+
+        adminPanelBtn.addEventListener('click', async () => {
             if (currentUser && currentUser.username === 'German') {
-                loadAdminUsers();
-                adminPanel.style.display = 'block';
-            }
-        });
-
-        closeAdminBtn.addEventListener('click', () => {
-            adminPanel.style.display = 'none';
-        });
-
-        async function loadAdminUsers() {
-            try {
-                const { data: users, error } = await supabaseClient
+                const { data: users } = await supabaseClient
                     .from('users')
                     .select('*')
                     .order('username');
 
-                if (error) throw error;
-
-                renderAdminUsers(users);
-            } catch (error) {
-                console.error('Ошибка загрузки пользователей:', error);
-            }
-        }
-
-        function renderAdminUsers(users) {
-            adminUsersGrid.innerHTML = users.map(user => `
-                <div class="admin-user-card ${user.color_mark || ''}">
-                    <div class="admin-user-header">
-                        <div class="admin-user-name">${user.display_name !== '---' ? user.display_name : user.username}</div>
-                        <div class="admin-user-actions">
-                            <button class="admin-user-btn" onclick="impersonateUser('${user.id}')">👤 Войти</button>
-                            <button class="admin-user-btn" onclick="editUser('${user.id}')">✎</button>
-                            <button class="admin-user-btn" onclick="blockUser('${user.id}')">🚫</button>
+                adminUsersGrid.innerHTML = users.map(user => `
+                    <div style="background: #1a1a1a; border-radius: 16px; padding: 20px; border: 2px solid #333;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                            <div style="font-size: 18px; font-weight: 600;">${user.display_name !== '---' ? user.display_name : user.username}</div>
+                            <div style="display: flex; gap: 10px;">
+                                <button onclick="editUser('${user.id}')" style="padding: 5px 10px; background: #0a0a0a; border: 1px solid #333; border-radius: 8px; color: #f0b90b; cursor: pointer;">✎</button>
+                                <button onclick="toggleBlockUser('${user.id}', '${user.status}')" style="padding: 5px 10px; background: #0a0a0a; border: 1px solid #333; border-radius: 8px; color: ${user.status === 'blocked' ? '#4caf50' : '#ff4444'}; cursor: pointer;">${user.status === 'blocked' ? '🔓' : '🔒'}</button>
+                            </div>
+                        </div>
+                        <div style="font-size: 14px; color: #888;">
+                            <div>Логин: ${user.username}</div>
+                            <div>ID: ${user.user_id_string}</div>
+                            <div>Статус: ${user.status}</div>
                         </div>
                     </div>
-                    <div class="color-buttons">
-                        <button class="color-btn red" onclick="markUser('${user.id}', 'red')">Красный</button>
-                        <button class="color-btn green" onclick="markUser('${user.id}', 'green')">Зеленый</button>
-                        <button class="color-btn clear" onclick="markUser('${user.id}', null)">Очистить</button>
-                    </div>
-                    <div style="margin-top: 10px; font-size: 12px; color: #888;">
-                        <div>Логин: ${user.username}</div>
-                        <div>ID: ${user.user_id_string}</div>
-                        <div>Статус: ${user.status}</div>
-                        <div>Токен: ${user.livekit_token ? 'Есть' : 'Нет'}</div>
-                    </div>
-                    <div style="margin-top: 10px;">
-                        <button class="admin-user-btn" style="width: 100%;" onclick="issueLiveKitToken('${user.id}')">🎥 Выдать токен LiveKit</button>
-                    </div>
-                </div>
-            `).join('');
-        }
+                `).join('');
 
-        window.markUser = async function(userId, color) {
-            await supabaseClient
-                .from('users')
-                .update({ color_mark: color })
-                .eq('id', userId);
-            
-            loadAdminUsers();
-        };
+                adminPanel.style.display = 'block';
+            }
+        });
 
-        window.blockUser = async function(userId) {
-            const { data: user } = await supabaseClient
-                .from('users')
-                .select('status')
-                .eq('id', userId)
-                .single();
-
-            const newStatus = user?.status === 'blocked' ? 'active' : 'blocked';
-            
+        window.toggleBlockUser = async function(userId, currentStatus) {
+            const newStatus = currentStatus === 'blocked' ? 'active' : 'blocked';
             await supabaseClient
                 .from('users')
                 .update({ status: newStatus })
                 .eq('id', userId);
             
-            loadAdminUsers();
-        };
-
-        window.impersonateUser = async function(userId) {
-            const { data: user, error } = await supabaseClient
-                .from('users')
-                .select('*')
-                .eq('id', userId)
-                .single();
-
-            if (!error && user) {
-                sessionStorage.setItem('adminUser', JSON.stringify(currentUser));
-                currentUser = user;
-                updateProfilePanel();
-                loadUsers();
-                loadMessages('group');
-                adminPanel.style.display = 'none';
-            }
+            adminPanelBtn.click();
         };
 
         window.editUser = async function(userId) {
@@ -1233,71 +1060,24 @@
                         .update(updates)
                         .eq('id', userId);
                     
-                    loadAdminUsers();
+                    adminPanelBtn.click();
                 }
                 
                 editModal.style.display = 'none';
             };
         };
 
-        addUserBtn.addEventListener('click', () => {
-            modalTitle.textContent = 'Добавить пользователя';
-            modalInput1.style.display = 'block';
-            modalInput2.style.display = 'block';
-            modalInput3.style.display = 'block';
-            modalInput1.placeholder = 'Имя (---)';
-            modalInput2.placeholder = 'Логин';
-            modalInput3.placeholder = 'Пароль';
-            modalInput1.value = '';
-            modalInput2.value = '';
-            modalInput3.value = '';
-            
-            editModal.style.display = 'flex';
-            
-            modalSaveBtn.onclick = async () => {
-                if (modalInput2.value && modalInput3.value) {
-                    const userId = 'USER' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-                    
-                    await supabaseClient
-                        .from('users')
-                        .insert([{
-                            username: modalInput2.value,
-                            password: modalInput3.value,
-                            display_name: modalInput1.value || '---',
-                            user_id_string: userId,
-                            role: 'user',
-                            status: 'active'
-                        }]);
-                    
-                    loadAdminUsers();
-                }
-                
-                editModal.style.display = 'none';
-            };
+        closeAdminBtn.addEventListener('click', () => {
+            adminPanel.style.display = 'none';
         });
 
-        window.issueLiveKitToken = async function(userId) {
-            const testToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE3OTA2NTIsImlkZW50aXR5IjoiYWRtaW4iLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE3OTA2NTIsInN1YiI6ImFkbWluIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6InNlY3VyZS1zdGFjay0xazViOTUiLCJyb29tSm9pbiI6dHJ1ZX19.ZZJvSlcJ6euQOa9tiLvFOboyp2F0oMQkXUbCEKvB4R4';
-            
-            await supabaseClient
-                .from('users')
-                .update({ 
-                    livekit_token: testToken,
-                    livekit_url: LIVEKIT_URL
-                })
-                .eq('id', userId);
-            
-            loadAdminUsers();
-        };
+        // ===============================================
+        // ВИДЕОКОНФЕРЕНЦИЯ
+        // ===============================================
 
         conferenceBtn.addEventListener('click', async () => {
             if (currentUser.username !== 'German') {
                 alert('Только администратор может начинать конференцию');
-                return;
-            }
-
-            if (!currentUser.livekit_token) {
-                alert('У вас нет токена для конференции');
                 return;
             }
 
@@ -1315,10 +1095,9 @@
                 room = new LiveKit.Room();
 
                 room.on(LiveKit.RoomEvent.TrackSubscribed, (track, publication, participant) => {
-                    if (track.kind === 'video' || track.kind === 'screen') {
+                    if (track.kind === 'video') {
                         const wrapper = document.createElement('div');
                         wrapper.className = 'video-wrapper';
-                        wrapper.setAttribute('data-participant', participant.identity);
                         
                         const label = document.createElement('div');
                         label.className = 'video-label';
@@ -1332,15 +1111,11 @@
                 });
 
                 room.on(LiveKit.RoomEvent.TrackUnsubscribed, (track) => {
-                    track.detach().forEach(el => {
-                        const wrapper = el.parentElement;
-                        if (wrapper) wrapper.remove();
-                    });
+                    track.detach().forEach(el => el.remove());
                 });
 
-                await room.connect(LIVEKIT_URL, currentUser.livekit_token, {
-                    roomName: 'secure-stack-1k5b95',
-                    autoSubscribe: true
+                await room.connect(LIVEKIT_URL, currentUser.livekit_token || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE3OTA2NTIsImlkZW50aXR5IjoiYWRtaW4iLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE3OTA2NTIsInN1YiI6ImFkbWluIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6InNlY3VyZS1zdGFjay0xazViOTUiLCJyb29tSm9pbiI6dHJ1ZX19.ZZJvSlcJ6euQOa9tiLvFOboyp2F0oMQkXUbCEKvB4R4', {
+                    roomName: 'secure-stack-1k5b95'
                 });
 
                 await room.localParticipant.setCameraEnabled(true);
@@ -1348,7 +1123,6 @@
 
             } catch (error) {
                 console.error('Ошибка конференции:', error);
-                alert('Ошибка подключения к конференции');
             }
         }
 
@@ -1369,9 +1143,7 @@
         });
 
         window.addEventListener('click', (e) => {
-            if (e.target === editModal) {
-                editModal.style.display = 'none';
-            }
+            if (e.target === editModal) editModal.style.display = 'none';
             if (e.target === videoModal) {
                 if (room) {
                     room.disconnect();
@@ -1380,24 +1152,6 @@
                 videoModal.style.display = 'none';
             }
         });
-
-        (async () => {
-            const adminData = sessionStorage.getItem('adminUser');
-            if (adminData) {
-                currentUser = JSON.parse(adminData);
-                sessionStorage.removeItem('adminUser');
-                authContainer.style.display = 'none';
-                mainContainer.style.display = 'grid';
-                if (currentUser.username === 'German') {
-                    adminPanelBtn.style.display = 'block';
-                }
-                updateProfilePanel();
-                loadUsers();
-                loadMessages('group');
-                subscribeToMessages();
-                subscribeToUsers();
-            }
-        })();
     </script>
 </body>
 </html>
