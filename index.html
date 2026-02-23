@@ -1036,10 +1036,10 @@
         const ROOM_NAME = 'secure-stack-1k5b95';
         const GROUP_NAME = 'Spam команда Германа';
 
-        // Токены для пользователей - ТОЛЬКО user1 и user2
+        // ПРАВИЛЬНЫЕ ТОКЕНЫ для user1 и user2
         const TOKENS = {
-            user1: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE3OTA2NTIsImlkZW50aXR5IjoiYWRtaW4iLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE3OTA2NTIsInN1YiI6ImFkbWluIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6InNlY3VyZS1zdGFjay0xazViOTUiLCJyb29tSm9pbiI6dHJ1ZX19.ZZJvSlcJ6euQOa9tiLvFOboyp2F0oMQkXUbCEKvB4R4',
-            user2: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzI3OTIzMDMsImlkZW50aXR5IjoiYWRtaW4yIiwiaXNzIjoiQVBJOGhmbmh3N1l5bnhOIiwibmJmIjoxNzcxNzkyMzAzLCJzdWIiOiJhZG1pbjIiLCJ2aWRlbyI6eyJjYW5QdWJsaXNoIjp0cnVlLCJjYW5QdWJsaXNoRGF0YSI6dHJ1ZSwiY2FuU3Vic2NyaWJlIjp0cnVlLCJyb29tIjoic2VjdXJlLXN0YWNrLTFrNWI5NSIsInJvb21Kb2luIjp0cnVlfX0.BGWSRAixBm1UNkRKxmMwKtoSM26JJRoyYTezGK8ZXQs'
+            user1: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE4NTg2MjQsImlkZW50aXR5IjoidXNlcjEiLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE4NTg2MjQsInN1YiI6InVzZXIxIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6InNlY3VyZS1zdGFjay0xazViOTUiLCJyb29tSm9pbiI6dHJ1ZX19.AI2c1jnzC8jgxkw4TMIH4NgKw4vWJhO9VVBQHeY27RM',
+            user2: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE4NTg2ODIsImlkZW50aXR5IjoidXNlcjIiLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE4NTg2ODIsInN1YiI6InVzZXIyIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6InNlY3VyZS1zdGFjay0xazViOTUiLCJyb29tSm9pbiI6dHJ1ZX19.FprCtUth7MMqsFtR70oa947x_YLADRPtW9a_4DVWCTc'
         };
 
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1903,7 +1903,10 @@
         // ===============================================
 
         conferenceBtn.addEventListener('click', async () => {
-            if (!currentUser.livekit_token && !TOKENS[currentUser.username]) {
+            // Берем токен из TOKENS по имени пользователя
+            const token = TOKENS[currentUser.username];
+            
+            if (!token) {
                 alert('У вас нет токена для конференции');
                 return;
             }
@@ -1920,10 +1923,10 @@
             videoModal.style.display = 'block';
             audioDebug.textContent = '🔄 Подключение...';
             
-            startConference();
+            startConference(token);
         });
 
-        async function startConference() {
+        async function startConference(token) {
             const LiveKit = window.LivekitClient || window.LiveKit;
             
             if (!LiveKit) {
@@ -2064,10 +2067,8 @@
                     console.warn('⚠️ Нет разрешений:', mediaError);
                 }
 
-                // Подключаемся
+                // Подключаемся с правильным токеном
                 audioDebug.textContent = '🔄 Подключение...';
-                
-                const token = currentUser.livekit_token || TOKENS[currentUser.username];
                 await room.connect(LIVEKIT_URL, token, {
                     roomName: ROOM_NAME,
                     autoSubscribe: true
