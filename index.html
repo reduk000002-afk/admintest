@@ -529,9 +529,16 @@
             color: #0a0a0a;
         }
 
-        .admin-user-btn.group {
-            background: #f0b90b;
-            color: #0a0a0a;
+        .admin-user-btn.group-add {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .admin-user-btn.group-remove {
+            background: #ff4444;
+            color: white;
+            border-color: #ff4444;
         }
 
         .color-buttons {
@@ -1071,10 +1078,9 @@
 
         async function loadChats() {
             try {
-                // Загружаем группу
+                // Загружаем группу если пользователь в ней
                 const chats = [];
                 
-                // Добавляем группу если пользователь в ней
                 if (currentUser.in_group) {
                     const { data: lastGroupMsg } = await supabaseClient
                         .from('group_messages')
@@ -1134,9 +1140,19 @@
         function renderChatList(chats) {
             chatList.innerHTML = chats.map(chat => {
                 const time = chat.lastMessage ? new Date(chat.lastMessage.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '';
-                const lastMessageText = chat.lastMessage ? 
-                    (chat.lastMessage.sender_id === currentUser.id ? 'Вы: ' : '') + chat.lastMessage.message : 
-                    'Нет сообщений';
+                let lastMessageText = 'Нет сообщений';
+                
+                if (chat.lastMessage) {
+                    if (chat.type === 'group') {
+                        // Для группы показываем кто написал
+                        const senderName = chat.lastMessage.users?.display_name !== '---' ? 
+                            chat.lastMessage.users?.display_name : 
+                            chat.lastMessage.users?.username;
+                        lastMessageText = `${senderName}: ${chat.lastMessage.message}`;
+                    } else {
+                        lastMessageText = (chat.lastMessage.sender_id === currentUser.id ? 'Вы: ' : '') + chat.lastMessage.message;
+                    }
+                }
                 
                 return `
                     <div class="chat-item ${currentChat === chat.id ? 'active' : ''} ${chat.unread > 0 ? 'unread' : ''}" onclick="selectChat('${chat.id}', '${chat.type}')">
@@ -1171,9 +1187,11 @@
                     conferenceBtn.classList.add('join');
                 }
             } else {
-                // Получаем имя пользователя
-                const chatElement = document.querySelector(`[onclick="selectChat('${chatId}', 'private')"] .chat-name`);
-                const userName = chatElement ? chatElement.textContent : 'Пользователь';
+                // Получаем имя пользователя из чат-листа
+                const chatElement = Array.from(document.querySelectorAll('.chat-item')).find(el => 
+                    el.getAttribute('onclick')?.includes(`'${chatId}', 'private'`)
+                );
+                const userName = chatElement ? chatElement.querySelector('.chat-name')?.textContent : 'Пользователь';
                 currentChatTitle.textContent = `Чат с ${userName}`;
                 loadPrivateMessages(chatId);
                 unreadCounts[`private_${chatId}`] = 0;
@@ -1233,7 +1251,7 @@
                 if (type === 'group') {
                     isOwn = msg.user_id === currentUser.id;
                     sender = msg.users || {};
-                    senderName = isOwn ? 'Вы' : (sender.display_name !== '---' ? sender.display_name : sender.username);
+                    senderName = sender.display_name !== '---' ? sender.display_name : sender.username;
                 } else {
                     isOwn = msg.sender_id === currentUser.id;
                     sender = msg.sender || {};
@@ -1492,9 +1510,10 @@
                         <div class="admin-user-name">${user.display_name !== '---' ? user.display_name : user.username}</div>
                         <div class="admin-user-actions">
                             <button class="admin-user-btn" onclick="impersonateUser('${user.id}')">👤 Войти</button>
-                            <button class="admin-user-btn ${user.in_group ? 'group' : ''}" onclick="toggleGroup('${user.id}', ${user.in_group})">
-                                ${user.in_group ? '✓ В группе' : '➕ В группу'}
-                            </button>
+                            ${user.in_group 
+                                ? `<button class="admin-user-btn group-remove" onclick="toggleGroup('${user.id}', true)">➖ Из группы</button>`
+                                : `<button class="admin-user-btn group-add" onclick="toggleGroup('${user.id}', false)">➕ В группу</button>`
+                            }
                             <button class="admin-user-btn" onclick="editUser('${user.id}')">✎</button>
                             <button class="admin-user-btn" onclick="toggleBlockUser('${user.id}', '${user.status}')">${user.status === 'blocked' ? '🔓' : '🔒'}</button>
                         </div>
@@ -1514,7 +1533,7 @@
                     </div>
 
                     <div style="margin: 10px 0;">
-                        <input type="text" class="token-input" id="token-${user.id}" placeholder="LiveKit URL" value="${user.livekit_url || ''}">
+                        <input type="text" class="token-input" id="token-${user.id}" placeholder="LiveKit URL" value="${user.livekit_url || LIVEKIT_URL}">
                         <input type="text" class="token-input" id="token-value-${user.id}" placeholder="LiveKit Токен" value="${user.livekit_token || ''}">
                         <button class="admin-user-btn" style="width: 100%; margin-top: 5px;" onclick="saveLiveKitToken('${user.id}')">💾 Сохранить токен</button>
                     </div>
@@ -1764,11 +1783,9 @@
                 const { user, admin } = JSON.parse(impersonateData);
                 localStorage.removeItem('impersonateUser');
                 
-                // Устанавливаем пользователя
                 currentUser = user;
                 localStorage.setItem('currentUser', JSON.stringify(user));
                 
-                // Показываем интерфейс
                 setTimeout(() => {
                     authContainer.style.display = 'none';
                     mainContainer.style.display = 'grid';
