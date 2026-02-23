@@ -132,11 +132,11 @@
             cursor: pointer;
         }
 
-        .user-list {
+        .chat-list {
             padding: 10px 0;
         }
 
-        .user-item {
+        .chat-item {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -147,16 +147,16 @@
             position: relative;
         }
 
-        .user-item:hover {
+        .chat-item:hover {
             background: #1a1a1a;
         }
 
-        .user-item.active {
+        .chat-item.active {
             background: #1a1a1a;
             border-left-color: #f0b90b;
         }
 
-        .user-item.unread::after {
+        .chat-item.unread::after {
             content: '';
             position: absolute;
             top: 50%;
@@ -168,7 +168,7 @@
             border-radius: 50%;
         }
 
-        .user-avatar {
+        .chat-avatar {
             width: 40px;
             height: 40px;
             background: #222;
@@ -181,17 +181,22 @@
             border: 2px solid #f0b90b;
         }
 
-        .user-info {
+        .chat-avatar.group {
+            background: #f0b90b;
+            color: #0a0a0a;
+        }
+
+        .chat-info {
             flex: 1;
         }
 
-        .user-name {
+        .chat-name {
             color: #fff;
             font-size: 14px;
             font-weight: 500;
         }
 
-        .user-id {
+        .chat-id {
             color: #888;
             font-size: 12px;
         }
@@ -234,6 +239,17 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+        }
+
+        .conference-btn.join {
+            background: transparent;
+            border: 2px solid #f0b90b;
+            color: #f0b90b;
+        }
+
+        .conference-btn.join:hover {
+            background: #f0b90b;
+            color: #0a0a0a;
         }
 
         .conference-btn:disabled {
@@ -494,6 +510,7 @@
         .admin-user-actions {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .admin-user-btn {
@@ -508,6 +525,11 @@
         }
 
         .admin-user-btn:hover {
+            background: #f0b90b;
+            color: #0a0a0a;
+        }
+
+        .admin-user-btn.group {
             background: #f0b90b;
             color: #0a0a0a;
         }
@@ -676,6 +698,12 @@
             font-size: 12px;
             font-weight: bold;
         }
+
+        .group-info {
+            color: #888;
+            font-size: 12px;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -692,19 +720,19 @@
     <div class="main-container" id="mainContainer">
         <div class="users-panel">
             <div class="panel-header">
-                <div class="panel-title">Контакты</div>
+                <div class="panel-title">Чаты</div>
                 <div class="search-container">
                     <input type="text" class="search-input" id="userSearch" placeholder="Введите ID (7 цифр)">
                     <button class="search-btn" id="searchBtn">Найти</button>
                 </div>
             </div>
-            <div class="user-list" id="userList"></div>
+            <div class="chat-list" id="chatList"></div>
         </div>
 
         <div class="chat-panel">
             <div class="chat-header">
                 <div class="chat-title" id="currentChatTitle">Выберите чат</div>
-                <button class="conference-btn" id="conferenceBtn">Начать конференцию</button>
+                <button class="conference-btn" id="conferenceBtn" style="display: none;">Начать конференцию</button>
             </div>
             <div class="messages-container" id="messagesContainer">
                 <div style="text-align: center; color: #666; margin-top: 50px;">Выберите чат чтобы начать общение</div>
@@ -735,8 +763,8 @@
                     <span class="info-value" id="profileMyId">-</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">LiveKit Токен</span>
-                    <span class="info-value" id="profileToken">-</span>
+                    <span class="info-label">В группе</span>
+                    <span class="info-value" id="profileInGroup">-</span>
                 </div>
             </div>
             <button class="profile-btn" id="editProfileBtn">Редактировать профиль</button>
@@ -785,17 +813,21 @@
         const SUPABASE_URL = 'https://mqqlcfcwufdqwslukziy.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_pj766xnnI6WD4kiw7_kSSg_oaIiSYIr';
         const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
+        const GROUP_ID = 'spam-command-group';
+        const GROUP_NAME = 'Spam команда Германа';
 
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = null;
         let currentChat = null;
-        let currentChatUser = null;
+        let currentChatType = null; // 'group' or 'private'
         let messagesSubscription = null;
         let contactsSubscription = null;
         let adminSubscription = null;
+        let groupSubscription = null;
         let unreadCounts = {};
         let room = null;
+        let groupParticipants = [];
         const LiveKit = window.LivekitClient || window.LiveKit;
 
         // DOM элементы
@@ -805,7 +837,7 @@
         const loginInput = document.getElementById('loginInput');
         const passwordInput = document.getElementById('passwordInput');
         const authError = document.getElementById('authError');
-        const userList = document.getElementById('userList');
+        const chatList = document.getElementById('chatList');
         const userSearch = document.getElementById('userSearch');
         const searchBtn = document.getElementById('searchBtn');
         const messagesContainer = document.getElementById('messagesContainer');
@@ -818,7 +850,7 @@
         const profileLogin = document.getElementById('profileLogin');
         const profileStatus = document.getElementById('profileStatus');
         const profileMyId = document.getElementById('profileMyId');
-        const profileToken = document.getElementById('profileToken');
+        const profileInGroup = document.getElementById('profileInGroup');
         const profileAvatar = document.getElementById('profileAvatar');
         const editProfileBtn = document.getElementById('editProfileBtn');
         const changePasswordBtn = document.getElementById('changePasswordBtn');
@@ -849,7 +881,6 @@
                 try {
                     currentUser = JSON.parse(savedUser);
                     
-                    // Проверяем что пользователь все еще существует в базе
                     const { data: user, error } = await supabaseClient
                         .from('users')
                         .select('*')
@@ -866,7 +897,7 @@
                         }
                         
                         updateProfilePanel();
-                        loadContacts();
+                        loadChats();
                         setupRealtimeSubscriptions();
                     } else {
                         localStorage.removeItem('currentUser');
@@ -908,8 +939,6 @@
                     }
 
                     currentUser = user;
-                    
-                    // Сохраняем в localStorage
                     localStorage.setItem('currentUser', JSON.stringify(user));
                     
                     authContainer.style.display = 'none';
@@ -920,7 +949,7 @@
                     }
                     
                     updateProfilePanel();
-                    loadContacts();
+                    loadChats();
                     setupRealtimeSubscriptions();
                 } else {
                     authError.textContent = 'Неверный логин или пароль';
@@ -936,7 +965,7 @@
         // ===============================================
 
         function setupRealtimeSubscriptions() {
-            // Подписка на новые сообщения
+            // Подписка на личные сообщения
             const messagesChannel = supabaseClient
                 .channel('messages-channel')
                 .on('postgres_changes', 
@@ -956,14 +985,13 @@
                             .single();
                         
                         await addToContactsIfNotExists(sender);
-                        loadContacts();
                         
-                        if (currentChat === payload.new.sender_id) {
-                            loadMessages(currentChat);
+                        if (currentChat === payload.new.sender_id && currentChatType === 'private') {
+                            loadPrivateMessages(currentChat);
                         } else {
-                            unreadCounts[payload.new.sender_id] = (unreadCounts[payload.new.sender_id] || 0) + 1;
-                            loadContacts();
+                            unreadCounts[`private_${payload.new.sender_id}`] = (unreadCounts[`private_${payload.new.sender_id}`] || 0) + 1;
                         }
+                        loadChats();
                     }
                 )
                 .on('postgres_changes',
@@ -974,8 +1002,28 @@
                         filter: `sender_id=eq.${currentUser.id}`
                     },
                     (payload) => {
-                        if (currentChat === payload.new.receiver_id) {
-                            loadMessages(currentChat);
+                        if (currentChat === payload.new.receiver_id && currentChatType === 'private') {
+                            loadPrivateMessages(currentChat);
+                        }
+                    }
+                )
+                .subscribe();
+
+            // Подписка на групповые сообщения
+            const groupChannel = supabaseClient
+                .channel('group-channel')
+                .on('postgres_changes',
+                    { 
+                        event: 'INSERT', 
+                        schema: 'public', 
+                        table: 'group_messages'
+                    },
+                    (payload) => {
+                        if (currentChatType === 'group') {
+                            loadGroupMessages();
+                        } else {
+                            unreadCounts['group'] = (unreadCounts['group'] || 0) + 1;
+                            loadChats();
                         }
                     }
                 )
@@ -992,7 +1040,7 @@
                         filter: `user_id=eq.${currentUser.id}`
                     },
                     () => {
-                        loadContacts();
+                        loadChats();
                     }
                 )
                 .subscribe();
@@ -1014,6 +1062,240 @@
                         }
                     )
                     .subscribe();
+            }
+        }
+
+        // ===============================================
+        // ЗАГРУЗКА ЧАТОВ
+        // ===============================================
+
+        async function loadChats() {
+            try {
+                // Загружаем группу
+                const chats = [];
+                
+                // Добавляем группу если пользователь в ней
+                if (currentUser.in_group) {
+                    const { data: lastGroupMsg } = await supabaseClient
+                        .from('group_messages')
+                        .select('*')
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .maybeSingle();
+
+                    chats.push({
+                        id: GROUP_ID,
+                        name: GROUP_NAME,
+                        type: 'group',
+                        avatar: '👥',
+                        lastMessage: lastGroupMsg,
+                        unread: unreadCounts['group'] || 0
+                    });
+                }
+
+                // Загружаем личные контакты
+                const { data: contacts, error } = await supabaseClient
+                    .from('user_contacts')
+                    .select('contact_id, users!user_contacts_contact_id_fkey(*)')
+                    .eq('user_id', currentUser.id);
+
+                if (error) throw error;
+
+                const contactUsers = contacts.map(c => c.users).filter(u => u);
+                
+                const contactsWithLastMessage = await Promise.all(
+                    contactUsers.map(async (contact) => {
+                        const { data: lastMsg } = await supabaseClient
+                            .from('private_messages')
+                            .select('*')
+                            .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${contact.id}),and(sender_id.eq.${contact.id},receiver_id.eq.${currentUser.id})`)
+                            .order('created_at', { ascending: false })
+                            .limit(1)
+                            .maybeSingle();
+                        
+                        return {
+                            id: contact.id,
+                            name: contact.display_name !== '---' ? contact.display_name : contact.username,
+                            type: 'private',
+                            avatar: contact.display_name !== '---' ? contact.display_name[0] : contact.username[0].toUpperCase(),
+                            userId: contact.user_id_string,
+                            lastMessage: lastMsg,
+                            unread: unreadCounts[`private_${contact.id}`] || 0
+                        };
+                    })
+                );
+
+                renderChatList([...chats, ...contactsWithLastMessage]);
+            } catch (error) {
+                console.error('Ошибка загрузки чатов:', error);
+            }
+        }
+
+        function renderChatList(chats) {
+            chatList.innerHTML = chats.map(chat => {
+                const time = chat.lastMessage ? new Date(chat.lastMessage.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '';
+                const lastMessageText = chat.lastMessage ? 
+                    (chat.lastMessage.sender_id === currentUser.id ? 'Вы: ' : '') + chat.lastMessage.message : 
+                    'Нет сообщений';
+                
+                return `
+                    <div class="chat-item ${currentChat === chat.id ? 'active' : ''} ${chat.unread > 0 ? 'unread' : ''}" onclick="selectChat('${chat.id}', '${chat.type}')">
+                        <div class="chat-avatar ${chat.type === 'group' ? 'group' : ''}">${chat.avatar}</div>
+                        <div class="chat-info">
+                            <div class="chat-name">${chat.name}</div>
+                            ${chat.type === 'private' ? `<div class="chat-id">ID: ${chat.userId}</div>` : ''}
+                            <div class="last-message">${lastMessageText.substring(0, 30)}${lastMessageText.length > 30 ? '...' : ''} ${time ? '· ' + time : ''}</div>
+                        </div>
+                        ${chat.unread > 0 ? `<div class="unread-badge">${chat.unread}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.selectChat = function(chatId, type) {
+            currentChat = chatId;
+            currentChatType = type;
+            
+            if (type === 'group') {
+                currentChatTitle.textContent = GROUP_NAME;
+                loadGroupMessages();
+                unreadCounts['group'] = 0;
+                
+                // Показываем кнопку конференции
+                conferenceBtn.style.display = 'block';
+                if (currentUser.username === 'German') {
+                    conferenceBtn.textContent = 'Начать конференцию';
+                    conferenceBtn.classList.remove('join');
+                } else {
+                    conferenceBtn.textContent = 'Подключиться к конференции';
+                    conferenceBtn.classList.add('join');
+                }
+            } else {
+                // Получаем имя пользователя
+                const chatElement = document.querySelector(`[onclick="selectChat('${chatId}', 'private')"] .chat-name`);
+                const userName = chatElement ? chatElement.textContent : 'Пользователь';
+                currentChatTitle.textContent = `Чат с ${userName}`;
+                loadPrivateMessages(chatId);
+                unreadCounts[`private_${chatId}`] = 0;
+                conferenceBtn.style.display = 'none';
+            }
+            
+            messageInput.disabled = false;
+            sendBtn.disabled = false;
+            messageInput.focus();
+            loadChats();
+        };
+
+        // ===============================================
+        // ЗАГРУЗКА СООБЩЕНИЙ
+        // ===============================================
+
+        async function loadGroupMessages() {
+            try {
+                const { data: messages, error } = await supabaseClient
+                    .from('group_messages')
+                    .select('*, users!inner(*)')
+                    .order('created_at', { ascending: true });
+
+                if (error) throw error;
+
+                renderMessages(messages || [], 'group');
+            } catch (error) {
+                console.error('Ошибка загрузки сообщений:', error);
+            }
+        }
+
+        async function loadPrivateMessages(otherUserId) {
+            try {
+                const { data: messages, error } = await supabaseClient
+                    .from('private_messages')
+                    .select('*, sender:sender_id(*)')
+                    .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUser.id})`)
+                    .order('created_at', { ascending: true });
+
+                if (error) throw error;
+
+                renderMessages(messages || [], 'private');
+            } catch (error) {
+                console.error('Ошибка загрузки сообщений:', error);
+            }
+        }
+
+        function renderMessages(messages, type) {
+            if (!messages || messages.length === 0) {
+                messagesContainer.innerHTML = '<div style="text-align: center; color: #666; margin-top: 50px;">Нет сообщений. Напишите первое сообщение!</div>';
+                return;
+            }
+
+            messagesContainer.innerHTML = messages.map(msg => {
+                let isOwn, senderName, sender;
+                
+                if (type === 'group') {
+                    isOwn = msg.user_id === currentUser.id;
+                    sender = msg.users || {};
+                    senderName = isOwn ? 'Вы' : (sender.display_name !== '---' ? sender.display_name : sender.username);
+                } else {
+                    isOwn = msg.sender_id === currentUser.id;
+                    sender = msg.sender || {};
+                    senderName = isOwn ? 'Вы' : (sender.display_name !== '---' ? sender.display_name : sender.username);
+                }
+                
+                const time = new Date(msg.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                
+                return `
+                    <div class="message ${isOwn ? 'own' : ''}">
+                        <div class="message-header">
+                            <span class="message-sender">${senderName}</span>
+                            <span class="message-time">${time}</span>
+                        </div>
+                        <div class="message-content">${msg.message || msg.text}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // ===============================================
+        // ОТПРАВКА СООБЩЕНИЙ
+        // ===============================================
+
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text || !currentChat) {
+                if (!currentChat) alert('Выберите чат');
+                return;
+            }
+
+            try {
+                if (currentChatType === 'group') {
+                    await supabaseClient
+                        .from('group_messages')
+                        .insert([{
+                            user_id: currentUser.id,
+                            message: text,
+                            created_at: new Date()
+                        }]);
+                } else {
+                    await supabaseClient
+                        .from('private_messages')
+                        .insert([{
+                            sender_id: currentUser.id,
+                            receiver_id: currentChat,
+                            message: text,
+                            created_at: new Date()
+                        }]);
+                }
+
+                messageInput.value = '';
+            } catch (error) {
+                console.error('Ошибка отправки:', error);
+                alert('Ошибка при отправке сообщения');
             }
         }
 
@@ -1077,160 +1359,6 @@
         }
 
         // ===============================================
-        // ЗАГРУЗКА КОНТАКТОВ
-        // ===============================================
-
-        async function loadContacts() {
-            try {
-                const { data: contacts, error } = await supabaseClient
-                    .from('user_contacts')
-                    .select('contact_id, users!user_contacts_contact_id_fkey(*)')
-                    .eq('user_id', currentUser.id);
-
-                if (error) throw error;
-
-                const contactUsers = contacts.map(c => c.users).filter(u => u);
-                
-                const contactsWithLastMessage = await Promise.all(
-                    contactUsers.map(async (contact) => {
-                        const { data: lastMsg } = await supabaseClient
-                            .from('private_messages')
-                            .select('*')
-                            .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${contact.id}),and(sender_id.eq.${contact.id},receiver_id.eq.${currentUser.id})`)
-                            .order('created_at', { ascending: false })
-                            .limit(1)
-                            .maybeSingle();
-                        
-                        return {
-                            ...contact,
-                            lastMessage: lastMsg,
-                            unread: unreadCounts[contact.id] || 0
-                        };
-                    })
-                );
-
-                renderUserList(contactsWithLastMessage);
-            } catch (error) {
-                console.error('Ошибка загрузки контактов:', error);
-            }
-        }
-
-        function renderUserList(users) {
-            userList.innerHTML = users.map(user => {
-                const time = user.lastMessage ? new Date(user.lastMessage.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '';
-                const lastMessageText = user.lastMessage ? 
-                    (user.lastMessage.sender_id === currentUser.id ? 'Вы: ' : '') + user.lastMessage.message : 
-                    'Нет сообщений';
-                
-                return `
-                    <div class="user-item ${currentChat === user.id ? 'active' : ''} ${user.unread > 0 ? 'unread' : ''}" onclick="selectChat('${user.id}', '${user.display_name !== '---' ? user.display_name : user.username}')">
-                        <div class="user-avatar">${user.display_name && user.display_name !== '---' ? user.display_name[0] : user.username[0].toUpperCase()}</div>
-                        <div class="user-info">
-                            <div class="user-name">${user.display_name !== '---' ? user.display_name : user.username}</div>
-                            <div class="user-id">ID: ${user.user_id_string}</div>
-                            <div class="last-message">${lastMessageText.substring(0, 30)}${lastMessageText.length > 30 ? '...' : ''} ${time ? '· ' + time : ''}</div>
-                        </div>
-                        ${user.unread > 0 ? `<div class="unread-badge">${user.unread}</div>` : ''}
-                    </div>
-                `;
-            }).join('');
-        }
-
-        window.selectChat = function(userId, userName) {
-            currentChat = userId;
-            currentChatUser = userName;
-            currentChatTitle.textContent = `Чат с ${userName}`;
-            
-            messageInput.disabled = false;
-            sendBtn.disabled = false;
-            messageInput.focus();
-            
-            unreadCounts[userId] = 0;
-            loadMessages(userId);
-            loadContacts();
-        };
-
-        // ===============================================
-        // ЗАГРУЗКА СООБЩЕНИЙ
-        // ===============================================
-
-        async function loadMessages(otherUserId) {
-            try {
-                const { data: messages, error } = await supabaseClient
-                    .from('private_messages')
-                    .select('*, sender:sender_id(*)')
-                    .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUser.id})`)
-                    .order('created_at', { ascending: true });
-
-                if (error) throw error;
-
-                renderMessages(messages || []);
-            } catch (error) {
-                console.error('Ошибка загрузки сообщений:', error);
-            }
-        }
-
-        function renderMessages(messages) {
-            if (!messages || messages.length === 0) {
-                messagesContainer.innerHTML = '<div style="text-align: center; color: #666; margin-top: 50px;">Нет сообщений. Напишите первое сообщение!</div>';
-                return;
-            }
-
-            messagesContainer.innerHTML = messages.map(msg => {
-                const isOwn = msg.sender_id === currentUser.id;
-                const sender = msg.sender || {};
-                const time = new Date(msg.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-                
-                return `
-                    <div class="message ${isOwn ? 'own' : ''}">
-                        <div class="message-header">
-                            <span class="message-sender">${isOwn ? 'Вы' : (sender.display_name !== '---' ? sender.display_name : sender.username)}</span>
-                            <span class="message-time">${time}</span>
-                        </div>
-                        <div class="message-content">${msg.message}</div>
-                    </div>
-                `;
-            }).join('');
-            
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        // ===============================================
-        // ОТПРАВКА СООБЩЕНИЙ
-        // ===============================================
-
-        sendBtn.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-
-        async function sendMessage() {
-            const text = messageInput.value.trim();
-            if (!text || !currentChat) {
-                if (!currentChat) alert('Выберите чат');
-                return;
-            }
-
-            try {
-                const { error } = await supabaseClient
-                    .from('private_messages')
-                    .insert([{
-                        sender_id: currentUser.id,
-                        receiver_id: currentChat,
-                        message: text,
-                        created_at: new Date()
-                    }]);
-
-                if (error) throw error;
-
-                messageInput.value = '';
-            } catch (error) {
-                console.error('Ошибка отправки:', error);
-                alert('Ошибка при отправке сообщения');
-            }
-        }
-
-        // ===============================================
         // ПРОФИЛЬ
         // ===============================================
 
@@ -1242,7 +1370,7 @@
             profileLogin.textContent = currentUser.username;
             profileStatus.textContent = currentUser.status === 'active' ? 'Активен' : 'Заблокирован';
             profileMyId.textContent = currentUser.user_id_string;
-            profileToken.textContent = currentUser.livekit_token ? '✓ Есть' : '✗ Нет';
+            profileInGroup.textContent = currentUser.in_group ? 'Да' : 'Нет';
             profileAvatar.textContent = currentUser.display_name !== '---' ? currentUser.display_name[0] : currentUser.username[0].toUpperCase();
         }
 
@@ -1317,10 +1445,11 @@
             loginInput.value = '';
             passwordInput.value = '';
             authError.textContent = '';
-            userList.innerHTML = '';
+            chatList.innerHTML = '';
             messagesContainer.innerHTML = '';
             messageInput.disabled = true;
             sendBtn.disabled = true;
+            conferenceBtn.style.display = 'none';
             
             if (messagesSubscription) supabaseClient.removeChannel(messagesSubscription);
             if (contactsSubscription) supabaseClient.removeChannel(contactsSubscription);
@@ -1363,6 +1492,9 @@
                         <div class="admin-user-name">${user.display_name !== '---' ? user.display_name : user.username}</div>
                         <div class="admin-user-actions">
                             <button class="admin-user-btn" onclick="impersonateUser('${user.id}')">👤 Войти</button>
+                            <button class="admin-user-btn ${user.in_group ? 'group' : ''}" onclick="toggleGroup('${user.id}', ${user.in_group})">
+                                ${user.in_group ? '✓ В группе' : '➕ В группу'}
+                            </button>
                             <button class="admin-user-btn" onclick="editUser('${user.id}')">✎</button>
                             <button class="admin-user-btn" onclick="toggleBlockUser('${user.id}', '${user.status}')">${user.status === 'blocked' ? '🔓' : '🔒'}</button>
                         </div>
@@ -1378,6 +1510,7 @@
                         <div><strong>Логин:</strong> ${user.username}</div>
                         <div><strong>ID:</strong> ${user.user_id_string}</div>
                         <div><strong>Статус:</strong> ${user.status}</div>
+                        <div><strong>В группе:</strong> ${user.in_group ? 'Да' : 'Нет'}</div>
                     </div>
 
                     <div style="margin: 10px 0;">
@@ -1408,6 +1541,15 @@
             loadAdminUsers();
         };
 
+        window.toggleGroup = async function(userId, inGroup) {
+            await supabaseClient
+                .from('users')
+                .update({ in_group: !inGroup })
+                .eq('id', userId);
+            
+            loadAdminUsers();
+        };
+
         window.impersonateUser = async function(userId) {
             const { data: user, error } = await supabaseClient
                 .from('users')
@@ -1416,20 +1558,63 @@
                 .single();
 
             if (!error && user) {
-                // Сохраняем текущего админа в localStorage под другим ключом
-                localStorage.setItem('adminBackup', JSON.stringify(currentUser));
-                currentUser = user;
-                localStorage.setItem('currentUser', JSON.stringify(user));
-                
-                updateProfilePanel();
-                loadContacts();
-                setupRealtimeSubscriptions();
-                adminPanel.style.display = 'none';
-                
-                if (user.username === 'German') {
-                    adminPanelBtn.style.display = 'block';
-                } else {
-                    adminPanelBtn.style.display = 'none';
+                // Открываем в новой вкладке
+                const newWindow = window.open('about:blank', '_blank');
+                if (newWindow) {
+                    newWindow.document.write(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Secure Briefing - ${user.username}</title>
+                            <style>
+                                body {
+                                    background: #0a0a0a;
+                                    color: #f0b90b;
+                                    font-family: 'Segoe UI', sans-serif;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    height: 100vh;
+                                    margin: 0;
+                                }
+                                .loading {
+                                    text-align: center;
+                                }
+                                .spinner {
+                                    border: 4px solid #333;
+                                    border-top: 4px solid #f0b90b;
+                                    border-radius: 50%;
+                                    width: 40px;
+                                    height: 40px;
+                                    animation: spin 1s linear infinite;
+                                    margin: 20px auto;
+                                }
+                                @keyframes spin {
+                                    0% { transform: rotate(0deg); }
+                                    100% { transform: rotate(360deg); }
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="loading">
+                                <h2>Загрузка сессии пользователя ${user.username}</h2>
+                                <div class="spinner"></div>
+                                <p>Пожалуйста, подождите...</p>
+                            </div>
+                        </body>
+                        </html>
+                    `);
+                    
+                    // Сохраняем данные для новой вкладки
+                    localStorage.setItem('impersonateUser', JSON.stringify({
+                        user: user,
+                        admin: currentUser
+                    }));
+                    
+                    // Перенаправляем на основную страницу через секунду
+                    setTimeout(() => {
+                        newWindow.location.href = window.location.href;
+                    }, 1000);
                 }
             }
         };
@@ -1494,13 +1679,8 @@
         // ===============================================
 
         conferenceBtn.addEventListener('click', async () => {
-            if (currentUser.username !== 'German') {
-                alert('Только администратор может начинать конференцию');
-                return;
-            }
-
             if (!currentUser.livekit_token) {
-                alert('У вас нет токена для конференции. Выдайте его себе в админ-панели.');
+                alert('У вас нет токена для конференции');
                 return;
             }
 
@@ -1576,6 +1756,33 @@
                 videoModal.style.display = 'none';
             }
         });
+
+        // Проверяем, не открыта ли страница для имперсонации
+        (function checkImpersonation() {
+            const impersonateData = localStorage.getItem('impersonateUser');
+            if (impersonateData) {
+                const { user, admin } = JSON.parse(impersonateData);
+                localStorage.removeItem('impersonateUser');
+                
+                // Устанавливаем пользователя
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                
+                // Показываем интерфейс
+                setTimeout(() => {
+                    authContainer.style.display = 'none';
+                    mainContainer.style.display = 'grid';
+                    
+                    if (user.username === 'German') {
+                        adminPanelBtn.style.display = 'block';
+                    }
+                    
+                    updateProfilePanel();
+                    loadChats();
+                    setupRealtimeSubscriptions();
+                }, 500);
+            }
+        })();
 
         // Запускаем проверку сохраненной сессии при загрузке
         checkSavedSession();
