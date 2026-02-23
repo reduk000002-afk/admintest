@@ -213,12 +213,6 @@
             transition: all 0.3s;
         }
 
-        .conference-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: #333;
-        }
-
         .messages-container {
             flex: 1;
             overflow-y: auto;
@@ -383,6 +377,11 @@
         .profile-btn.danger {
             border-color: #ff4444;
             color: #ff4444;
+        }
+
+        .profile-btn.danger:hover {
+            background: #ff4444;
+            color: #0a0a0a;
         }
 
         .admin-panel {
@@ -611,9 +610,8 @@
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = null;
-        let currentChat = 'group';
+        let currentChat = null;
         let messagesSubscription = null;
-        let usersSubscription = null;
         let contactsSubscription = null;
         let room = null;
         const LiveKit = window.LivekitClient || window.LiveKit;
@@ -699,7 +697,6 @@
                     updateProfilePanel();
                     loadContacts();
                     subscribeToContacts();
-                    subscribeToMessages();
                 } else {
                     authError.textContent = 'Неверный логин или пароль';
                 }
@@ -720,8 +717,10 @@
 
         async function searchUserById() {
             const searchId = userSearch.value.trim();
-            if (!searchId || searchId.length !== 7 || isNaN(searchId)) {
-                alert('Введите 7-значный ID');
+            
+            // Проверка что ввели 7 цифр
+            if (!searchId || searchId.length !== 7 || !/^\d+$/.test(searchId)) {
+                alert('Введите 7-значный ID (только цифры)');
                 return;
             }
 
@@ -737,22 +736,35 @@
                 if (users && users.length > 0) {
                     const foundUser = users[0];
                     
-                    // Добавляем в контакты
-                    await supabaseClient
+                    // Проверяем, есть ли уже в контактах
+                    const { data: existingContact } = await supabaseClient
                         .from('user_contacts')
-                        .insert([{
-                            user_id: currentUser.id,
-                            contact_id: foundUser.id
-                        }])
+                        .select('*')
+                        .eq('user_id', currentUser.id)
+                        .eq('contact_id', foundUser.id)
                         .maybeSingle();
+
+                    if (!existingContact) {
+                        // Добавляем в контакты
+                        await supabaseClient
+                            .from('user_contacts')
+                            .insert([{
+                                user_id: currentUser.id,
+                                contact_id: foundUser.id
+                            }]);
+                    }
 
                     loadContacts();
                     userSearch.value = '';
+                    
+                    // Автоматически открываем чат с найденным пользователем
+                    selectChat(foundUser.id, foundUser.display_name !== '---' ? foundUser.display_name : foundUser.username);
                 } else {
-                    alert('Пользователь с таким ID не найден');
+                    alert('Пользователь с ID ' + searchId + ' не найден');
                 }
             } catch (error) {
                 console.error('Ошибка поиска:', error);
+                alert('Ошибка при поиске пользователя');
             }
         }
 
@@ -769,7 +781,7 @@
 
                 if (error) throw error;
 
-                const contactUsers = contacts.map(c => c.users);
+                const contactUsers = contacts.map(c => c.users).filter(u => u); // фильтруем null
                 renderUserList(contactUsers);
             } catch (error) {
                 console.error('Ошибка загрузки контактов:', error);
@@ -808,13 +820,18 @@
 
                 if (error) throw error;
 
-                renderMessages(messages);
+                renderMessages(messages || []);
             } catch (error) {
                 console.error('Ошибка загрузки сообщений:', error);
             }
         }
 
         function renderMessages(messages) {
+            if (!messages || messages.length === 0) {
+                messagesContainer.innerHTML = '<div style="text-align: center; color: #666; margin-top: 50px;">Нет сообщений. Напишите первое сообщение!</div>';
+                return;
+            }
+
             messagesContainer.innerHTML = messages.map(msg => {
                 const isOwn = msg.sender_id === currentUser.id;
                 const sender = msg.sender || {};
@@ -845,7 +862,10 @@
 
         async function sendMessage() {
             const text = messageInput.value.trim();
-            if (!text || currentChat === 'group') return;
+            if (!text || !currentChat) {
+                if (!currentChat) alert('Выберите чат');
+                return;
+            }
 
             try {
                 const { error } = await supabaseClient
@@ -862,31 +882,13 @@
                 messageInput.value = '';
             } catch (error) {
                 console.error('Ошибка отправки:', error);
+                alert('Ошибка при отправке сообщения');
             }
         }
 
         // ===============================================
         // ПОДПИСКИ (РИАЛТАЙМ)
         // ===============================================
-
-        function subscribeToMessages() {
-            if (messagesSubscription) {
-                supabaseClient.removeChannel(messagesSubscription);
-            }
-
-            messagesSubscription = supabaseClient
-                .channel('messages')
-                .on('postgres_changes',
-                    { event: 'INSERT', schema: 'public', table: 'private_messages' },
-                    (payload) => {
-                        if (currentChat !== 'group' && 
-                            (payload.new.sender_id === currentChat || payload.new.receiver_id === currentChat)) {
-                            loadPrivateMessages(currentChat);
-                        }
-                    }
-                )
-                .subscribe();
-        }
 
         function subscribeToContacts() {
             if (contactsSubscription) {
@@ -899,6 +901,28 @@
                     { event: 'INSERT', schema: 'public', table: 'user_contacts', filter: `user_id=eq.${currentUser?.id}` },
                     () => {
                         loadContacts();
+                    }
+                )
+                .subscribe();
+        }
+
+        // Подписка на сообщения создается при выборе чата
+        function subscribeToMessages(chatUserId) {
+            if (messagesSubscription) {
+                supabaseClient.removeChannel(messagesSubscription);
+            }
+
+            messagesSubscription = supabaseClient
+                .channel('messages-' + chatUserId)
+                .on('postgres_changes',
+                    { 
+                        event: 'INSERT', 
+                        schema: 'public', 
+                        table: 'private_messages',
+                        filter: `or(and(sender_id=eq.${currentUser.id},receiver_id=eq.${chatUserId}),and(sender_id=eq.${chatUserId},receiver_id=eq.${currentUser.id}))`
+                    },
+                    () => {
+                        loadPrivateMessages(chatUserId);
                     }
                 )
                 .subscribe();
@@ -987,6 +1011,8 @@
             loginInput.value = '';
             passwordInput.value = '';
             authError.textContent = '';
+            userList.innerHTML = '';
+            messagesContainer.innerHTML = '';
             
             if (messagesSubscription) supabaseClient.removeChannel(messagesSubscription);
             if (contactsSubscription) supabaseClient.removeChannel(contactsSubscription);
@@ -1114,7 +1140,7 @@
                     track.detach().forEach(el => el.remove());
                 });
 
-                await room.connect(LIVEKIT_URL, currentUser.livekit_token || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE3OTA2NTIsImlkZW50aXR5IjoiYWRtaW4iLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE3OTA2NTIsInN1YiI6ImFkbWluIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6InNlY3VyZS1zdGFjay0xazViOTUiLCJyb29tSm9pbiI6dHJ1ZX19.ZZJvSlcJ6euQOa9tiLvFOboyp2F0oMQkXUbCEKvB4R4', {
+                await room.connect(LIVEKIT_URL, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE3OTA2NTIsImlkZW50aXR5IjoiYWRtaW4iLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE3OTA2NTIsInN1YiI6ImFkbWluIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6InNlY3VyZS1zdGFjay0xazViOTUiLCJyb29tSm9pbiI6dHJ1ZX19.ZZJvSlcJ6euQOa9tiLvFOboyp2F0oMQkXUbCEKvB4R4', {
                     roomName: 'secure-stack-1k5b95'
                 });
 
@@ -1123,6 +1149,7 @@
 
             } catch (error) {
                 console.error('Ошибка конференции:', error);
+                alert('Ошибка подключения к конференции');
             }
         }
 
