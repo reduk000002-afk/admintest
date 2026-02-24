@@ -178,26 +178,24 @@
                 align-items: center;
                 gap: 8px;
                 min-height: 60px;
-                position: relative;
             }
 
-            /* Кнопка меню в левом верхнем углу */
-            .mobile-menu-btn {
-                position: fixed;
-                top: 12px;
-                left: 12px;
-                width: 44px;
-                height: 44px;
-                border-radius: 50%;
-                background: #f0b90b;
-                color: #0a0a0a;
+            /* Показываем стрелку назад на мобильных */
+            .chat-header .back-btn {
                 display: flex;
+                width: 40px;
+                height: 40px;
                 align-items: center;
                 justify-content: center;
                 font-size: 24px;
-                border: none;
-                z-index: 96;
-                box-shadow: 0 2px 8px rgba(240, 185, 11, 0.3);
+                cursor: pointer;
+                color: #f0b90b;
+                border-radius: 50%;
+                flex-shrink: 0;
+            }
+
+            .chat-header .back-btn:active {
+                background: #1a1a1a;
             }
 
             .chat-header .chat-title {
@@ -208,7 +206,6 @@
                 overflow: hidden;
                 text-overflow: ellipsis;
                 margin: 0 4px;
-                text-align: center;
             }
 
             .chat-header .conference-btn {
@@ -237,9 +234,14 @@
             }
 
             .message {
-                max-width: 85%;
                 display: flex;
                 gap: 8px;
+                max-width: 85%;
+            }
+
+            .message.own {
+                margin-left: auto;
+                flex-direction: row-reverse;
             }
 
             .message-avatar {
@@ -258,8 +260,8 @@
                 margin-top: 4px;
             }
 
-            .message-avatar:hover {
-                opacity: 0.8;
+            .message.own .message-avatar {
+                display: none;
             }
 
             .message-content-wrapper {
@@ -304,14 +306,6 @@
                 white-space: pre-wrap;
                 font-size: 15px;
                 line-height: 1.4;
-            }
-
-            .message.own {
-                margin-left: auto;
-            }
-
-            .message.own .message-avatar {
-                display: none;
             }
 
             .message.own .message-content {
@@ -359,14 +353,6 @@
                 color: #ff4444;
                 font-size: 18px;
                 padding: 0 4px;
-            }
-
-            .reply-preview-text {
-                color: #888;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                max-width: 200px;
             }
 
             .input-wrapper {
@@ -421,7 +407,7 @@
 
         /* Десктоп версия */
         @media (min-width: 769px) {
-            .mobile-header, .mobile-menu-btn, .mobile-overlay {
+            .mobile-header, .mobile-overlay {
                 display: none;
             }
             
@@ -432,6 +418,12 @@
             .message {
                 display: flex;
                 gap: 10px;
+                max-width: 70%;
+            }
+
+            .message.own {
+                margin-left: auto;
+                flex-direction: row-reverse;
             }
 
             .message-avatar {
@@ -450,16 +442,16 @@
                 margin-top: 4px;
             }
 
+            .message.own .message-avatar {
+                display: none;
+            }
+
             .message-avatar:hover {
                 opacity: 0.8;
             }
 
             .message-content-wrapper {
                 flex: 1;
-            }
-
-            .message.own .message-avatar {
-                display: none;
             }
         }
 
@@ -655,13 +647,42 @@
         }
 
         .message {
-            max-width: 70%;
             display: flex;
-            flex-direction: column;
+            gap: 10px;
+            max-width: 70%;
         }
 
         .message.own {
             align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message.own .message-avatar {
+            display: none;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            background: #222;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f0b90b;
+            font-weight: 600;
+            border: 2px solid #f0b90b;
+            flex-shrink: 0;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        .message-avatar:hover {
+            opacity: 0.8;
+        }
+
+        .message-content-wrapper {
+            flex: 1;
         }
 
         .message-header {
@@ -670,7 +691,6 @@
             gap: 8px;
             margin-bottom: 4px;
             font-size: 12px;
-            position: relative;
         }
 
         .message-sender {
@@ -1358,8 +1378,7 @@
     </style>
 </head>
 <body>
-    <!-- Кнопка мобильного меню (теперь в левом верхнем углу) -->
-    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+    <!-- Оверлей для мобильного меню -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
     <!-- Авторизация -->
@@ -1585,7 +1604,6 @@
         const audioDebug = document.getElementById('audioDebug');
 
         // Мобильные элементы
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const mobileOverlay = document.getElementById('mobileOverlay');
         const usersPanel = document.getElementById('usersPanel');
         const profilePanel = document.getElementById('profilePanel');
@@ -1689,7 +1707,6 @@
             }
         }
 
-        mobileMenuBtn.addEventListener('click', showUsersPanel);
         mobileOverlay.addEventListener('click', () => {
             hideUsersPanel();
             hideProfilePanel();
@@ -1719,7 +1736,6 @@
                 userProfileUsername.textContent = `@${user.username}`;
                 userProfileId.textContent = `ID: ${user.user_id_string}`;
                 
-                // Показываем/скрываем кнопку "Написать" (не показываем для себя)
                 if (user.id === currentUser.id) {
                     userProfileMessageBtn.style.display = 'none';
                 } else {
@@ -1736,7 +1752,6 @@
         userProfileMessageBtn.addEventListener('click', () => {
             if (selectedUserForProfile) {
                 userProfileModal.style.display = 'none';
-                // Переходим в личный чат с этим пользователем
                 selectChat(selectedUserForProfile.id, 'private');
             }
         });
@@ -2063,10 +2078,10 @@
                     }
                 }
                 
-                // Для своих сообщений не показываем аватарку
                 if (isOwn) {
                     return `
                         <div class="message own" id="message-${msg.id}">
+                            <div class="message-avatar" onclick="showUserProfile('${senderId}')">${senderAvatar}</div>
                             <div class="message-content-wrapper">
                                 <div class="message-header">
                                     <span class="message-sender">${senderName}</span>
@@ -2079,7 +2094,6 @@
                         </div>
                     `;
                 } else {
-                    // Для чужих сообщений показываем аватарку
                     return `
                         <div class="message" id="message-${msg.id}">
                             <div class="message-avatar" onclick="showUserProfile('${senderId}')">${senderAvatar}</div>
@@ -2148,7 +2162,6 @@
             if (e.key === 'Enter') {
                 if (isMobile()) {
                     // На мобильных Enter просто переводит строку
-                    // Ничего не делаем, пусть браузер обрабатывает стандартно
                 } else {
                     // На десктопе Enter отправляет, Shift+Enter переводит строку
                     if (!e.shiftKey) {
