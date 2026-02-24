@@ -538,6 +538,7 @@
             gap: 8px;
             margin-bottom: 4px;
             font-size: 12px;
+            position: relative;
         }
 
         .message-sender {
@@ -547,6 +548,24 @@
 
         .message-time {
             color: #666;
+        }
+
+        .reply-btn {
+            background: transparent;
+            border: none;
+            color: #f0b90b;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: auto;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .reply-btn:hover {
+            opacity: 1;
+            background: #1a1a1a;
         }
 
         .message-content {
@@ -564,6 +583,64 @@
             border-radius: 16px 16px 4px 16px;
         }
 
+        .replied-to {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+            padding: 4px 8px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            border-left: 2px solid #f0b90b;
+        }
+
+        .replied-to:hover {
+            background: rgba(0,0,0,0.5);
+        }
+
+        .replied-sender {
+            color: #f0b90b;
+            font-weight: 500;
+        }
+
+        .replied-text {
+            color: #aaa;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 200px;
+        }
+
+        .reply-preview {
+            background: #1a1a1a;
+            border-left: 3px solid #f0b90b;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .reply-preview .close-btn {
+            margin-left: auto;
+            cursor: pointer;
+            color: #ff4444;
+            font-size: 18px;
+        }
+
+        .reply-preview-text {
+            color: #888;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 200px;
+        }
+
         .chat-input-area {
             padding: 16px 20px;
             border-top: 1px solid #333;
@@ -572,6 +649,13 @@
             background: #111;
             flex-shrink: 0;
             margin-top: auto;
+            flex-direction: column;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
         }
 
         .chat-input {
@@ -1092,8 +1176,15 @@
                 <div class="empty-messages">Выберите чат чтобы начать общение</div>
             </div>
             <div class="chat-input-area">
-                <textarea class="chat-input" id="messageInput" placeholder="Сообщение..." disabled rows="1"></textarea>
-                <button class="send-btn" id="sendBtn" disabled>→</button>
+                <div class="reply-preview" id="replyPreview" style="display: none;">
+                    <span>↩️ Ответ на сообщение от <span id="replySender"></span></span>
+                    <span class="reply-preview-text" id="replyText"></span>
+                    <span class="close-btn" id="cancelReplyBtn">✕</span>
+                </div>
+                <div class="input-wrapper">
+                    <textarea class="chat-input" id="messageInput" placeholder="Сообщение..." disabled rows="1"></textarea>
+                    <button class="send-btn" id="sendBtn" disabled>→</button>
+                </div>
             </div>
         </div>
 
@@ -1206,6 +1297,7 @@
         let room = null;
         let audioContext = null;
         let audioReconnectTimer = null;
+        let replyingTo = null; // { id, sender, text, type }
 
         // DOM элементы
         const authContainer = document.getElementById('authContainer');
@@ -1261,6 +1353,12 @@
         const usersPanel = document.getElementById('usersPanel');
         const profilePanel = document.getElementById('profilePanel');
         const chatBackBtn = document.getElementById('chatBackBtn');
+
+        // Элементы ответов
+        const replyPreview = document.getElementById('replyPreview');
+        const replySender = document.getElementById('replySender');
+        const replyText = document.getElementById('replyText');
+        const cancelReplyBtn = document.getElementById('cancelReplyBtn');
 
         // ===============================================
         // НОВЫЙ КОД: Обработка клавиатуры на мобильных
@@ -1555,6 +1653,9 @@
             currentChat = chatId;
             currentChatType = type;
             
+            // Отменяем ответ при смене чата
+            cancelReply();
+            
             if (type === 'group') {
                 currentChatTitle.textContent = GROUP_NAME;
                 loadGroupMessages();
@@ -1633,26 +1734,55 @@
             }
 
             messagesContainer.innerHTML = messages.map(msg => {
-                let isOwn, senderName;
+                let isOwn, senderName, sender;
                 
                 if (type === 'group') {
                     isOwn = msg.user_id === currentUser.id;
-                    const sender = msg.users || {};
+                    sender = msg.users || {};
                     senderName = sender.display_name !== '---' ? sender.display_name : sender.username;
                 } else {
                     isOwn = msg.sender_id === currentUser.id;
-                    const sender = msg.sender || {};
+                    sender = msg.sender || {};
                     senderName = isOwn ? 'Вы' : (sender.display_name !== '---' ? sender.display_name : sender.username);
                 }
                 
                 const time = new Date(msg.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
                 
+                // Проверяем, есть ли ответ на сообщение
+                let replyHtml = '';
+                if (msg.reply_to_id) {
+                    const repliedMsg = messages.find(m => m.id === msg.reply_to_id);
+                    if (repliedMsg) {
+                        let repliedSenderName;
+                        if (type === 'group') {
+                            repliedSenderName = repliedMsg.users?.display_name !== '---' ? 
+                                repliedMsg.users?.display_name : 
+                                repliedMsg.users?.username;
+                        } else {
+                            repliedSenderName = repliedMsg.sender_id === currentUser.id ? 'Вы' : 
+                                (repliedMsg.sender?.display_name !== '---' ? 
+                                    repliedMsg.sender?.display_name : 
+                                    repliedMsg.sender?.username);
+                        }
+                        
+                        replyHtml = `
+                            <div class="replied-to" onclick="scrollToMessage('${msg.reply_to_id}')">
+                                <span>↩️</span>
+                                <span class="replied-sender">${repliedSenderName}</span>
+                                <span class="replied-text">${repliedMsg.message.substring(0, 30)}${repliedMsg.message.length > 30 ? '...' : ''}</span>
+                            </div>
+                        `;
+                    }
+                }
+                
                 return `
-                    <div class="message ${isOwn ? 'own' : ''}">
+                    <div class="message ${isOwn ? 'own' : ''}" id="message-${msg.id}">
                         <div class="message-header">
                             <span class="message-sender">${senderName}</span>
                             <span class="message-time">${time}</span>
+                            <button class="reply-btn" onclick="setReply('${msg.id}', '${senderName.replace(/'/g, "\\'")}', '${msg.message.replace(/'/g, "\\'").replace(/\n/g, '\\n')}', '${type}')">↩️</button>
                         </div>
+                        ${replyHtml}
                         <div class="message-content">${msg.message}</div>
                     </div>
                 `;
@@ -1660,6 +1790,46 @@
             
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
+
+        // ===============================================
+        // ФУНКЦИИ ДЛЯ ОТВЕТОВ
+        // ===============================================
+
+        window.setReply = function(messageId, senderName, messageText, type) {
+            replyingTo = {
+                id: messageId,
+                sender: senderName,
+                text: messageText,
+                type: type
+            };
+            
+            replySender.textContent = senderName;
+            replyText.textContent = messageText.length > 50 ? messageText.substring(0, 50) + '...' : messageText;
+            replyPreview.style.display = 'flex';
+            
+            // Фокусируемся на поле ввода
+            messageInput.focus();
+        };
+
+        function cancelReply() {
+            replyingTo = null;
+            replyPreview.style.display = 'none';
+        }
+
+        cancelReplyBtn.addEventListener('click', cancelReply);
+
+        window.scrollToMessage = function(messageId) {
+            const messageElement = document.getElementById(`message-${messageId}`);
+            if (messageElement) {
+                messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Временная подсветка
+                messageElement.style.transition = 'background-color 0.5s';
+                messageElement.style.backgroundColor = 'rgba(240, 185, 11, 0.1)';
+                setTimeout(() => {
+                    messageElement.style.backgroundColor = '';
+                }, 1000);
+            }
+        };
 
         // ===============================================
         // ОТПРАВКА СООБЩЕНИЙ
@@ -1682,27 +1852,35 @@
             }
 
             try {
+                const messageData = {
+                    message: text,
+                    created_at: new Date()
+                };
+
+                if (replyingTo && replyingTo.type === currentChatType) {
+                    messageData.reply_to_id = replyingTo.id;
+                }
+
                 if (currentChatType === 'group') {
                     await supabaseClient
                         .from('group_messages')
                         .insert([{
-                            user_id: currentUser.id,
-                            message: text,
-                            created_at: new Date()
+                            ...messageData,
+                            user_id: currentUser.id
                         }]);
                 } else {
                     await supabaseClient
                         .from('private_messages')
                         .insert([{
+                            ...messageData,
                             sender_id: currentUser.id,
-                            receiver_id: currentChat,
-                            message: text,
-                            created_at: new Date()
+                            receiver_id: currentChat
                         }]);
                 }
 
                 messageInput.value = '';
                 messageInput.style.height = 'auto';
+                cancelReply();
                 
                 // После отправки прокручиваем вниз
                 setTimeout(() => {
