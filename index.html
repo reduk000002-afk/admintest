@@ -115,6 +115,7 @@
                 width: 90%;
                 max-width: 350px;
                 padding-bottom: env(safe-area-inset-bottom, 0);
+                pointer-events: auto;
             }
 
             .users-panel.active {
@@ -136,6 +137,7 @@
                 overflow-y: auto;
                 border-left: 1px solid #333;
                 padding-bottom: env(safe-area-inset-bottom, 0);
+                pointer-events: auto;
             }
 
             .profile-panel.active {
@@ -151,11 +153,13 @@
                 right: 0;
                 bottom: 0;
                 background: rgba(0,0,0,0.5);
-                z-index: 95;
+                z-index: 99;
+                pointer-events: none; /* По умолчанию не перехватывает клики */
             }
 
             .mobile-overlay.active {
                 display: block;
+                pointer-events: auto; /* Перехватывает клики только когда активен */
             }
 
             /* Чат-панель на мобильных */
@@ -514,6 +518,7 @@
             cursor: pointer;
             border-left: 3px solid transparent;
             position: relative;
+            pointer-events: auto;
         }
 
         .chat-item:hover {
@@ -1707,8 +1712,8 @@
             }
         }
 
+        // Важно: оверлей закрывается ТОЛЬКО при клике на сам оверлей
         mobileOverlay.addEventListener('click', (e) => {
-            // Важно: не закрываем оверлей при клике на него, только если клик именно по оверлею
             if (e.target === mobileOverlay) {
                 hideUsersPanel();
                 hideProfilePanel();
@@ -2009,8 +2014,6 @@
                         if (user) {
                             const displayName = user.display_name !== '---' ? user.display_name : user.username;
                             currentChatTitle.textContent = displayName;
-                        } else {
-                            currentChatTitle.textContent = 'Чат с пользователем';
                         }
                     });
                 
