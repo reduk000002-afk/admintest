@@ -120,7 +120,7 @@
                 background: #0a0a0a;
             }
 
-            /* Оверлей теперь используем ТОЛЬКО для профиля справа */
+            /* Оверлей для профиля справа */
             .mobile-overlay {
                 display: none;
                 position: fixed;
@@ -140,6 +140,42 @@
             /* Когда список чатов открыт — прячем чат полностью */
             .users-panel.active ~ .chat-panel {
                 display: none !important;
+            }
+
+            /* Шапка списка чатов с иконкой профиля */
+            .users-panel .panel-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 16px 20px;
+                border-bottom: 1px solid #333;
+            }
+
+            .profile-icon {
+                width: 44px;
+                height: 44px;
+                background: #222;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #f0b90b;
+                font-weight: 600;
+                border: 2px solid #f0b90b;
+                cursor: pointer;
+                flex-shrink: 0;
+            }
+
+            .profile-icon:active {
+                background: #333;
+            }
+
+            .panel-title {
+                flex: 1;
+                font-size: 20px;
+                font-weight: 600;
+                color: #f0b90b;
+                margin: 0;
             }
 
             .chat-header {
@@ -424,6 +460,10 @@
 
             .message-content-wrapper {
                 flex: 1;
+            }
+            
+            .profile-icon {
+                display: none;
             }
         }
 
@@ -959,6 +999,79 @@
             border-color: #4caf50;
         }
 
+        .admin-user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .admin-user-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f0b90b;
+        }
+
+        .admin-user-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .admin-user-btn {
+            padding: 6px 12px;
+            background: #333;
+            border: 1px solid #f0b90b;
+            border-radius: 8px;
+            color: #f0b90b;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .admin-user-btn:hover {
+            background: #444;
+        }
+
+        .color-buttons {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .color-btn {
+            flex: 1;
+            padding: 6px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .color-btn.red {
+            background: #ff4444;
+            color: white;
+        }
+
+        .color-btn.green {
+            background: #4caf50;
+            color: white;
+        }
+
+        .color-btn.clear {
+            background: #333;
+            color: white;
+        }
+
+        .token-input {
+            width: 100%;
+            padding: 8px;
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #f0b90b;
+            margin-bottom: 5px;
+        }
+
         /* Модальное окно профиля пользователя */
         .user-profile-modal {
             display: none;
@@ -1042,6 +1155,70 @@
         .user-profile-btn.close {
             background: #333;
             color: #fff;
+        }
+
+        /* Модальное окно подтверждения */
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 4000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .confirm-content {
+            background: #1a1a1a;
+            border: 2px solid #ff4444;
+            border-radius: 32px;
+            padding: 30px 20px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .confirm-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #ff4444;
+        }
+
+        .confirm-text {
+            color: #fff;
+            margin-bottom: 25px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .confirm-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .confirm-btn.yes {
+            background: #ff4444;
+            color: white;
+        }
+
+        .confirm-btn.no {
+            background: #333;
+            color: white;
         }
 
         .modal {
@@ -1351,7 +1528,7 @@
     </style>
 </head>
 <body>
-    <!-- Оверлей для мобильного меню (только для профиля) -->
+    <!-- Оверлей для мобильного меню -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
     <!-- Авторизация -->
@@ -1370,11 +1547,12 @@
         <!-- Левая панель - пользователи -->
         <div class="users-panel" id="usersPanel">
             <div class="panel-header">
+                <div class="profile-icon" id="mobileProfileIcon">👤</div>
                 <div class="panel-title">Чаты</div>
-                <div class="search-container">
-                    <input type="text" class="search-input" id="userSearch" placeholder="Введите ID (7 цифр)">
-                    <button class="search-btn" id="searchBtn">Найти</button>
-                </div>
+            </div>
+            <div class="search-container" style="padding: 0 20px 15px;">
+                <input type="text" class="search-input" id="userSearch" placeholder="Введите ID (7 цифр)">
+                <button class="search-btn" id="searchBtn">Найти</button>
             </div>
             <div class="chat-list" id="chatList"></div>
         </div>
@@ -1444,6 +1622,18 @@
             <div class="user-profile-buttons">
                 <button class="user-profile-btn message" id="userProfileMessageBtn">💬 Написать</button>
                 <button class="user-profile-btn close" id="userProfileCloseBtn">✕ Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения очистки истории -->
+    <div class="confirm-modal" id="confirmModal">
+        <div class="confirm-content">
+            <div class="confirm-title">⚠️ Очистка истории</div>
+            <div class="confirm-text" id="confirmText">Вы уверены, что хотите очистить историю для этого пользователя?</div>
+            <div class="confirm-buttons">
+                <button class="confirm-btn yes" id="confirmYesBtn">Да, очистить</button>
+                <button class="confirm-btn no" id="confirmNoBtn">Отмена</button>
             </div>
         </div>
     </div>
@@ -1527,6 +1717,7 @@
         let audioReconnectTimer = null;
         let replyingTo = null;
         let selectedUserForProfile = null;
+        let pendingClearUserId = null;
 
         // DOM элементы
         const authContainer = document.getElementById('authContainer');
@@ -1581,6 +1772,7 @@
         const usersPanel = document.getElementById('usersPanel');
         const profilePanel = document.getElementById('profilePanel');
         const chatBackBtn = document.getElementById('chatBackBtn');
+        const mobileProfileIcon = document.getElementById('mobileProfileIcon');
 
         // Элементы ответов и профиля пользователя
         const replyPreview = document.getElementById('replyPreview');
@@ -1594,6 +1786,12 @@
         const userProfileId = document.getElementById('userProfileId');
         const userProfileMessageBtn = document.getElementById('userProfileMessageBtn');
         const userProfileCloseBtn = document.getElementById('userProfileCloseBtn');
+
+        // Элементы подтверждения
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmText = document.getElementById('confirmText');
+        const confirmYesBtn = document.getElementById('confirmYesBtn');
+        const confirmNoBtn = document.getElementById('confirmNoBtn');
 
         // ===============================================
         // Обработка клавиатуры на мобильных
@@ -1647,21 +1845,20 @@
         }
 
         // ===============================================
-        // МОБИЛЬНАЯ НАВИГАЦИЯ (исправленная версия)
+        // МОБИЛЬНАЯ НАВИГАЦИЯ
         // ===============================================
 
         function showUsersPanel() {
             if (!isMobile()) return;
             
             usersPanel.classList.add('active');
-            mobileOverlay.classList.remove('active');   // убираем затемнение
+            mobileOverlay.classList.remove('active');
         }
 
         function hideUsersPanel() {
             if (!isMobile()) return;
             
             usersPanel.classList.remove('active');
-            // Показываем чат обратно
             const chatPanel = document.querySelector('.chat-panel');
             if (chatPanel) chatPanel.style.display = 'flex';
         }
@@ -1680,21 +1877,24 @@
         function goToChatList() {
             if (!isMobile()) return;
             
-            // Прячем текущий чат
             const chatPanel = document.querySelector('.chat-panel');
             if (chatPanel) chatPanel.style.display = 'none';
             
             showUsersPanel();
         }
 
-        // Оверлей теперь используется ТОЛЬКО для правой панели (профиль)
+        // Обработчики
         mobileOverlay.addEventListener('click', (e) => {
             if (e.target === mobileOverlay) {
-                hideProfilePanel();   // только профиль закрываем
+                hideProfilePanel();
             }
         });
 
         chatBackBtn.addEventListener('click', goToChatList);
+        
+        mobileProfileIcon.addEventListener('click', () => {
+            showProfilePanel();
+        });
 
         // ===============================================
         // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -1718,12 +1918,54 @@
                         contact_id: user.id
                     }]);
                 
-                // Обновляем список чатов
                 loadChats();
                 return true;
             }
             return false;
         }
+
+        // ===============================================
+        // ФУНКЦИИ ДЛЯ ОЧИСТКИ ИСТОРИИ
+        // ===============================================
+
+        function showConfirmModal(userId, userName) {
+            pendingClearUserId = userId;
+            confirmText.textContent = `Вы уверены, что хотите очистить историю для пользователя ${userName}? Он будет видеть только сообщения с этого момента.`;
+            confirmModal.style.display = 'flex';
+        }
+
+        function hideConfirmModal() {
+            confirmModal.style.display = 'none';
+            pendingClearUserId = null;
+        }
+
+        confirmYesBtn.addEventListener('click', async () => {
+            if (!pendingClearUserId) return;
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('user_group_clears')
+                    .insert([{
+                        user_id: pendingClearUserId,
+                        cleared_at: new Date()
+                    }]);
+
+                if (error) throw error;
+                
+                alert('История успешно очищена!');
+                hideConfirmModal();
+                
+                // Обновляем список пользователей в админке
+                if (currentUser && currentUser.username === 'German') {
+                    loadAdminUsers();
+                }
+            } catch (error) {
+                console.error('Ошибка очистки истории:', error);
+                alert('Ошибка при очистке истории');
+            }
+        });
+
+        confirmNoBtn.addEventListener('click', hideConfirmModal);
 
         // ===============================================
         // ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
@@ -1764,7 +2006,6 @@
             if (selectedUserForProfile) {
                 userProfileModal.style.display = 'none';
                 
-                // Автоматически добавляем в контакты при переходе в чат
                 addToContactsIfNotExists(selectedUserForProfile).then(() => {
                     selectChat(selectedUserForProfile.id, 'private');
                 });
@@ -1978,7 +2219,6 @@
                 
                 conferenceBtn.style.display = 'block';
             } else {
-                // Загружаем информацию о пользователе для правильного отображения имени
                 supabaseClient
                     .from('users')
                     .select('*')
@@ -1999,10 +2239,8 @@
             messageInput.disabled = false;
             sendBtn.disabled = false;
             
-            // === МОБИЛЬНАЯ ЧАСТЬ ===
             if (isMobile()) {
-                hideUsersPanel();                    // закрываем список
-                // гарантированно показываем чат
+                hideUsersPanel();
                 const chatPanel = document.querySelector('.chat-panel');
                 if (chatPanel) chatPanel.style.display = 'flex';
             } else {
@@ -2013,15 +2251,31 @@
         };
 
         // ===============================================
-        // ЗАГРУЗКА СООБЩЕНИЙ
+        // ЗАГРУЗКА СООБЩЕНИЙ (с учетом очистки истории)
         // ===============================================
 
         async function loadGroupMessages() {
             try {
-                const { data: messages, error } = await supabaseClient
+                // Получаем дату очистки истории для текущего пользователя
+                const { data: clears } = await supabaseClient
+                    .from('user_group_clears')
+                    .select('cleared_at')
+                    .eq('user_id', currentUser.id)
+                    .order('cleared_at', { ascending: false })
+                    .limit(1);
+
+                let query = supabaseClient
                     .from('group_messages')
                     .select('*, users!inner(*)')
                     .order('created_at', { ascending: true });
+
+                // Если есть запись об очистке, фильтруем сообщения
+                if (clears && clears.length > 0) {
+                    const clearedAt = clears[0].cleared_at;
+                    query = query.gte('created_at', clearedAt);
+                }
+
+                const { data: messages, error } = await query;
 
                 if (error) throw error;
 
@@ -2184,7 +2438,6 @@
                 if (isMobile()) {
                     // На мобильных Enter просто переводит строку
                 } else {
-                    // На десктопе Enter отправляет, Shift+Enter переводит строку
                     if (!e.shiftKey) {
                         e.preventDefault();
                         sendMessage();
@@ -2238,7 +2491,6 @@
                         return;
                     }
                     
-                    // При отправке первого сообщения автоматически добавляем в контакты
                     const { data: receiver } = await supabaseClient
                         .from('users')
                         .select('*')
@@ -2487,7 +2739,7 @@
         });
 
         // ===============================================
-        // АДМИН-ПАНЕЛЬ
+        // АДМИН-ПАНЕЛЬ (с кнопкой очистки истории)
         // ===============================================
 
         adminPanelBtn.addEventListener('click', async () => {
@@ -2517,14 +2769,18 @@
         }
 
         function renderAdminUsers(users) {
-            adminUsersGrid.innerHTML = users.map(user => `
+            adminUsersGrid.innerHTML = users.map(user => {
+                const displayName = user.display_name !== '---' ? user.display_name : user.username;
+                
+                return `
                 <div class="admin-user-card ${user.color_mark === 'red' ? 'marked-red' : user.color_mark === 'green' ? 'marked-green' : ''}">
                     <div class="admin-user-header">
-                        <div class="admin-user-name">${user.display_name !== '---' ? user.display_name : user.username}</div>
+                        <div class="admin-user-name">${displayName}</div>
                         <div class="admin-user-actions">
                             <button class="admin-user-btn" onclick="impersonateUser('${user.id}')">👤 Войти</button>
                             <button class="admin-user-btn" onclick="editUser('${user.id}')">✎</button>
                             <button class="admin-user-btn" onclick="toggleBlockUser('${user.id}', '${user.status}')">${user.status === 'blocked' ? '🔓' : '🔒'}</button>
+                            <button class="admin-user-btn" style="background: #ff4444; color: white; border-color: #ff4444;" onclick="showConfirmModal('${user.id}', '${displayName}')">🗑️ Очистить</button>
                         </div>
                     </div>
                     
@@ -2546,7 +2802,7 @@
                         <button class="admin-user-btn" style="width: 100%; margin-top: 5px;" onclick="saveLiveKitToken('${user.id}')">💾 Сохранить токен</button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         window.markUser = async function(userId, color) {
@@ -2635,6 +2891,8 @@
                 window.location.reload();
             }
         };
+
+        window.showConfirmModal = showConfirmModal;
 
         // ===============================================
         // ВИДЕОКОНФЕРЕНЦИЯ
@@ -2915,6 +3173,9 @@
                 }
                 if (userProfileModal.style.display === 'flex') {
                     userProfileModal.style.display = 'none';
+                }
+                if (confirmModal.style.display === 'flex') {
+                    hideConfirmModal();
                 }
                 if (isMobile()) {
                     hideProfilePanel();
