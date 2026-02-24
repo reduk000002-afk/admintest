@@ -206,7 +206,7 @@
             .messages-container {
                 flex: 1;
                 overflow-y: auto;
-                padding: 12px 12px calc(20px + env(safe-area-inset-bottom, 20px)) 12px;
+                padding: 12px 12px 20px 12px;
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
@@ -230,14 +230,12 @@
                 padding: 20px;
             }
 
-            /* Контейнер для двух строк ввода */
-            .input-container {
+            /* Контейнер для строки ввода и серого фона */
+            .bottom-container {
                 background: #111;
                 border-top: 1px solid #333;
-                padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 20px)) 12px;
                 display: flex;
                 flex-direction: column;
-                gap: 8px;
                 flex-shrink: 0;
                 position: sticky;
                 bottom: 0;
@@ -245,11 +243,12 @@
                 margin-top: auto;
             }
 
-            /* Первая строка ввода */
+            /* Строка ввода сверху */
             .input-row {
                 display: flex;
                 gap: 8px;
                 align-items: flex-end;
+                padding: 12px 12px 8px 12px;
                 width: 100%;
             }
 
@@ -295,12 +294,12 @@
                 cursor: not-allowed;
             }
 
-            /* Вторая строка ввода (идентичная первой) */
-            .second-input-row {
-                display: flex;
-                gap: 8px;
-                align-items: flex-end;
+            /* Пустой серый фон снизу */
+            .empty-gray-area {
+                background: #111;
+                height: 60px;
                 width: 100%;
+                padding-bottom: env(safe-area-inset-bottom, 20px);
             }
 
             .mobile-menu-btn {
@@ -601,13 +600,11 @@
             border-radius: 16px 16px 4px 16px;
         }
 
-        /* Десктоп версия с двумя строками ввода */
-        .input-container {
-            padding: 16px 20px 20px 20px;
+        /* Десктоп версия */
+        .bottom-container {
             border-top: 1px solid #333;
             display: flex;
             flex-direction: column;
-            gap: 10px;
             background: #111;
             flex-shrink: 0;
         }
@@ -616,13 +613,7 @@
             display: flex;
             gap: 12px;
             align-items: flex-end;
-            width: 100%;
-        }
-
-        .second-input-row {
-            display: flex;
-            gap: 12px;
-            align-items: flex-end;
+            padding: 16px 20px 8px 20px;
             width: 100%;
         }
 
@@ -664,6 +655,12 @@
             opacity: 0.5;
             background: #333;
             cursor: not-allowed;
+        }
+
+        .empty-gray-area {
+            background: #111;
+            height: 60px;
+            width: 100%;
         }
 
         .reply-bar {
@@ -1277,19 +1274,16 @@
                 <div class="empty-messages">Выберите чат чтобы начать общение</div>
             </div>
             
-            <!-- Контейнер с двумя строками ввода -->
-            <div class="input-container">
-                <!-- Первая строка ввода -->
+            <!-- Нижний контейнер со строкой ввода и серым фоном -->
+            <div class="bottom-container">
+                <!-- Строка ввода сверху -->
                 <div class="input-row">
-                    <textarea class="chat-input" id="messageInput1" placeholder="Сообщение 1..." disabled rows="1"></textarea>
-                    <button class="send-btn" id="sendBtn1" disabled>→</button>
+                    <textarea class="chat-input" id="messageInput" placeholder="Сообщение..." disabled rows="1"></textarea>
+                    <button class="send-btn" id="sendBtn" disabled>→</button>
                 </div>
                 
-                <!-- Вторая строка ввода (идентичная первой) -->
-                <div class="second-input-row">
-                    <textarea class="chat-input" id="messageInput2" placeholder="Сообщение 2..." disabled rows="1"></textarea>
-                    <button class="send-btn" id="sendBtn2" disabled>→</button>
-                </div>
+                <!-- Пустой серый фон снизу -->
+                <div class="empty-gray-area"></div>
             </div>
         </div>
 
@@ -1415,13 +1409,8 @@
         const userSearch = document.getElementById('userSearch');
         const searchBtn = document.getElementById('searchBtn');
         const messagesContainer = document.getElementById('messagesContainer');
-        
-        // Две строки ввода
-        const messageInput1 = document.getElementById('messageInput1');
-        const messageInput2 = document.getElementById('messageInput2');
-        const sendBtn1 = document.getElementById('sendBtn1');
-        const sendBtn2 = document.getElementById('sendBtn2');
-        
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
         const currentChatTitle = document.getElementById('currentChatTitle');
         const conferenceBtn = document.getElementById('conferenceBtn');
         const profileName = document.getElementById('profileName');
@@ -1477,7 +1466,7 @@
             replyingTo = { id: messageId, sender, message };
             replyText.textContent = `Ответ ${sender}: ${message.substring(0, 50)}${message.length > 50 ? '...' : ''}`;
             replyBar.style.display = 'flex';
-            messageInput1.focus();
+            messageInput.focus();
         };
 
         function clearReply() {
@@ -1578,11 +1567,9 @@
                         currentChatTitle.textContent = GROUP_NAME;
                         conferenceBtn.style.display = 'block';
                         
-                        // Активируем обе строки ввода
-                        messageInput1.disabled = false;
-                        messageInput2.disabled = false;
-                        sendBtn1.disabled = false;
-                        sendBtn2.disabled = false;
+                        // Активируем строку ввода
+                        messageInput.disabled = false;
+                        sendBtn.disabled = false;
                     } else {
                         localStorage.removeItem('currentUser');
                     }
@@ -1639,11 +1626,9 @@
                     currentChatTitle.textContent = GROUP_NAME;
                     conferenceBtn.style.display = 'block';
                     
-                    // Активируем обе строки ввода
-                    messageInput1.disabled = false;
-                    messageInput2.disabled = false;
-                    sendBtn1.disabled = false;
-                    sendBtn2.disabled = false;
+                    // Активируем строку ввода
+                    messageInput.disabled = false;
+                    sendBtn.disabled = false;
                 } else {
                     authError.textContent = 'Неверный логин или пароль';
                 }
@@ -1767,13 +1752,11 @@
                 conferenceBtn.style.display = 'none';
             }
             
-            // Активируем обе строки ввода
-            messageInput1.disabled = false;
-            messageInput2.disabled = false;
-            sendBtn1.disabled = false;
-            sendBtn2.disabled = false;
+            // Активируем строку ввода
+            messageInput.disabled = false;
+            sendBtn.disabled = false;
             
-            messageInput1.focus();
+            messageInput.focus();
             loadChats();
             
             if (isMobile()) {
@@ -1858,11 +1841,26 @@
         }
 
         // ===============================================
-        // ОТПРАВКА СООБЩЕНИЙ (для обеих строк)
+        // ОТПРАВКА СООБЩЕНИЙ
         // ===============================================
 
-        async function sendMessageFromInput(inputElement, buttonElement) {
-            const text = inputElement.value.trim();
+        sendBtn.addEventListener('click', sendMessage);
+        
+        messageInput.addEventListener('keydown', (e) => {
+            if (isMobile()) {
+                // На телефоне Enter просто переводит строку
+                return;
+            } else {
+                // На компе Enter отправляет (Shift+Enter - новая строка)
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            }
+        });
+
+        async function sendMessage() {
+            const text = messageInput.value.trim();
             if (!text || !currentChat) {
                 if (!currentChat) alert('Выберите чат');
                 return;
@@ -1906,8 +1904,9 @@
                 }
 
                 // Очищаем поле ввода
-                inputElement.value = '';
-                inputElement.style.height = 'auto';
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                clearReply();
                 
                 // Принудительно обновляем сообщения
                 if (currentChatType === 'group') {
@@ -1922,37 +1921,7 @@
             }
         }
 
-        // Обработчики для первой строки
-        sendBtn1.addEventListener('click', () => sendMessageFromInput(messageInput1, sendBtn1));
-        
-        messageInput1.addEventListener('keydown', (e) => {
-            if (!isMobile()) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessageFromInput(messageInput1, sendBtn1);
-                }
-            }
-        });
-
-        // Обработчики для второй строки
-        sendBtn2.addEventListener('click', () => sendMessageFromInput(messageInput2, sendBtn2));
-        
-        messageInput2.addEventListener('keydown', (e) => {
-            if (!isMobile()) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessageFromInput(messageInput2, sendBtn2);
-                }
-            }
-        });
-
-        // Автоматическое изменение высоты для обеих строк
-        messageInput1.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-
-        messageInput2.addEventListener('input', function() {
+        messageInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
         });
@@ -2188,11 +2157,9 @@
             chatList.innerHTML = '';
             messagesContainer.innerHTML = '';
             
-            // Деактивируем обе строки ввода
-            messageInput1.disabled = true;
-            messageInput2.disabled = true;
-            sendBtn1.disabled = true;
-            sendBtn2.disabled = true;
+            // Деактивируем строку ввода
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
             conferenceBtn.style.display = 'none';
             
             if (messagesSubscription) supabaseClient.removeChannel(messagesSubscription);
@@ -2678,11 +2645,9 @@
                     currentChatTitle.textContent = GROUP_NAME;
                     conferenceBtn.style.display = 'block';
                     
-                    // Активируем обе строки ввода
-                    messageInput1.disabled = false;
-                    messageInput2.disabled = false;
-                    sendBtn1.disabled = false;
-                    sendBtn2.disabled = false;
+                    // Активируем строку ввода
+                    messageInput.disabled = false;
+                    sendBtn.disabled = false;
                 }, 500);
             }
         })();
