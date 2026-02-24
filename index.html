@@ -230,18 +230,27 @@
                 padding: 20px;
             }
 
-            .chat-input-area {
+            /* Контейнер для двух строк ввода */
+            .input-container {
                 background: #111;
                 border-top: 1px solid #333;
                 padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 20px)) 12px;
                 display: flex;
+                flex-direction: column;
                 gap: 8px;
-                align-items: flex-end;
                 flex-shrink: 0;
                 position: sticky;
                 bottom: 0;
                 z-index: 10;
                 margin-top: auto;
+            }
+
+            /* Первая строка ввода */
+            .input-row {
+                display: flex;
+                gap: 8px;
+                align-items: flex-end;
+                width: 100%;
             }
 
             .chat-input {
@@ -284,6 +293,14 @@
                 opacity: 0.5;
                 background: #333;
                 cursor: not-allowed;
+            }
+
+            /* Вторая строка ввода (идентичная первой) */
+            .second-input-row {
+                display: flex;
+                gap: 8px;
+                align-items: flex-end;
+                width: 100%;
             }
 
             .mobile-menu-btn {
@@ -584,13 +601,29 @@
             border-radius: 16px 16px 4px 16px;
         }
 
-        .chat-input-area {
+        /* Десктоп версия с двумя строками ввода */
+        .input-container {
             padding: 16px 20px 20px 20px;
             border-top: 1px solid #333;
             display: flex;
-            gap: 12px;
+            flex-direction: column;
+            gap: 10px;
             background: #111;
             flex-shrink: 0;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            width: 100%;
+        }
+
+        .second-input-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            width: 100%;
         }
 
         .chat-input {
@@ -1243,9 +1276,20 @@
             <div class="messages-container" id="messagesContainer">
                 <div class="empty-messages">Выберите чат чтобы начать общение</div>
             </div>
-            <div class="chat-input-area">
-                <textarea class="chat-input" id="messageInput" placeholder="Сообщение..." disabled rows="1"></textarea>
-                <button class="send-btn" id="sendBtn" disabled>→</button>
+            
+            <!-- Контейнер с двумя строками ввода -->
+            <div class="input-container">
+                <!-- Первая строка ввода -->
+                <div class="input-row">
+                    <textarea class="chat-input" id="messageInput1" placeholder="Сообщение 1..." disabled rows="1"></textarea>
+                    <button class="send-btn" id="sendBtn1" disabled>→</button>
+                </div>
+                
+                <!-- Вторая строка ввода (идентичная первой) -->
+                <div class="second-input-row">
+                    <textarea class="chat-input" id="messageInput2" placeholder="Сообщение 2..." disabled rows="1"></textarea>
+                    <button class="send-btn" id="sendBtn2" disabled>→</button>
+                </div>
             </div>
         </div>
 
@@ -1371,8 +1415,13 @@
         const userSearch = document.getElementById('userSearch');
         const searchBtn = document.getElementById('searchBtn');
         const messagesContainer = document.getElementById('messagesContainer');
-        const messageInput = document.getElementById('messageInput');
-        const sendBtn = document.getElementById('sendBtn');
+        
+        // Две строки ввода
+        const messageInput1 = document.getElementById('messageInput1');
+        const messageInput2 = document.getElementById('messageInput2');
+        const sendBtn1 = document.getElementById('sendBtn1');
+        const sendBtn2 = document.getElementById('sendBtn2');
+        
         const currentChatTitle = document.getElementById('currentChatTitle');
         const conferenceBtn = document.getElementById('conferenceBtn');
         const profileName = document.getElementById('profileName');
@@ -1428,7 +1477,7 @@
             replyingTo = { id: messageId, sender, message };
             replyText.textContent = `Ответ ${sender}: ${message.substring(0, 50)}${message.length > 50 ? '...' : ''}`;
             replyBar.style.display = 'flex';
-            messageInput.focus();
+            messageInput1.focus();
         };
 
         function clearReply() {
@@ -1528,8 +1577,12 @@
                         currentChatType = 'group';
                         currentChatTitle.textContent = GROUP_NAME;
                         conferenceBtn.style.display = 'block';
-                        messageInput.disabled = false;
-                        sendBtn.disabled = false;
+                        
+                        // Активируем обе строки ввода
+                        messageInput1.disabled = false;
+                        messageInput2.disabled = false;
+                        sendBtn1.disabled = false;
+                        sendBtn2.disabled = false;
                     } else {
                         localStorage.removeItem('currentUser');
                     }
@@ -1585,8 +1638,12 @@
                     currentChatType = 'group';
                     currentChatTitle.textContent = GROUP_NAME;
                     conferenceBtn.style.display = 'block';
-                    messageInput.disabled = false;
-                    sendBtn.disabled = false;
+                    
+                    // Активируем обе строки ввода
+                    messageInput1.disabled = false;
+                    messageInput2.disabled = false;
+                    sendBtn1.disabled = false;
+                    sendBtn2.disabled = false;
                 } else {
                     authError.textContent = 'Неверный логин или пароль';
                 }
@@ -1710,9 +1767,13 @@
                 conferenceBtn.style.display = 'none';
             }
             
-            messageInput.disabled = false;
-            sendBtn.disabled = false;
-            messageInput.focus();
+            // Активируем обе строки ввода
+            messageInput1.disabled = false;
+            messageInput2.disabled = false;
+            sendBtn1.disabled = false;
+            sendBtn2.disabled = false;
+            
+            messageInput1.focus();
             loadChats();
             
             if (isMobile()) {
@@ -1797,24 +1858,11 @@
         }
 
         // ===============================================
-        // ОТПРАВКА СООБЩЕНИЙ
+        // ОТПРАВКА СООБЩЕНИЙ (для обеих строк)
         // ===============================================
 
-        sendBtn.addEventListener('click', sendMessage);
-        
-        messageInput.addEventListener('keydown', (e) => {
-            if (isMobile()) {
-                return;
-            } else {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            }
-        });
-
-        async function sendMessage() {
-            const text = messageInput.value.trim();
+        async function sendMessageFromInput(inputElement, buttonElement) {
+            const text = inputElement.value.trim();
             if (!text || !currentChat) {
                 if (!currentChat) alert('Выберите чат');
                 return;
@@ -1857,10 +1905,9 @@
                     return;
                 }
 
-                // Очищаем поле ввода и ответ
-                messageInput.value = '';
-                messageInput.style.height = 'auto';
-                clearReply();
+                // Очищаем поле ввода
+                inputElement.value = '';
+                inputElement.style.height = 'auto';
                 
                 // Принудительно обновляем сообщения
                 if (currentChatType === 'group') {
@@ -1875,7 +1922,37 @@
             }
         }
 
-        messageInput.addEventListener('input', function() {
+        // Обработчики для первой строки
+        sendBtn1.addEventListener('click', () => sendMessageFromInput(messageInput1, sendBtn1));
+        
+        messageInput1.addEventListener('keydown', (e) => {
+            if (!isMobile()) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessageFromInput(messageInput1, sendBtn1);
+                }
+            }
+        });
+
+        // Обработчики для второй строки
+        sendBtn2.addEventListener('click', () => sendMessageFromInput(messageInput2, sendBtn2));
+        
+        messageInput2.addEventListener('keydown', (e) => {
+            if (!isMobile()) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessageFromInput(messageInput2, sendBtn2);
+                }
+            }
+        });
+
+        // Автоматическое изменение высоты для обеих строк
+        messageInput1.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        messageInput2.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
         });
@@ -2110,8 +2187,12 @@
             authError.textContent = '';
             chatList.innerHTML = '';
             messagesContainer.innerHTML = '';
-            messageInput.disabled = true;
-            sendBtn.disabled = true;
+            
+            // Деактивируем обе строки ввода
+            messageInput1.disabled = true;
+            messageInput2.disabled = true;
+            sendBtn1.disabled = true;
+            sendBtn2.disabled = true;
             conferenceBtn.style.display = 'none';
             
             if (messagesSubscription) supabaseClient.removeChannel(messagesSubscription);
@@ -2596,8 +2677,12 @@
                     currentChatType = 'group';
                     currentChatTitle.textContent = GROUP_NAME;
                     conferenceBtn.style.display = 'block';
-                    messageInput.disabled = false;
-                    sendBtn.disabled = false;
+                    
+                    // Активируем обе строки ввода
+                    messageInput1.disabled = false;
+                    messageInput2.disabled = false;
+                    sendBtn1.disabled = false;
+                    sendBtn2.disabled = false;
                 }, 500);
             }
         })();
