@@ -178,11 +178,26 @@
                 align-items: center;
                 gap: 8px;
                 min-height: 60px;
+                position: relative;
             }
 
-            /* Убираем кнопку "назад" на мобильных */
-            .chat-header .back-btn {
-                display: none;
+            /* Кнопка меню в левом верхнем углу */
+            .mobile-menu-btn {
+                position: fixed;
+                top: 12px;
+                left: 12px;
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                background: #f0b90b;
+                color: #0a0a0a;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                border: none;
+                z-index: 96;
+                box-shadow: 0 2px 8px rgba(240, 185, 11, 0.3);
             }
 
             .chat-header .chat-title {
@@ -193,6 +208,7 @@
                 overflow: hidden;
                 text-overflow: ellipsis;
                 margin: 0 4px;
+                text-align: center;
             }
 
             .chat-header .conference-btn {
@@ -222,12 +238,86 @@
 
             .message {
                 max-width: 85%;
+                display: flex;
+                gap: 8px;
+            }
+
+            .message-avatar {
+                width: 36px;
+                height: 36px;
+                background: #222;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #f0b90b;
+                font-weight: 600;
+                border: 2px solid #f0b90b;
+                flex-shrink: 0;
+                cursor: pointer;
+                margin-top: 4px;
+            }
+
+            .message-avatar:hover {
+                opacity: 0.8;
+            }
+
+            .message-content-wrapper {
+                flex: 1;
+            }
+
+            .message-header {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 2px;
+                font-size: 12px;
+            }
+
+            .message-sender {
+                color: #f0b90b;
+                font-weight: 500;
+            }
+
+            .message-time {
+                color: #666;
+            }
+
+            .reply-btn {
+                background: transparent;
+                border: none;
+                color: #f0b90b;
+                cursor: pointer;
+                font-size: 14px;
+                padding: 2px 6px;
+                border-radius: 4px;
+                margin-left: auto;
+                opacity: 0.5;
             }
 
             .message-content {
                 padding: 10px 14px;
+                background: #1a1a1a;
+                border-radius: 16px 16px 16px 4px;
+                color: #fff;
+                word-break: break-word;
+                white-space: pre-wrap;
                 font-size: 15px;
                 line-height: 1.4;
+            }
+
+            .message.own {
+                margin-left: auto;
+            }
+
+            .message.own .message-avatar {
+                display: none;
+            }
+
+            .message.own .message-content {
+                background: #f0b90b;
+                color: #0a0a0a;
+                border-radius: 16px 16px 4px 16px;
             }
 
             .empty-messages {
@@ -249,11 +339,34 @@
                 gap: 8px;
                 min-height: auto;
                 padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
-                transition: padding-bottom 0.2s ease;
             }
 
             .reply-preview {
+                background: #1a1a1a;
+                border-left: 3px solid #f0b90b;
+                padding: 8px 12px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 13px;
                 margin-bottom: 4px;
+            }
+
+            .reply-preview .close-btn {
+                margin-left: auto;
+                cursor: pointer;
+                color: #ff4444;
+                font-size: 18px;
+                padding: 0 4px;
+            }
+
+            .reply-preview-text {
+                color: #888;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                max-width: 200px;
             }
 
             .input-wrapper {
@@ -304,24 +417,6 @@
                 background: #333;
                 cursor: not-allowed;
             }
-
-            .mobile-menu-btn {
-                display: flex;
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                width: 56px;
-                height: 56px;
-                border-radius: 50%;
-                background: #f0b90b;
-                color: #0a0a0a;
-                align-items: center;
-                justify-content: center;
-                font-size: 28px;
-                border: none;
-                z-index: 90;
-                box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3);
-            }
         }
 
         /* Десктоп версия */
@@ -332,6 +427,39 @@
             
             .back-btn {
                 display: flex;
+            }
+
+            .message {
+                display: flex;
+                gap: 10px;
+            }
+
+            .message-avatar {
+                width: 40px;
+                height: 40px;
+                background: #222;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #f0b90b;
+                font-weight: 600;
+                border: 2px solid #f0b90b;
+                flex-shrink: 0;
+                cursor: pointer;
+                margin-top: 4px;
+            }
+
+            .message-avatar:hover {
+                opacity: 0.8;
+            }
+
+            .message-content-wrapper {
+                flex: 1;
+            }
+
+            .message.own .message-avatar {
+                display: none;
             }
         }
 
@@ -838,6 +966,91 @@
             border-color: #4caf50;
         }
 
+        /* Модальное окно профиля пользователя */
+        .user-profile-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .user-profile-content {
+            background: #1a1a1a;
+            border: 2px solid #f0b90b;
+            border-radius: 32px;
+            padding: 30px 20px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .user-profile-avatar {
+            width: 100px;
+            height: 100px;
+            background: #222;
+            border-radius: 50%;
+            border: 4px solid #f0b90b;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 600;
+            color: #f0b90b;
+        }
+
+        .user-profile-name {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+
+        .user-profile-username {
+            color: #f0b90b;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .user-profile-id {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 25px;
+            font-family: monospace;
+        }
+
+        .user-profile-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .user-profile-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .user-profile-btn.message {
+            background: #f0b90b;
+            color: #0a0a0a;
+        }
+
+        .user-profile-btn.close {
+            background: #333;
+            color: #fff;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -1145,7 +1358,7 @@
     </style>
 </head>
 <body>
-    <!-- Кнопка мобильного меню -->
+    <!-- Кнопка мобильного меню (теперь в левом верхнем углу) -->
     <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
@@ -1229,6 +1442,20 @@
         </div>
     </div>
 
+    <!-- Модальное окно профиля пользователя -->
+    <div class="user-profile-modal" id="userProfileModal">
+        <div class="user-profile-content">
+            <div class="user-profile-avatar" id="userProfileAvatar">?</div>
+            <div class="user-profile-name" id="userProfileName">Загрузка...</div>
+            <div class="user-profile-username" id="userProfileUsername">@...</div>
+            <div class="user-profile-id" id="userProfileId">ID: ...</div>
+            <div class="user-profile-buttons">
+                <button class="user-profile-btn message" id="userProfileMessageBtn">💬 Написать</button>
+                <button class="user-profile-btn close" id="userProfileCloseBtn">✕ Закрыть</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Админ-панель -->
     <div class="admin-panel" id="adminPanel">
         <div class="admin-header">
@@ -1306,7 +1533,8 @@
         let room = null;
         let audioContext = null;
         let audioReconnectTimer = null;
-        let replyingTo = null; // { id, sender, text, type }
+        let replyingTo = null;
+        let selectedUserForProfile = null;
 
         // DOM элементы
         const authContainer = document.getElementById('authContainer');
@@ -1363,11 +1591,18 @@
         const profilePanel = document.getElementById('profilePanel');
         const chatBackBtn = document.getElementById('chatBackBtn');
 
-        // Элементы ответов
+        // Элементы ответов и профиля пользователя
         const replyPreview = document.getElementById('replyPreview');
         const replySender = document.getElementById('replySender');
         const replyText = document.getElementById('replyText');
         const cancelReplyBtn = document.getElementById('cancelReplyBtn');
+        const userProfileModal = document.getElementById('userProfileModal');
+        const userProfileAvatar = document.getElementById('userProfileAvatar');
+        const userProfileName = document.getElementById('userProfileName');
+        const userProfileUsername = document.getElementById('userProfileUsername');
+        const userProfileId = document.getElementById('userProfileId');
+        const userProfileMessageBtn = document.getElementById('userProfileMessageBtn');
+        const userProfileCloseBtn = document.getElementById('userProfileCloseBtn');
 
         // ===============================================
         // Обработка клавиатуры на мобильных
@@ -1377,7 +1612,6 @@
             return window.innerWidth <= 768;
         }
 
-        // Функция для настройки отступов при появлении клавиатуры
         function setupKeyboardHandling() {
             if (!isMobile()) return;
             
@@ -1462,6 +1696,62 @@
         });
 
         chatBackBtn.addEventListener('click', goToChatList);
+
+        // ===============================================
+        // ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
+        // ===============================================
+
+        async function showUserProfile(userId) {
+            try {
+                const { data: user, error } = await supabaseClient
+                    .from('users')
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
+
+                if (error) throw error;
+
+                selectedUserForProfile = user;
+                
+                const displayName = user.display_name !== '---' ? user.display_name : user.username;
+                userProfileAvatar.textContent = displayName[0].toUpperCase();
+                userProfileName.textContent = displayName;
+                userProfileUsername.textContent = `@${user.username}`;
+                userProfileId.textContent = `ID: ${user.user_id_string}`;
+                
+                // Показываем/скрываем кнопку "Написать" (не показываем для себя)
+                if (user.id === currentUser.id) {
+                    userProfileMessageBtn.style.display = 'none';
+                } else {
+                    userProfileMessageBtn.style.display = 'block';
+                }
+                
+                userProfileModal.style.display = 'flex';
+            } catch (error) {
+                console.error('Ошибка загрузки профиля:', error);
+                alert('Не удалось загрузить профиль пользователя');
+            }
+        }
+
+        userProfileMessageBtn.addEventListener('click', () => {
+            if (selectedUserForProfile) {
+                userProfileModal.style.display = 'none';
+                // Переходим в личный чат с этим пользователем
+                selectChat(selectedUserForProfile.id, 'private');
+            }
+        });
+
+        userProfileCloseBtn.addEventListener('click', () => {
+            userProfileModal.style.display = 'none';
+            selectedUserForProfile = null;
+        });
+
+        userProfileModal.addEventListener('click', (e) => {
+            if (e.target === userProfileModal) {
+                userProfileModal.style.display = 'none';
+                selectedUserForProfile = null;
+            }
+        });
 
         // ===============================================
         // АВТОРИЗАЦИЯ
@@ -1728,16 +2018,21 @@
             }
 
             messagesContainer.innerHTML = messages.map(msg => {
-                let isOwn, senderName, sender;
+                let isOwn, senderName, sender, senderId, senderAvatar;
                 
                 if (type === 'group') {
                     isOwn = msg.user_id === currentUser.id;
                     sender = msg.users || {};
+                    senderId = msg.user_id;
                     senderName = sender.display_name !== '---' ? sender.display_name : sender.username;
+                    senderAvatar = sender.display_name !== '---' ? sender.display_name[0] : sender.username[0].toUpperCase();
                 } else {
                     isOwn = msg.sender_id === currentUser.id;
                     sender = msg.sender || {};
+                    senderId = msg.sender_id;
                     senderName = isOwn ? 'Вы' : (sender.display_name !== '---' ? sender.display_name : sender.username);
+                    senderAvatar = isOwn ? currentUser.display_name[0] : 
+                        (sender.display_name !== '---' ? sender.display_name[0] : sender.username[0].toUpperCase());
                 }
                 
                 const time = new Date(msg.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
@@ -1768,17 +2063,38 @@
                     }
                 }
                 
-                return `
-                    <div class="message ${isOwn ? 'own' : ''}" id="message-${msg.id}">
-                        <div class="message-header">
-                            <span class="message-sender">${senderName}</span>
-                            <span class="message-time">${time}</span>
-                            <button class="reply-btn" onclick="setReply('${msg.id}', '${senderName.replace(/'/g, "\\'")}', '${msg.message.replace(/'/g, "\\'").replace(/\n/g, '\\n')}', '${type}')">↩️</button>
+                // Для своих сообщений не показываем аватарку
+                if (isOwn) {
+                    return `
+                        <div class="message own" id="message-${msg.id}">
+                            <div class="message-content-wrapper">
+                                <div class="message-header">
+                                    <span class="message-sender">${senderName}</span>
+                                    <span class="message-time">${time}</span>
+                                    <button class="reply-btn" onclick="setReply('${msg.id}', '${senderName.replace(/'/g, "\\'")}', '${msg.message.replace(/'/g, "\\'").replace(/\n/g, '\\n')}', '${type}')">↩️</button>
+                                </div>
+                                ${replyHtml}
+                                <div class="message-content">${msg.message}</div>
+                            </div>
                         </div>
-                        ${replyHtml}
-                        <div class="message-content">${msg.message}</div>
-                    </div>
-                `;
+                    `;
+                } else {
+                    // Для чужих сообщений показываем аватарку
+                    return `
+                        <div class="message" id="message-${msg.id}">
+                            <div class="message-avatar" onclick="showUserProfile('${senderId}')">${senderAvatar}</div>
+                            <div class="message-content-wrapper">
+                                <div class="message-header">
+                                    <span class="message-sender">${senderName}</span>
+                                    <span class="message-time">${time}</span>
+                                    <button class="reply-btn" onclick="setReply('${msg.id}', '${senderName.replace(/'/g, "\\'")}', '${msg.message.replace(/'/g, "\\'").replace(/\n/g, '\\n')}', '${type}')">↩️</button>
+                                </div>
+                                ${replyHtml}
+                                <div class="message-content">${msg.message}</div>
+                            </div>
+                        </div>
+                    `;
+                }
             }).join('');
             
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -1828,7 +2144,6 @@
 
         sendBtn.addEventListener('click', sendMessage);
         
-        // На мобильных Enter переводит на новую строку, отправка только через кнопку
         messageInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 if (isMobile()) {
@@ -1857,7 +2172,6 @@
                     created_at: new Date()
                 };
 
-                // Добавляем reply_to_id если есть ответ
                 if (replyingTo && replyingTo.type === currentChatType) {
                     messageData.reply_to_id = parseInt(replyingTo.id);
                 }
@@ -2573,6 +2887,9 @@
                 }
                 if (adminPanel.style.display === 'block') {
                     adminPanel.style.display = 'none';
+                }
+                if (userProfileModal.style.display === 'flex') {
+                    userProfileModal.style.display = 'none';
                 }
                 if (isMobile()) {
                     hideUsersPanel();
