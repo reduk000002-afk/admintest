@@ -16,12 +16,14 @@
             color: #f0b90b;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             min-height: 100vh;
+            min-height: 100dvh;
             overflow: hidden;
         }
 
         /* Авторизация */
         .auth-container {
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -71,19 +73,32 @@
         .main-container {
             display: none;
             height: 100vh;
+            height: 100dvh;
             grid-template-columns: 400px 1fr 320px;
             background: #0a0a0a;
             position: relative;
         }
 
-        /* Мобильная версия - ИСПРАВЛЕННАЯ */
+        /* Мобильная версия - ПОЛНОСТЬЮ ПЕРЕРАБОТАННАЯ */
         @media (max-width: 768px) {
+            body {
+                overflow: hidden;
+                height: 100dvh;
+                position: fixed;
+                width: 100%;
+            }
+
             .main-container {
+                display: none;
                 grid-template-columns: 1fr;
                 grid-template-rows: 1fr;
-                height: 100dvh; /* Используем динамическую высоту */
-                height: 100vh; /* Fallback */
+                height: 100dvh;
                 overflow: hidden;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
             }
 
             .users-panel {
@@ -143,19 +158,18 @@
                 display: block;
             }
 
-            /* ИСПРАВЛЕННЫЙ ЧАТ-ПАНЕЛЬ */
+            /* ИСПРАВЛЕННЫЙ ЧАТ-ПАНЕЛЬ С FLEX-ВЕРСТКОЙ */
             .chat-panel {
-                height: 100dvh;
-                height: 100vh; /* Fallback */
                 display: flex;
                 flex-direction: column;
+                height: 100dvh;
                 background: #0a0a0a;
                 position: relative;
-                padding-bottom: env(safe-area-inset-bottom, 0);
+                width: 100%;
             }
 
             .chat-header {
-                height: 60px;
+                flex: 0 0 60px;
                 background: #111;
                 border-bottom: 1px solid #333;
                 padding: 0 12px;
@@ -163,10 +177,7 @@
                 display: flex;
                 align-items: center;
                 gap: 8px;
-                flex-shrink: 0;
-                position: sticky;
-                top: 0;
-                z-index: 10;
+                min-height: 60px;
             }
 
             .chat-header .back-btn {
@@ -211,13 +222,14 @@
             }
 
             .messages-container {
-                flex: 1;
+                flex: 1 1 auto;
                 overflow-y: auto;
                 padding: 12px;
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
                 -webkit-overflow-scrolling: touch;
+                scroll-behavior: smooth;
             }
 
             .message {
@@ -240,18 +252,16 @@
 
             /* ИСПРАВЛЕННАЯ ОБЛАСТЬ ВВОДА */
             .chat-input-area {
+                flex: 0 0 auto;
                 background: #111;
                 border-top: 1px solid #333;
-                padding: 10px 12px;
-                padding-bottom: max(10px, env(safe-area-inset-bottom, 10px));
+                padding: 12px;
                 display: flex;
                 gap: 8px;
                 align-items: flex-end;
-                flex-shrink: 0;
-                position: sticky;
-                bottom: 0;
-                z-index: 10;
                 min-height: 70px;
+                padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
+                transition: padding-bottom 0.2s ease;
             }
 
             .chat-input {
@@ -311,11 +321,6 @@
                 border: none;
                 z-index: 90;
                 box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3);
-            }
-
-            /* Добавляем плавный скролл */
-            .messages-container {
-                scroll-behavior: smooth;
             }
         }
 
@@ -445,6 +450,7 @@
             flex-direction: column;
             background: #0a0a0a;
             height: 100vh;
+            height: 100dvh;
         }
 
         .chat-header {
@@ -846,6 +852,7 @@
             grid-template-columns: 1fr 280px;
             gap: 20px;
             height: calc(100vh - 120px);
+            height: calc(100dvh - 120px);
             padding: 20px;
             padding-bottom: env(safe-area-inset-bottom, 20px);
         }
@@ -854,6 +861,7 @@
             .video-grid-container {
                 grid-template-columns: 1fr;
                 height: calc(100vh - 160px);
+                height: calc(100dvh - 160px);
                 padding: 10px;
                 padding-bottom: env(safe-area-inset-bottom, 10px);
             }
@@ -1255,49 +1263,65 @@
         const chatBackBtn = document.getElementById('chatBackBtn');
 
         // ===============================================
-        // НОВЫЙ КОД: Обработка мобильного viewport
+        // НОВЫЙ КОД: Обработка клавиатуры на мобильных
         // ===============================================
         
         function isMobile() {
             return window.innerWidth <= 768;
         }
 
-        function handleMobileViewport() {
-            if (isMobile()) {
-                // Устанавливаем CSS переменную с текущей высотой окна
-                const vh = window.innerHeight * 0.01;
-                document.documentElement.style.setProperty('--vh', `${vh}px`);
+        // Функция для настройки отступов при появлении клавиатуры
+        function setupKeyboardHandling() {
+            if (!isMobile()) return;
+            
+            if ('visualViewport' in window) {
+                const viewport = window.visualViewport;
+                const chatInputArea = document.querySelector('.chat-input-area');
                 
-                // При фокусе на поле ввода прокручиваем его в видимую зону
-                if (document.activeElement === messageInput) {
-                    setTimeout(() => {
-                        messageInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 300);
+                if (!chatInputArea) return;
+
+                function adjustForKeyboard() {
+                    // Высота клавиатуры = разница между высотой окна и видимой областью
+                    const windowHeight = window.innerHeight;
+                    const viewportHeight = viewport.height;
+                    const keyboardHeight = Math.max(0, windowHeight - viewportHeight);
+                    
+                    if (keyboardHeight > 100) { // Клавиатура открыта
+                        // Добавляем отступ снизу равный высоте клавиатуры
+                        chatInputArea.style.paddingBottom = `${keyboardHeight + 8}px`;
+                        
+                        // Прокручиваем сообщения вниз с задержкой
+                        setTimeout(() => {
+                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        }, 150);
+                        
+                        // Добавляем класс для body
+                        document.body.classList.add('keyboard-open');
+                    } else { // Клавиатура закрыта
+                        // Возвращаем стандартный отступ
+                        chatInputArea.style.paddingBottom = 'max(12px, env(safe-area-inset-bottom, 12px))';
+                        document.body.classList.remove('keyboard-open');
+                    }
                 }
+
+                // Слушаем события изменения размера и прокрутки визуального вьюпорта
+                viewport.addEventListener('resize', adjustForKeyboard);
+                viewport.addEventListener('scroll', adjustForKeyboard);
+                
+                // Также слушаем фокус на поле ввода
+                messageInput.addEventListener('focus', () => {
+                    setTimeout(adjustForKeyboard, 300);
+                });
+                
+                // И потерю фокуса
+                messageInput.addEventListener('blur', () => {
+                    setTimeout(adjustForKeyboard, 100);
+                });
+                
+                // Первоначальный вызов
+                adjustForKeyboard();
             }
         }
-
-        // Слушаем события изменения размера и ориентации
-        window.addEventListener('resize', handleMobileViewport);
-        window.addEventListener('orientationchange', () => {
-            setTimeout(handleMobileViewport, 100);
-        });
-
-        // При фокусе на поле ввода
-        messageInput.addEventListener('focus', () => {
-            if (isMobile()) {
-                setTimeout(() => {
-                    messageInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 300);
-            }
-        });
-
-        // При потере фокуса
-        messageInput.addEventListener('blur', () => {
-            if (isMobile()) {
-                window.scrollTo(0, 0);
-            }
-        });
 
         // ===============================================
         // МОБИЛЬНАЯ НАВИГАЦИЯ
@@ -1343,15 +1367,6 @@
 
         chatBackBtn.addEventListener('click', goToChatList);
 
-        // Обновляем обработчик resize
-        window.addEventListener('resize', () => {
-            handleMobileViewport();
-            if (!isMobile()) {
-                hideUsersPanel();
-                hideProfilePanel();
-            }
-        });
-
         // ===============================================
         // АВТОРИЗАЦИЯ
         // ===============================================
@@ -1381,6 +1396,9 @@
                         loadChats();
                         setupRealtimeSubscriptions();
                         selectChat('group', 'group');
+                        
+                        // Настраиваем обработку клавиатуры после загрузки
+                        setTimeout(setupKeyboardHandling, 500);
                     } else {
                         localStorage.removeItem('currentUser');
                     }
@@ -1430,6 +1448,9 @@
                     loadChats();
                     setupRealtimeSubscriptions();
                     selectChat('group', 'group');
+                    
+                    // Настраиваем обработку клавиатуры после загрузки
+                    setTimeout(setupKeyboardHandling, 500);
                 } else {
                     authError.textContent = 'Неверный логин или пароль';
                 }
@@ -1647,16 +1668,9 @@
         sendBtn.addEventListener('click', sendMessage);
         
         messageInput.addEventListener('keydown', (e) => {
-            if (isMobile()) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            } else {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
             }
         });
 
@@ -1690,12 +1704,10 @@
                 messageInput.value = '';
                 messageInput.style.height = 'auto';
                 
-                // После отправки на мобилке немного скроллим
-                if (isMobile()) {
-                    setTimeout(() => {
-                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                    }, 100);
-                }
+                // После отправки прокручиваем вниз
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 100);
             } catch (error) {
                 console.error('Ошибка отправки:', error);
                 alert('Ошибка при отправке сообщения');
@@ -2415,13 +2427,15 @@
                     loadChats();
                     setupRealtimeSubscriptions();
                     selectChat('group', 'group');
+                    
+                    // Настраиваем обработку клавиатуры после загрузки
+                    setTimeout(setupKeyboardHandling, 500);
                 }, 500);
             }
         })();
 
         // Инициализация
         checkSavedSession();
-        handleMobileViewport();
     </script>
 </body>
 </html>
