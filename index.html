@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Secure Briefing</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <style>
         * {
             margin: 0;
@@ -17,7 +17,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             min-height: 100vh;
             overflow: hidden;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         /* Авторизация */
@@ -26,44 +26,44 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 30px;
+            padding: 20px;
         }
 
         .auth-box {
             background: #1a1a1a;
-            border: 3px solid #f0b90b;
-            border-radius: 48px;
-            padding: 60px 30px;
+            border: 2px solid #f0b90b;
+            border-radius: 32px;
+            padding: 40px 20px;
             width: 100%;
-            max-width: 600px;
+            max-width: 400px;
         }
 
         .auth-title {
-            font-size: 36px;
+            font-size: 24px;
             font-weight: 600;
             text-align: center;
-            margin-bottom: 45px;
+            margin-bottom: 30px;
         }
 
         .auth-input {
             width: 100%;
-            padding: 22px 30px;
+            padding: 15px 20px;
             background: #0a0a0a;
-            border: 1.5px solid #333;
-            border-radius: 24px;
+            border: 1px solid #333;
+            border-radius: 16px;
             color: #f0b90b;
-            font-size: 24px;
-            margin-bottom: 22px;
+            font-size: 16px;
+            margin-bottom: 15px;
         }
 
         .auth-btn {
             width: 100%;
-            padding: 22px;
+            padding: 15px;
             background: #f0b90b;
             border: none;
-            border-radius: 24px;
+            border-radius: 16px;
             color: #0a0a0a;
-            font-size: 27px;
+            font-size: 18px;
             font-weight: 600;
             cursor: pointer;
         }
@@ -72,7 +72,7 @@
         .main-container {
             display: none;
             height: 100vh;
-            grid-template-columns: 600px 1fr 480px; /* Увеличено в 1.5 раза */
+            grid-template-columns: 400px 1fr 320px;
             background: #0a0a0a;
             position: relative;
             overflow: hidden;
@@ -86,65 +86,65 @@
             }
 
             .users-panel {
-                width: 95%;
-                max-width: 525px; /* 350 * 1.5 */
+                width: 90%;
+                max-width: 350px;
             }
 
             .chat-header {
-                height: 105px; /* 70 * 1.5 */
-                padding: 0 22px;
+                height: 60px;
+                padding: 0 12px;
             }
 
             .chat-header .back-btn {
-                width: 66px;
-                height: 66px;
-                font-size: 39px;
+                width: 40px;
+                height: 40px;
+                font-size: 24px;
             }
 
             .chat-header .chat-title {
-                font-size: 27px;
+                font-size: 16px;
             }
 
             .chat-header .conference-btn {
-                font-size: 33px;
-                padding: 12px 22px;
-                height: 66px;
+                font-size: 20px;
+                padding: 8px 12px;
+                height: 40px;
             }
 
             .messages-wrapper {
-                padding: 22px;
-                gap: 18px;
+                padding: 12px;
+                gap: 10px;
             }
 
             .message-content {
-                padding: 18px 24px;
-                font-size: 24px;
+                padding: 10px 14px;
+                font-size: 15px;
             }
 
             .chat-input-area {
-                padding: 18px 22px;
-                min-height: 105px;
-                gap: 15px;
+                padding: 10px 12px;
+                min-height: 60px;
+                gap: 8px;
             }
 
             .chat-input {
-                padding: 18px 24px;
-                font-size: 24px;
-                border-radius: 36px;
+                padding: 10px 14px;
+                font-size: 15px;
+                border-radius: 20px;
             }
 
             .send-btn {
-                width: 72px;
-                height: 72px;
-                font-size: 33px;
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
             }
 
             .mobile-menu-btn {
-                width: 90px;
-                height: 90px;
-                font-size: 45px;
-                bottom: 30px;
-                right: 30px;
+                width: 56px;
+                height: 56px;
+                font-size: 28px;
+                bottom: 20px;
+                right: 20px;
             }
         }
 
@@ -155,62 +155,62 @@
 
         .users-panel {
             background: #111;
-            border-right: 1.5px solid #333;
-            padding: 30px 0;
+            border-right: 1px solid #333;
+            padding: 20px 0;
             overflow-y: auto;
             height: 100vh;
         }
 
         .panel-header {
-            padding: 0 30px 30px;
-            border-bottom: 1.5px solid #333;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid #333;
         }
 
         .panel-title {
-            font-size: 27px;
+            font-size: 18px;
             font-weight: 600;
             color: #f0b90b;
-            margin-bottom: 22px;
+            margin-bottom: 15px;
         }
 
         .search-container {
             display: flex;
-            gap: 15px;
-            margin-bottom: 22px;
+            gap: 10px;
+            margin-bottom: 15px;
         }
 
         .search-input {
             flex: 1;
-            padding: 15px 22px;
+            padding: 10px 15px;
             background: #1a1a1a;
-            border: 1.5px solid #333;
-            border-radius: 18px;
+            border: 1px solid #333;
+            border-radius: 12px;
             color: #f0b90b;
-            font-size: 21px;
+            font-size: 14px;
         }
 
         .search-btn {
-            padding: 15px 30px;
+            padding: 10px 20px;
             background: #f0b90b;
             border: none;
-            border-radius: 18px;
+            border-radius: 12px;
             color: #0a0a0a;
             font-weight: 600;
             cursor: pointer;
-            font-size: 21px;
+            font-size: 14px;
         }
 
         .chat-list {
-            padding: 15px 0;
+            padding: 10px 0;
         }
 
         .chat-item {
             display: flex;
             align-items: center;
-            gap: 18px;
-            padding: 18px 30px;
+            gap: 12px;
+            padding: 12px 20px;
             cursor: pointer;
-            border-left: 4.5px solid transparent;
+            border-left: 3px solid transparent;
             position: relative;
         }
 
@@ -224,8 +224,8 @@
         }
 
         .chat-avatar {
-            width: 60px;
-            height: 60px;
+            width: 40px;
+            height: 40px;
             background: #222;
             border-radius: 50%;
             display: flex;
@@ -233,14 +233,14 @@
             justify-content: center;
             color: #f0b90b;
             font-weight: 600;
-            border: 3px solid #f0b90b;
-            font-size: 30px;
+            border: 2px solid #f0b90b;
+            font-size: 20px;
         }
 
         .chat-avatar.group {
             background: #f0b90b;
             color: #0a0a0a;
-            font-size: 30px;
+            font-size: 20px;
         }
 
         .chat-info {
@@ -249,23 +249,23 @@
 
         .chat-name {
             color: #fff;
-            font-size: 21px;
+            font-size: 14px;
             font-weight: 500;
         }
 
         .chat-id {
             color: #888;
-            font-size: 18px;
+            font-size: 12px;
         }
 
         .last-message {
             color: #666;
-            font-size: 16.5px;
-            margin-top: 3px;
+            font-size: 11px;
+            margin-top: 2px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 375px;
+            max-width: 250px;
         }
 
         .chat-panel {
@@ -277,23 +277,23 @@
         }
 
         .chat-header {
-            padding: 30px 37px; /* 20 * 1.5 = 30, 25 * 1.5 = 37.5 */
-            border-bottom: 1.5px solid #333;
+            padding: 16px 20px;
+            border-bottom: 1px solid #333;
             display: flex;
             align-items: center;
-            gap: 22px;
+            gap: 15px;
             background: #111;
             flex-shrink: 0;
-            height: 120px; /* 80 * 1.5 = 120 */
+            height: 60px;
         }
 
         .chat-header .back-btn {
             display: flex;
-            width: 66px;
-            height: 66px;
+            width: 40px;
+            height: 40px;
             align-items: center;
             justify-content: center;
-            font-size: 39px;
+            font-size: 24px;
             cursor: pointer;
             color: #f0b90b;
             border-radius: 50%;
@@ -305,7 +305,7 @@
 
         .chat-title {
             flex: 1;
-            font-size: 30px;
+            font-size: 18px;
             font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
@@ -316,38 +316,38 @@
             background: #f0b90b;
             color: #0a0a0a;
             border: none;
-            padding: 15px 30px;
-            border-radius: 36px;
+            padding: 8px 16px;
+            border-radius: 20px;
             font-weight: 600;
             cursor: pointer;
-            font-size: 22.5px;
+            font-size: 14px;
             flex-shrink: 0;
-            height: 66px;
+            height: 40px;
             display: flex;
             align-items: center;
         }
 
         .conference-btn.join {
             background: transparent;
-            border: 3px solid #f0b90b;
+            border: 2px solid #f0b90b;
             color: #f0b90b;
         }
 
         .messages-wrapper {
             flex: 1;
             overflow-y: auto;
-            padding: 30px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 22px;
+            gap: 15px;
             min-height: 0;
         }
 
         .empty-messages {
             text-align: center;
             color: #666;
-            margin-top: 75px;
-            font-size: 21px;
+            margin-top: 50px;
+            font-size: 14px;
         }
 
         .message {
@@ -364,9 +364,9 @@
         .message-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 6px;
-            font-size: 18px;
+            gap: 8px;
+            margin-bottom: 4px;
+            font-size: 12px;
         }
 
         .message-sender {
@@ -382,9 +382,9 @@
             background: transparent;
             border: none;
             color: #f0b90b;
-            font-size: 24px;
+            font-size: 16px;
             cursor: pointer;
-            padding: 6px;
+            padding: 4px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -400,51 +400,51 @@
 
         .reply-preview {
             background: #1a1a1a;
-            border-left: 3px solid #f0b90b;
-            padding: 9px 12px;
-            margin-bottom: 6px;
-            border-radius: 6px;
-            font-size: 18px;
+            border-left: 2px solid #f0b90b;
+            padding: 6px 8px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            font-size: 12px;
             color: #888;
         }
 
         .message-content {
-            padding: 18px 24px;
+            padding: 12px 16px;
             background: #1a1a1a;
-            border-radius: 24px 24px 24px 6px;
+            border-radius: 16px 16px 16px 4px;
             color: #fff;
             word-break: break-word;
             white-space: pre-wrap;
-            font-size: 22px;
-            line-height: 1.5;
+            font-size: 14px;
+            line-height: 1.4;
         }
 
         .message.own .message-content {
             background: #f0b90b;
             color: #0a0a0a;
-            border-radius: 24px 24px 6px 24px;
+            border-radius: 16px 16px 4px 16px;
         }
 
         .chat-input-area {
-            padding: 30px 37px;
-            border-top: 1.5px solid #333;
+            padding: 16px 20px;
+            border-top: 1px solid #333;
             display: flex;
-            gap: 22px;
+            gap: 10px;
             background: #111;
             flex-shrink: 0;
-            min-height: 135px; /* 90 * 1.5 = 135 */
+            min-height: 70px;
         }
 
         .chat-input {
             flex: 1;
-            padding: 21px 27px;
+            padding: 12px 16px;
             background: #1a1a1a;
-            border: 1.5px solid #333;
-            border-radius: 42px;
+            border: 1px solid #333;
+            border-radius: 24px;
             color: #f0b90b;
-            font-size: 22px;
-            line-height: 1.5;
-            max-height: 180px;
+            font-size: 14px;
+            line-height: 1.4;
+            max-height: 120px;
             resize: none;
             font-family: inherit;
         }
@@ -455,16 +455,16 @@
         }
 
         .send-btn {
-            padding: 21px 42px;
+            padding: 12px 24px;
             background: #f0b90b;
             border: none;
-            border-radius: 42px;
+            border-radius: 24px;
             color: #0a0a0a;
             font-weight: 600;
             cursor: pointer;
-            font-size: 25.5px;
+            font-size: 16px;
             flex-shrink: 0;
-            height: 78px; /* 52 * 1.5 = 78 */
+            height: 48px;
             display: flex;
             align-items: center;
         }
@@ -478,11 +478,11 @@
         .reply-bar {
             background: #1a1a1a;
             border-bottom: 1px solid #333;
-            padding: 12px 30px;
+            padding: 8px 20px;
             display: flex;
             align-items: center;
-            gap: 15px;
-            font-size: 18px;
+            gap: 10px;
+            font-size: 12px;
         }
 
         .reply-bar span {
@@ -494,87 +494,87 @@
             background: transparent;
             border: none;
             color: #f0b90b;
-            font-size: 24px;
+            font-size: 16px;
             cursor: pointer;
-            padding: 6px;
+            padding: 4px;
         }
 
         .profile-panel {
             background: #111;
-            border-left: 1.5px solid #333;
-            padding: 30px;
+            border-left: 1px solid #333;
+            padding: 20px;
             overflow-y: auto;
             height: 100vh;
         }
 
         .profile-header {
             text-align: center;
-            margin-bottom: 45px;
+            margin-bottom: 30px;
         }
 
         .profile-avatar {
-            width: 120px;
-            height: 120px;
+            width: 80px;
+            height: 80px;
             background: #222;
             border-radius: 50%;
-            border: 4.5px solid #f0b90b;
-            margin: 0 auto 22px;
+            border: 3px solid #f0b90b;
+            margin: 0 auto 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
+            font-size: 32px;
             font-weight: 600;
             color: #f0b90b;
         }
 
         .profile-name {
-            font-size: 30px;
+            font-size: 20px;
             font-weight: 600;
-            margin-bottom: 7.5px;
+            margin-bottom: 5px;
         }
 
         .profile-id {
             color: #888;
-            font-size: 21px;
-            margin-bottom: 30px;
+            font-size: 14px;
+            margin-bottom: 20px;
         }
 
         .profile-info {
             background: #1a1a1a;
-            border-radius: 24px;
-            padding: 22px;
-            margin-bottom: 30px;
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 20px;
         }
 
         .info-row {
             display: flex;
             justify-content: space-between;
-            padding: 15px 0;
-            border-bottom: 1.5px solid #333;
+            padding: 10px 0;
+            border-bottom: 1px solid #333;
         }
 
         .info-label {
             color: #888;
-            font-size: 18px;
+            font-size: 12px;
         }
 
         .info-value {
             color: #f0b90b;
             font-weight: 500;
-            font-size: 18px;
+            font-size: 12px;
         }
 
         .profile-btn {
             width: 100%;
-            padding: 18px;
+            padding: 12px;
             background: transparent;
-            border: 1.5px solid #f0b90b;
-            border-radius: 18px;
+            border: 1px solid #f0b90b;
+            border-radius: 12px;
             color: #f0b90b;
             font-weight: 500;
             cursor: pointer;
-            margin-bottom: 15px;
-            font-size: 18px;
+            margin-bottom: 10px;
+            font-size: 12px;
         }
 
         .profile-btn.danger {
@@ -591,7 +591,7 @@
             bottom: 0;
             background: rgba(0,0,0,0.95);
             z-index: 1000;
-            padding: 30px;
+            padding: 20px;
             overflow-y: auto;
         }
 
@@ -599,31 +599,31 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 45px;
+            margin-bottom: 30px;
         }
 
         .admin-title {
-            font-size: 36px;
+            font-size: 24px;
             font-weight: 600;
         }
 
         .admin-close {
-            font-size: 48px;
+            font-size: 32px;
             cursor: pointer;
             color: #f0b90b;
         }
 
         .admin-users-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
         }
 
         .admin-user-card {
             background: #1a1a1a;
-            border-radius: 24px;
-            padding: 30px;
-            border: 3px solid #333;
+            border-radius: 16px;
+            padding: 20px;
+            border: 2px solid #333;
         }
 
         .admin-user-card.marked-red {
@@ -640,28 +640,28 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 22px;
+            margin-bottom: 15px;
         }
 
         .admin-user-name {
-            font-size: 27px;
+            font-size: 18px;
             font-weight: 600;
         }
 
         .admin-user-actions {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
         .admin-user-btn {
-            padding: 12px 18px;
+            padding: 8px 12px;
             background: #0a0a0a;
-            border: 1.5px solid #333;
-            border-radius: 12px;
+            border: 1px solid #333;
+            border-radius: 8px;
             color: #f0b90b;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 12px;
         }
 
         .admin-user-btn.group-add {
@@ -678,18 +678,18 @@
 
         .color-buttons {
             display: flex;
-            gap: 15px;
-            margin: 22px 0;
+            gap: 10px;
+            margin: 15px 0;
         }
 
         .color-btn {
             flex: 1;
-            padding: 12px;
+            padding: 8px;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 500;
-            font-size: 16px;
+            font-size: 12px;
         }
 
         .color-btn.red {
@@ -709,13 +709,13 @@
 
         .token-input {
             width: 100%;
-            padding: 15px;
+            padding: 10px;
             background: #0a0a0a;
-            border: 1.5px solid #333;
-            border-radius: 12px;
+            border: 1px solid #333;
+            border-radius: 8px;
             color: #f0b90b;
-            margin: 15px 0;
-            font-size: 18px;
+            margin: 10px 0;
+            font-size: 12px;
         }
 
         .modal {
@@ -729,49 +729,49 @@
             z-index: 2000;
             align-items: center;
             justify-content: center;
-            padding: 30px;
+            padding: 20px;
         }
 
         .modal-content {
             background: #1a1a1a;
-            border: 3px solid #f0b90b;
-            border-radius: 48px;
-            padding: 45px 30px;
+            border: 2px solid #f0b90b;
+            border-radius: 32px;
+            padding: 30px 20px;
             width: 100%;
-            max-width: 750px;
+            max-width: 500px;
         }
 
         .modal-title {
-            font-size: 33px;
+            font-size: 22px;
             font-weight: 600;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             text-align: center;
         }
 
         .modal-input {
             width: 100%;
-            padding: 22px;
+            padding: 15px;
             background: #0a0a0a;
-            border: 1.5px solid #333;
-            border-radius: 18px;
+            border: 1px solid #333;
+            border-radius: 12px;
             color: #f0b90b;
-            margin-bottom: 22px;
-            font-size: 22px;
+            margin-bottom: 15px;
+            font-size: 14px;
         }
 
         .modal-buttons {
             display: flex;
-            gap: 15px;
+            gap: 10px;
         }
 
         .modal-btn {
             flex: 1;
-            padding: 22px;
+            padding: 15px;
             border: none;
-            border-radius: 18px;
+            border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
-            font-size: 22px;
+            font-size: 14px;
         }
 
         .modal-btn.save {
@@ -801,62 +801,77 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 22px;
+            padding: 15px;
             background: #111;
-            border-bottom: 1.5px solid #333;
+            border-bottom: 1px solid #333;
         }
 
         .video-title {
-            font-size: 24px;
+            font-size: 16px;
             font-weight: 600;
             color: #f0b90b;
         }
 
         .participants-count {
             background: #1a1a1a;
-            padding: 7.5px 18px;
-            border-radius: 30px;
-            font-size: 18px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
             color: #f0b90b;
-            border: 1.5px solid #333;
+            border: 1px solid #333;
         }
 
         .video-grid-container {
             display: grid;
-            grid-template-columns: 1fr 420px;
-            gap: 30px;
-            height: calc(100vh - 180px);
-            padding: 30px;
+            grid-template-columns: 1fr 280px;
+            gap: 20px;
+            height: calc(100vh - 120px);
+            padding: 20px;
         }
 
         @media (max-width: 768px) {
             .video-grid-container {
                 grid-template-columns: 1fr;
-                height: calc(100vh - 240px);
-                padding: 15px;
+                height: calc(100vh - 160px);
+                padding: 10px;
+            }
+            
+            .participants-sidebar {
+                display: none;
+            }
+            
+            .participants-sidebar.active {
+                display: block;
+                position: fixed;
+                top: 60px;
+                left: 0;
+                right: 0;
+                bottom: 80px;
+                z-index: 100;
+                background: #111;
             }
         }
 
         .video-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 10px;
             align-content: flex-start;
             overflow-y: auto;
         }
 
         .video-wrapper {
             position: relative;
-            width: 450px;
-            height: 337px;
-            border-radius: 18px;
+            width: 300px;
+            height: 225px;
+            border-radius: 12px;
             overflow: hidden;
-            border: 3px solid #333;
+            border: 2px solid #333;
         }
 
         @media (max-width: 768px) {
             .video-wrapper {
-                width: calc(50% - 7.5px);
+                width: calc(50% - 5px);
                 height: auto;
                 aspect-ratio: 4/3;
             }
@@ -871,46 +886,46 @@
 
         .video-label {
             position: absolute;
-            bottom: 7.5px;
-            left: 7.5px;
+            bottom: 5px;
+            left: 5px;
             background: rgba(0,0,0,0.7);
             color: #f0b90b;
-            padding: 4.5px 12px;
-            border-radius: 18px;
-            font-size: 16.5px;
-            border: 1.5px solid #f0b90b;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            border: 1px solid #f0b90b;
         }
 
         .participants-sidebar {
             background: #111;
-            border-left: 1.5px solid #333;
-            padding: 22px;
+            border-left: 1px solid #333;
+            padding: 15px;
             overflow-y: auto;
         }
 
         .sidebar-title {
-            font-size: 24px;
+            font-size: 16px;
             font-weight: 600;
             color: #f0b90b;
-            margin-bottom: 22px;
-            padding-bottom: 15px;
-            border-bottom: 1.5px solid #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
         }
 
         .participants-list {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
         }
 
         .participant-item {
             display: flex;
             align-items: center;
-            gap: 15px;
-            padding: 12px;
+            gap: 10px;
+            padding: 8px;
             background: #1a1a1a;
-            border-radius: 12px;
-            border-left: 4.5px solid transparent;
+            border-radius: 8px;
+            border-left: 3px solid transparent;
         }
 
         .participant-item.local {
@@ -918,8 +933,8 @@
         }
 
         .participant-avatar {
-            width: 48px;
-            height: 48px;
+            width: 32px;
+            height: 32px;
             background: #222;
             border-radius: 50%;
             display: flex;
@@ -927,21 +942,21 @@
             justify-content: center;
             color: #f0b90b;
             font-weight: 600;
-            border: 1.5px solid #f0b90b;
-            font-size: 24px;
+            border: 1px solid #f0b90b;
+            font-size: 16px;
         }
 
         .participant-name {
             color: #fff;
-            font-size: 19.5px;
+            font-size: 13px;
             font-weight: 500;
         }
 
         .participant-status {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             color: #888;
-            font-size: 16.5px;
+            font-size: 11px;
         }
 
         .participant-status .active {
@@ -954,30 +969,30 @@
 
         .conference-controls {
             position: fixed;
-            bottom: 30px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 22px;
+            gap: 15px;
             background: #111;
-            padding: 18px 30px;
-            border-radius: 75px;
-            border: 1.5px solid #333;
+            padding: 12px 20px;
+            border-radius: 50px;
+            border: 1px solid #333;
             z-index: 2100;
         }
 
         .conf-control-btn {
-            width: 66px;
-            height: 66px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             background: #1a1a1a;
-            border: 3px solid #333;
+            border: 2px solid #333;
             color: #f0b90b;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 27px;
+            font-size: 18px;
         }
 
         .conf-control-btn.mic-off {
@@ -994,31 +1009,31 @@
 
         .audio-debug {
             position: fixed;
-            bottom: 135px;
+            bottom: 90px;
             left: 50%;
             transform: translateX(-50%);
             background: #1a1a1a;
             color: #f0b90b;
-            padding: 9px 18px;
-            border-radius: 30px;
-            font-size: 16.5px;
-            border: 1.5px solid #333;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            border: 1px solid #333;
             z-index: 2100;
         }
 
         .unread-badge {
             position: absolute;
-            top: 7.5px;
-            right: 7.5px;
+            top: 5px;
+            right: 5px;
             background: #f0b90b;
             color: #0a0a0a;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 20px;
+            height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 12px;
             font-weight: bold;
         }
     </style>
@@ -1035,7 +1050,7 @@
             <input type="text" class="auth-input" id="loginInput" placeholder="Логин">
             <input type="password" class="auth-input" id="passwordInput" placeholder="Пароль">
             <button class="auth-btn" id="loginBtn">Войти</button>
-            <div style="color: #ff4444; margin-top: 22px; text-align: center; font-size: 21px;" id="authError"></div>
+            <div style="color: #ff4444; margin-top: 15px; text-align: center; font-size: 14px;" id="authError"></div>
         </div>
     </div>
 
@@ -1104,7 +1119,7 @@
             <button class="profile-btn" id="editProfileBtn">Редактировать профиль</button>
             <button class="profile-btn" id="changePasswordBtn">Изменить пароль</button>
             <button class="profile-btn danger" id="logoutBtn">Выйти</button>
-            <button class="profile-btn" id="adminPanelBtn" style="display: none; margin-top: 30px; border-color: #ff4444; color: #ff4444;">👑 Админ-панель</button>
+            <button class="profile-btn" id="adminPanelBtn" style="display: none; margin-top: 20px; border-color: #ff4444; color: #ff4444;">👑 Админ-панель</button>
         </div>
     </div>
 
@@ -1977,16 +1992,16 @@
                         <button class="color-btn clear" onclick="markUser('${user.id}', null)">Очистить</button>
                     </div>
 
-                    <div style="margin: 15px 0; font-size: 21px;">
+                    <div style="margin: 10px 0; font-size: 14px;">
                         <div><strong>Логин:</strong> ${user.username}</div>
                         <div><strong>ID:</strong> ${user.user_id_string}</div>
                         <div><strong>Статус:</strong> ${user.status}</div>
                     </div>
 
-                    <div style="margin: 15px 0;">
+                    <div style="margin: 10px 0;">
                         <input type="text" class="token-input" id="token-${user.id}" placeholder="LiveKit URL" value="${user.livekit_url || LIVEKIT_URL}">
                         <input type="text" class="token-input" id="token-value-${user.id}" placeholder="LiveKit Токен" value="${user.livekit_token || ''}">
-                        <button class="admin-user-btn" style="width: 100%; margin-top: 7.5px;" onclick="saveLiveKitToken('${user.id}')">💾 Сохранить токен</button>
+                        <button class="admin-user-btn" style="width: 100%; margin-top: 5px;" onclick="saveLiveKitToken('${user.id}')">💾 Сохранить токен</button>
                     </div>
                 </div>
             `).join('');
