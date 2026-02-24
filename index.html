@@ -166,6 +166,7 @@
                 background: #0a0a0a;
                 position: relative;
                 width: 100%;
+                z-index: 90;
             }
 
             .chat-header {
@@ -180,7 +181,6 @@
                 min-height: 60px;
             }
 
-            /* Показываем стрелку назад на мобильных */
             .chat-header .back-btn {
                 display: flex;
                 width: 40px;
@@ -1707,12 +1707,44 @@
             }
         }
 
-        mobileOverlay.addEventListener('click', () => {
-            hideUsersPanel();
-            hideProfilePanel();
+        mobileOverlay.addEventListener('click', (e) => {
+            // Важно: не закрываем оверлей при клике на него, только если клик именно по оверлею
+            if (e.target === mobileOverlay) {
+                hideUsersPanel();
+                hideProfilePanel();
+            }
         });
 
         chatBackBtn.addEventListener('click', goToChatList);
+
+        // ===============================================
+        // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+        // ===============================================
+
+        async function addToContactsIfNotExists(user) {
+            if (!user) return;
+
+            const { data: existingContact } = await supabaseClient
+                .from('user_contacts')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .eq('contact_id', user.id)
+                .maybeSingle();
+
+            if (!existingContact) {
+                await supabaseClient
+                    .from('user_contacts')
+                    .insert([{
+                        user_id: currentUser.id,
+                        contact_id: user.id
+                    }]);
+                
+                // Обновляем список чатов
+                loadChats();
+                return true;
+            }
+            return false;
+        }
 
         // ===============================================
         // ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
@@ -1752,7 +1784,11 @@
         userProfileMessageBtn.addEventListener('click', () => {
             if (selectedUserForProfile) {
                 userProfileModal.style.display = 'none';
-                selectChat(selectedUserForProfile.id, 'private');
+                
+                // Автоматически добавляем в контакты при переходе в чат
+                addToContactsIfNotExists(selectedUserForProfile).then(() => {
+                    selectChat(selectedUserForProfile.id, 'private');
+                });
             }
         });
 
@@ -1963,11 +1999,21 @@
                 
                 conferenceBtn.style.display = 'block';
             } else {
-                const chatElement = Array.from(document.querySelectorAll('.chat-item')).find(el => 
-                    el.getAttribute('onclick')?.includes(`'${chatId}', 'private'`)
-                );
-                const userName = chatElement ? chatElement.querySelector('.chat-name')?.textContent : 'Пользователь';
-                currentChatTitle.textContent = `Чат с ${userName}`;
+                // Загружаем информацию о пользователе для правильного отображения имени
+                supabaseClient
+                    .from('users')
+                    .select('*')
+                    .eq('id', chatId)
+                    .single()
+                    .then(({ data: user }) => {
+                        if (user) {
+                            const displayName = user.display_name !== '---' ? user.display_name : user.username;
+                            currentChatTitle.textContent = displayName;
+                        } else {
+                            currentChatTitle.textContent = 'Чат с пользователем';
+                        }
+                    });
+                
                 loadPrivateMessages(chatId);
                 unreadCounts[`private_${chatId}`] = 0;
                 conferenceBtn.style.display = 'none';
@@ -2216,6 +2262,17 @@
                         alert('Ошибка при отправке сообщения');
                         return;
                     }
+                    
+                    // При отправке первого сообщения автоматически добавляем в контакты
+                    const { data: receiver } = await supabaseClient
+                        .from('users')
+                        .select('*')
+                        .eq('id', currentChat)
+                        .single();
+                    
+                    if (receiver) {
+                        await addToContactsIfNotExists(receiver);
+                    }
                 }
 
                 messageInput.value = '';
@@ -2354,26 +2411,6 @@
             } catch (error) {
                 console.error('Ошибка поиска:', error);
                 alert('Ошибка при поиске пользователя');
-            }
-        }
-
-        async function addToContactsIfNotExists(user) {
-            if (!user) return;
-
-            const { data: existingContact } = await supabaseClient
-                .from('user_contacts')
-                .select('*')
-                .eq('user_id', currentUser.id)
-                .eq('contact_id', user.id)
-                .maybeSingle();
-
-            if (!existingContact) {
-                await supabaseClient
-                    .from('user_contacts')
-                    .insert([{
-                        user_id: currentUser.id,
-                        contact_id: user.id
-                    }]);
             }
         }
 
