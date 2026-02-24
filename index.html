@@ -17,7 +17,6 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             min-height: 100vh;
             overflow: hidden;
-            font-size: 14px;
         }
 
         /* Авторизация */
@@ -68,14 +67,13 @@
             cursor: pointer;
         }
 
-        /* Основной интерфейс */
+        /* Основной интерфейс - новые пропорции */
         .main-container {
             display: none;
             height: 100vh;
-            grid-template-columns: 400px 1fr 320px;
+            grid-template-columns: 400px 1fr 320px; /* Левая панель шире на 1.5 (было 280px) */
             background: #0a0a0a;
             position: relative;
-            overflow: hidden;
         }
 
         /* Мобильная версия */
@@ -98,7 +96,7 @@
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
                 overflow-y: auto;
-                width: 90%;
+                width: 90%; /* Шире на мобилке */
                 max-width: 350px;
             }
 
@@ -148,11 +146,10 @@
                 flex-direction: column;
                 background: #0a0a0a;
                 position: relative;
-                overflow: hidden;
             }
 
             .chat-header {
-                height: 60px;
+                height: 56px;
                 background: #111;
                 border-bottom: 1px solid #333;
                 padding: 0 12px;
@@ -160,9 +157,6 @@
                 align-items: center;
                 gap: 8px;
                 flex-shrink: 0;
-                position: sticky;
-                top: 0;
-                z-index: 10;
             }
 
             .chat-header .back-btn {
@@ -204,14 +198,13 @@
             }
 
             .messages-container {
-                flex: 0 0 15vh; /* Уменьшил до 15% высоты экрана */
+                flex: 1;
                 overflow-y: auto;
                 padding: 12px;
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
-                min-height: 0;
-                background: #0a0a0a;
+                max-height: calc(100vh - 140px); /* Ограничиваем высоту */
             }
 
             .message {
@@ -232,38 +225,28 @@
                 padding: 20px;
             }
 
-            /* Контейнер для строки ввода и серого фона */
-            .bottom-container {
+            .chat-input-area {
                 background: #111;
                 border-top: 1px solid #333;
-                display: flex;
-                flex-direction: column;
-                flex-shrink: 0;
-                position: sticky;
-                bottom: 0;
-                z-index: 10;
-                margin-top: auto;
-            }
-
-            /* Строка ввода сверху */
-            .input-row {
+                padding: 10px 12px;
                 display: flex;
                 gap: 8px;
                 align-items: flex-end;
-                padding: 12px 12px 8px 12px;
-                width: 100%;
+                flex-shrink: 0;
+                height: auto;
+                min-height: 60px;
             }
 
             .chat-input {
                 flex: 1;
-                padding: 12px 16px;
+                padding: 10px 14px;
                 background: #1a1a1a;
                 border: 1px solid #333;
-                border-radius: 24px;
+                border-radius: 20px;
                 color: #f0b90b;
                 font-size: 15px;
                 line-height: 1.4;
-                max-height: 120px;
+                max-height: 100px;
                 resize: none;
                 font-family: inherit;
             }
@@ -274,34 +257,25 @@
             }
 
             .send-btn {
-                width: 48px;
-                height: 48px;
+                width: 44px;
+                height: 44px;
                 border-radius: 50%;
                 background: #f0b90b;
                 border: none;
                 color: #0a0a0a;
-                font-size: 22px;
+                font-size: 20px;
                 font-weight: 600;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 flex-shrink: 0;
-                margin-bottom: 0;
             }
 
             .send-btn:disabled {
                 opacity: 0.5;
                 background: #333;
                 cursor: not-allowed;
-            }
-
-            /* Пустой серый фон снизу */
-            .empty-gray-area {
-                background: #111;
-                height: 60px;
-                width: 100%;
-                padding-bottom: env(safe-area-inset-bottom, 20px);
             }
 
             .mobile-menu-btn {
@@ -321,12 +295,6 @@
                 z-index: 90;
                 box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3);
             }
-
-            .reply-bar {
-                padding: 8px 12px;
-                background: #1a1a1a;
-                border-bottom: 1px solid #333;
-            }
         }
 
         /* Десктоп версия */
@@ -334,12 +302,13 @@
             display: none;
         }
 
+        /* Левая панель - шире на 1.5 (400px вместо 280) */
         .users-panel {
             background: #111;
             border-right: 1px solid #333;
             padding: 20px 0;
             overflow-y: auto;
-            height: 100vh;
+            width: 100%;
         }
 
         .panel-header {
@@ -378,7 +347,6 @@
             color: #0a0a0a;
             font-weight: 600;
             cursor: pointer;
-            font-size: 14px;
         }
 
         .chat-list {
@@ -415,13 +383,11 @@
             color: #f0b90b;
             font-weight: 600;
             border: 2px solid #f0b90b;
-            font-size: 20px;
         }
 
         .chat-avatar.group {
             background: #f0b90b;
             color: #0a0a0a;
-            font-size: 20px;
         }
 
         .chat-info {
@@ -446,15 +412,15 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 250px;
+            max-width: 250px; /* Больше места для текста */
         }
 
+        /* Центральная панель - уже (но с правильными пропорциями) */
         .chat-panel {
             display: flex;
             flex-direction: column;
             background: #0a0a0a;
             height: 100vh;
-            overflow: hidden;
         }
 
         .chat-header {
@@ -510,21 +476,21 @@
             color: #f0b90b;
         }
 
+        /* Контейнер сообщений - теперь занимает 3/4 высоты */
         .messages-container {
-            flex: 0 0 15vh; /* Уменьшил до 15% высоты экрана */
+            flex: 1;
             overflow-y: auto;
             padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 15px;
-            min-height: 0;
-            background: #0a0a0a;
+            max-height: calc(100vh - 180px); /* Ограничиваем высоту */
         }
 
         .empty-messages {
             text-align: center;
             color: #666;
-            margin-top: 50px;
+            margin-top: 30px;
             font-size: 14px;
         }
 
@@ -532,7 +498,6 @@
             max-width: 70%;
             display: flex;
             flex-direction: column;
-            position: relative;
         }
 
         .message.own {
@@ -556,36 +521,6 @@
             color: #666;
         }
 
-        .reply-btn {
-            background: transparent;
-            border: none;
-            color: #f0b90b;
-            font-size: 16px;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-        }
-
-        .reply-btn:hover {
-            opacity: 1;
-            background: #1a1a1a;
-        }
-
-        .reply-preview {
-            background: #1a1a1a;
-            border-left: 2px solid #f0b90b;
-            padding: 6px 8px;
-            margin-bottom: 4px;
-            border-radius: 4px;
-            font-size: 12px;
-            color: #888;
-        }
-
         .message-content {
             padding: 12px 16px;
             background: #1a1a1a;
@@ -593,8 +528,6 @@
             color: #fff;
             word-break: break-word;
             white-space: pre-wrap;
-            font-size: 14px;
-            line-height: 1.4;
         }
 
         .message.own .message-content {
@@ -603,29 +536,23 @@
             border-radius: 16px 16px 4px 16px;
         }
 
-        /* Десктоп версия нижнего контейнера */
-        .bottom-container {
+        /* Поле ввода - ближе к верху */
+        .chat-input-area {
+            padding: 16px 20px;
             border-top: 1px solid #333;
             display: flex;
-            flex-direction: column;
+            gap: 10px;
             background: #111;
             flex-shrink: 0;
-        }
-
-        .input-row {
-            display: flex;
-            gap: 12px;
-            align-items: flex-end;
-            padding: 16px 20px 8px 20px;
-            width: 100%;
+            margin-top: auto; /* Прижимаем к низу */
         }
 
         .chat-input {
             flex: 1;
-            padding: 14px 18px;
+            padding: 12px 16px;
             background: #1a1a1a;
             border: 1px solid #333;
-            border-radius: 28px;
+            border-radius: 24px;
             color: #f0b90b;
             font-size: 14px;
             line-height: 1.4;
@@ -640,18 +567,15 @@
         }
 
         .send-btn {
-            padding: 14px 28px;
+            padding: 12px 24px;
             background: #f0b90b;
             border: none;
-            border-radius: 28px;
+            border-radius: 24px;
             color: #0a0a0a;
             font-weight: 600;
             cursor: pointer;
             font-size: 16px;
             flex-shrink: 0;
-            height: 52px;
-            display: flex;
-            align-items: center;
         }
 
         .send-btn:disabled {
@@ -660,42 +584,12 @@
             cursor: not-allowed;
         }
 
-        .empty-gray-area {
-            background: #111;
-            height: 60px;
-            width: 100%;
-        }
-
-        .reply-bar {
-            background: #1a1a1a;
-            border-bottom: 1px solid #333;
-            padding: 8px 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 12px;
-        }
-
-        .reply-bar span {
-            flex: 1;
-            color: #888;
-        }
-
-        .reply-bar .cancel-reply {
-            background: transparent;
-            border: none;
-            color: #f0b90b;
-            font-size: 16px;
-            cursor: pointer;
-            padding: 4px;
-        }
-
+        /* Правая панель - без изменений */
         .profile-panel {
             background: #111;
             border-left: 1px solid #333;
             padding: 20px;
             overflow-y: auto;
-            height: 100vh;
         }
 
         .profile-header {
@@ -746,13 +640,11 @@
 
         .info-label {
             color: #888;
-            font-size: 12px;
         }
 
         .info-value {
             color: #f0b90b;
             font-weight: 500;
-            font-size: 12px;
         }
 
         .profile-btn {
@@ -765,7 +657,6 @@
             font-weight: 500;
             cursor: pointer;
             margin-bottom: 10px;
-            font-size: 12px;
         }
 
         .profile-btn.danger {
@@ -827,88 +718,6 @@
             border-color: #4caf50;
         }
 
-        .admin-user-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .admin-user-name {
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .admin-user-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .admin-user-btn {
-            padding: 8px 12px;
-            background: #0a0a0a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: #f0b90b;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .admin-user-btn.group-add {
-            background: #4caf50;
-            color: white;
-            border-color: #4caf50;
-        }
-
-        .admin-user-btn.group-remove {
-            background: #ff4444;
-            color: white;
-            border-color: #ff4444;
-        }
-
-        .color-buttons {
-            display: flex;
-            gap: 10px;
-            margin: 15px 0;
-        }
-
-        .color-btn {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 12px;
-        }
-
-        .color-btn.red {
-            background: #ff4444;
-            color: white;
-        }
-
-        .color-btn.green {
-            background: #4caf50;
-            color: white;
-        }
-
-        .color-btn.clear {
-            background: #333;
-            color: white;
-        }
-
-        .token-input {
-            width: 100%;
-            padding: 10px;
-            background: #0a0a0a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: #f0b90b;
-            margin: 10px 0;
-            font-size: 12px;
-        }
-
         .modal {
             display: none;
             position: fixed;
@@ -947,7 +756,6 @@
             border-radius: 12px;
             color: #f0b90b;
             margin-bottom: 15px;
-            font-size: 14px;
         }
 
         .modal-buttons {
@@ -962,7 +770,6 @@
             border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
-            font-size: 14px;
         }
 
         .modal-btn.save {
@@ -1134,7 +941,6 @@
             color: #f0b90b;
             font-weight: 600;
             border: 1px solid #f0b90b;
-            font-size: 16px;
         }
 
         .participant-name {
@@ -1211,22 +1017,6 @@
             border: 1px solid #333;
             z-index: 2100;
         }
-
-        .unread-badge {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: #f0b90b;
-            color: #0a0a0a;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
@@ -1247,7 +1037,7 @@
 
     <!-- Основной интерфейс -->
     <div class="main-container" id="mainContainer">
-        <!-- Левая панель - пользователи -->
+        <!-- Левая панель - пользователи (шире) -->
         <div class="users-panel" id="usersPanel">
             <div class="panel-header">
                 <div class="panel-title">Чаты</div>
@@ -1259,34 +1049,19 @@
             <div class="chat-list" id="chatList"></div>
         </div>
 
-        <!-- Центральная панель - чат -->
+        <!-- Центральная панель - чат (с уменьшенной высотой сообщений) -->
         <div class="chat-panel">
             <div class="chat-header">
                 <span class="back-btn" id="chatBackBtn">←</span>
                 <span class="chat-title" id="currentChatTitle">Spam команда Германа</span>
                 <button class="conference-btn" id="conferenceBtn" style="display: none;">📹</button>
             </div>
-            
-            <!-- Бар ответа на сообщение -->
-            <div class="reply-bar" id="replyBar" style="display: none;">
-                <span id="replyText"></span>
-                <button class="cancel-reply" id="cancelReplyBtn">✕</button>
-            </div>
-            
             <div class="messages-container" id="messagesContainer">
                 <div class="empty-messages">Выберите чат чтобы начать общение</div>
             </div>
-            
-            <!-- Нижний контейнер со строкой ввода и серым фоном -->
-            <div class="bottom-container">
-                <!-- Строка ввода сверху -->
-                <div class="input-row">
-                    <textarea class="chat-input" id="messageInput" placeholder="Сообщение..." disabled rows="1"></textarea>
-                    <button class="send-btn" id="sendBtn" disabled>→</button>
-                </div>
-                
-                <!-- Пустой серый фон снизу -->
-                <div class="empty-gray-area"></div>
+            <div class="chat-input-area">
+                <textarea class="chat-input" id="messageInput" placeholder="Сообщение..." disabled rows="1"></textarea>
+                <button class="send-btn" id="sendBtn" disabled>→</button>
             </div>
         </div>
 
@@ -1399,7 +1174,6 @@
         let room = null;
         let audioContext = null;
         let audioReconnectTimer = null;
-        let replyingTo = null;
 
         // DOM элементы
         const authContainer = document.getElementById('authContainer');
@@ -1449,35 +1223,12 @@
         const participantsSidebar = document.getElementById('participantsSidebar');
         const audioDebug = document.getElementById('audioDebug');
 
-        // Элементы ответа
-        const replyBar = document.getElementById('replyBar');
-        const replyText = document.getElementById('replyText');
-        const cancelReplyBtn = document.getElementById('cancelReplyBtn');
-
         // Мобильные элементы
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const mobileOverlay = document.getElementById('mobileOverlay');
         const usersPanel = document.getElementById('usersPanel');
         const profilePanel = document.getElementById('profilePanel');
         const chatBackBtn = document.getElementById('chatBackBtn');
-
-        // ===============================================
-        // ФУНКЦИИ ДЛЯ ОТВЕТОВ
-        // ===============================================
-
-        window.setReply = function(messageId, sender, message) {
-            replyingTo = { id: messageId, sender, message };
-            replyText.textContent = `Ответ ${sender}: ${message.substring(0, 50)}${message.length > 50 ? '...' : ''}`;
-            replyBar.style.display = 'flex';
-            messageInput.focus();
-        };
-
-        function clearReply() {
-            replyingTo = null;
-            replyBar.style.display = 'none';
-        }
-
-        cancelReplyBtn.addEventListener('click', clearReply);
 
         // ===============================================
         // МОБИЛЬНАЯ НАВИГАЦИЯ
@@ -1562,17 +1313,7 @@
                         updateProfilePanel();
                         loadChats();
                         setupRealtimeSubscriptions();
-                        
-                        // Загружаем групповой чат сразу
-                        loadGroupMessages();
-                        currentChat = 'group';
-                        currentChatType = 'group';
-                        currentChatTitle.textContent = GROUP_NAME;
-                        conferenceBtn.style.display = 'block';
-                        
-                        // Активируем строку ввода
-                        messageInput.disabled = false;
-                        sendBtn.disabled = false;
+                        selectChat('group', 'group');
                     } else {
                         localStorage.removeItem('currentUser');
                     }
@@ -1621,17 +1362,7 @@
                     updateProfilePanel();
                     loadChats();
                     setupRealtimeSubscriptions();
-                    
-                    // Загружаем групповой чат сразу
-                    loadGroupMessages();
-                    currentChat = 'group';
-                    currentChatType = 'group';
-                    currentChatTitle.textContent = GROUP_NAME;
-                    conferenceBtn.style.display = 'block';
-                    
-                    // Активируем строку ввода
-                    messageInput.disabled = false;
-                    sendBtn.disabled = false;
+                    selectChat('group', 'group');
                 } else {
                     authError.textContent = 'Неверный логин или пароль';
                 }
@@ -1649,7 +1380,6 @@
             try {
                 const chats = [];
                 
-                // Групповой чат с иконкой денег
                 const { data: lastGroupMsg } = await supabaseClient
                     .from('group_messages')
                     .select('*, users!inner(*)')
@@ -1661,12 +1391,11 @@
                     id: 'group',
                     name: GROUP_NAME,
                     type: 'group',
-                    avatar: '💰',
+                    avatar: '👥',
                     lastMessage: lastGroupMsg,
                     unread: unreadCounts['group'] || 0
                 });
 
-                // Личные контакты
                 const { data: contacts, error } = await supabaseClient
                     .from('user_contacts')
                     .select('contact_id, users!user_contacts_contact_id_fkey(*)')
@@ -1755,10 +1484,8 @@
                 conferenceBtn.style.display = 'none';
             }
             
-            // Активируем строку ввода
             messageInput.disabled = false;
             sendBtn.disabled = false;
-            
             messageInput.focus();
             loadChats();
             
@@ -1823,18 +1550,12 @@
                 
                 const time = new Date(msg.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
                 
-                // Проверяем, есть ли ответ на сообщение
-                const replyHtml = msg.reply_to ? 
-                    `<div class="reply-preview">↩️ ${msg.reply_to_sender || 'Пользователь'}: ${msg.reply_to_message || ''}</div>` : '';
-                
                 return `
-                    <div class="message ${isOwn ? 'own' : ''}" id="message-${msg.id}">
+                    <div class="message ${isOwn ? 'own' : ''}">
                         <div class="message-header">
                             <span class="message-sender">${senderName}</span>
                             <span class="message-time">${time}</span>
-                            <button class="reply-btn" onclick="setReply('${msg.id}', '${senderName}', '${msg.message.replace(/'/g, "\\'")}')">↩️</button>
                         </div>
-                        ${replyHtml}
                         <div class="message-content">${msg.message}</div>
                     </div>
                 `;
@@ -1851,10 +1572,8 @@
         
         messageInput.addEventListener('keydown', (e) => {
             if (isMobile()) {
-                // На телефоне Enter просто переводит строку
                 return;
             } else {
-                // На компе Enter отправляет (Shift+Enter - новая строка)
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     sendMessage();
@@ -1870,54 +1589,27 @@
             }
 
             try {
-                const messageData = {
-                    message: text,
-                    created_at: new Date().toISOString()
-                };
-
-                // Добавляем информацию об ответе
-                if (replyingTo) {
-                    messageData.reply_to = replyingTo.id;
-                    messageData.reply_to_sender = replyingTo.sender;
-                    messageData.reply_to_message = replyingTo.message.substring(0, 100);
-                }
-
-                let result;
                 if (currentChatType === 'group') {
-                    result = await supabaseClient
+                    await supabaseClient
                         .from('group_messages')
                         .insert([{
-                            ...messageData,
-                            user_id: currentUser.id
+                            user_id: currentUser.id,
+                            message: text,
+                            created_at: new Date()
                         }]);
                 } else {
-                    result = await supabaseClient
+                    await supabaseClient
                         .from('private_messages')
                         .insert([{
-                            ...messageData,
                             sender_id: currentUser.id,
-                            receiver_id: currentChat
+                            receiver_id: currentChat,
+                            message: text,
+                            created_at: new Date()
                         }]);
                 }
 
-                if (result.error) {
-                    console.error('Ошибка отправки:', result.error);
-                    alert('Ошибка при отправке сообщения');
-                    return;
-                }
-
-                // Очищаем поле ввода
                 messageInput.value = '';
                 messageInput.style.height = 'auto';
-                clearReply();
-                
-                // Принудительно обновляем сообщения
-                if (currentChatType === 'group') {
-                    await loadGroupMessages();
-                } else {
-                    await loadPrivateMessages(currentChat);
-                }
-                
             } catch (error) {
                 console.error('Ошибка отправки:', error);
                 alert('Ошибка при отправке сообщения');
@@ -2159,8 +1851,6 @@
             authError.textContent = '';
             chatList.innerHTML = '';
             messagesContainer.innerHTML = '';
-            
-            // Деактивируем строку ввода
             messageInput.disabled = true;
             sendBtn.disabled = true;
             conferenceBtn.style.display = 'none';
@@ -2604,8 +2294,6 @@
                         selectChat('group', 'group');
                     }
                 }
-                // Очищаем ответ по ESC
-                clearReply();
             }
         });
 
@@ -2640,17 +2328,7 @@
                     updateProfilePanel();
                     loadChats();
                     setupRealtimeSubscriptions();
-                    
-                    // Загружаем групповой чат сразу
-                    loadGroupMessages();
-                    currentChat = 'group';
-                    currentChatType = 'group';
-                    currentChatTitle.textContent = GROUP_NAME;
-                    conferenceBtn.style.display = 'block';
-                    
-                    // Активируем строку ввода
-                    messageInput.disabled = false;
-                    sendBtn.disabled = false;
+                    selectChat('group', 'group');
                 }, 500);
             }
         })();
