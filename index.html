@@ -67,21 +67,22 @@
             cursor: pointer;
         }
 
-        /* Основной интерфейс - новые пропорции */
+        /* Основной интерфейс */
         .main-container {
             display: none;
             height: 100vh;
-            grid-template-columns: 400px 1fr 320px; /* Левая панель шире на 1.5 (было 280px) */
+            grid-template-columns: 400px 1fr 320px;
             background: #0a0a0a;
             position: relative;
         }
 
-        /* Мобильная версия */
+        /* Мобильная версия - ИСПРАВЛЕННАЯ */
         @media (max-width: 768px) {
             .main-container {
                 grid-template-columns: 1fr;
                 grid-template-rows: 1fr;
-                height: 100vh;
+                height: 100dvh; /* Используем динамическую высоту */
+                height: 100vh; /* Fallback */
                 overflow: hidden;
             }
 
@@ -96,8 +97,9 @@
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
                 overflow-y: auto;
-                width: 90%; /* Шире на мобилке */
+                width: 90%;
                 max-width: 350px;
+                padding-bottom: env(safe-area-inset-bottom, 0);
             }
 
             .users-panel.active {
@@ -118,6 +120,7 @@
                 transition: transform 0.3s ease;
                 overflow-y: auto;
                 border-left: 1px solid #333;
+                padding-bottom: env(safe-area-inset-bottom, 0);
             }
 
             .profile-panel.active {
@@ -140,29 +143,36 @@
                 display: block;
             }
 
+            /* ИСПРАВЛЕННЫЙ ЧАТ-ПАНЕЛЬ */
             .chat-panel {
-                height: 100vh;
+                height: 100dvh;
+                height: 100vh; /* Fallback */
                 display: flex;
                 flex-direction: column;
                 background: #0a0a0a;
                 position: relative;
+                padding-bottom: env(safe-area-inset-bottom, 0);
             }
 
             .chat-header {
-                height: 56px;
+                height: 60px;
                 background: #111;
                 border-bottom: 1px solid #333;
                 padding: 0 12px;
+                padding-top: env(safe-area-inset-top, 0);
                 display: flex;
                 align-items: center;
                 gap: 8px;
                 flex-shrink: 0;
+                position: sticky;
+                top: 0;
+                z-index: 10;
             }
 
             .chat-header .back-btn {
                 display: flex;
-                width: 40px;
-                height: 40px;
+                width: 44px;
+                height: 44px;
                 align-items: center;
                 justify-content: center;
                 font-size: 24px;
@@ -188,13 +198,16 @@
 
             .chat-header .conference-btn {
                 font-size: 20px;
-                padding: 8px 12px;
+                padding: 8px 16px;
                 white-space: nowrap;
                 background: transparent;
                 border: 2px solid #f0b90b;
                 color: #f0b90b;
-                border-radius: 20px;
+                border-radius: 24px;
                 flex-shrink: 0;
+                height: 40px;
+                display: flex;
+                align-items: center;
             }
 
             .messages-container {
@@ -204,7 +217,7 @@
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
-                max-height: calc(100vh - 140px); /* Ограничиваем высоту */
+                -webkit-overflow-scrolling: touch;
             }
 
             .message {
@@ -225,28 +238,32 @@
                 padding: 20px;
             }
 
+            /* ИСПРАВЛЕННАЯ ОБЛАСТЬ ВВОДА */
             .chat-input-area {
                 background: #111;
                 border-top: 1px solid #333;
                 padding: 10px 12px;
+                padding-bottom: max(10px, env(safe-area-inset-bottom, 10px));
                 display: flex;
                 gap: 8px;
                 align-items: flex-end;
                 flex-shrink: 0;
-                height: auto;
-                min-height: 60px;
+                position: sticky;
+                bottom: 0;
+                z-index: 10;
+                min-height: 70px;
             }
 
             .chat-input {
                 flex: 1;
-                padding: 10px 14px;
+                padding: 12px 16px;
                 background: #1a1a1a;
                 border: 1px solid #333;
-                border-radius: 20px;
+                border-radius: 24px;
                 color: #f0b90b;
-                font-size: 15px;
+                font-size: 16px;
                 line-height: 1.4;
-                max-height: 100px;
+                max-height: 120px;
                 resize: none;
                 font-family: inherit;
             }
@@ -257,8 +274,8 @@
             }
 
             .send-btn {
-                width: 44px;
-                height: 44px;
+                width: 48px;
+                height: 48px;
                 border-radius: 50%;
                 background: #f0b90b;
                 border: none;
@@ -295,14 +312,21 @@
                 z-index: 90;
                 box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3);
             }
+
+            /* Добавляем плавный скролл */
+            .messages-container {
+                scroll-behavior: smooth;
+            }
         }
 
         /* Десктоп версия */
-        .mobile-header, .mobile-menu-btn, .mobile-overlay {
-            display: none;
+        @media (min-width: 769px) {
+            .mobile-header, .mobile-menu-btn, .mobile-overlay, .back-btn {
+                display: none;
+            }
         }
 
-        /* Левая панель - шире на 1.5 (400px вместо 280) */
+        /* Левая панель */
         .users-panel {
             background: #111;
             border-right: 1px solid #333;
@@ -412,10 +436,10 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 250px; /* Больше места для текста */
+            max-width: 250px;
         }
 
-        /* Центральная панель - уже (но с правильными пропорциями) */
+        /* Центральная панель */
         .chat-panel {
             display: flex;
             flex-direction: column;
@@ -476,7 +500,6 @@
             color: #f0b90b;
         }
 
-        /* Контейнер сообщений - теперь занимает 3/4 высоты */
         .messages-container {
             flex: 1;
             overflow-y: auto;
@@ -484,7 +507,6 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            max-height: calc(100vh - 180px); /* Ограничиваем высоту */
         }
 
         .empty-messages {
@@ -536,7 +558,6 @@
             border-radius: 16px 16px 4px 16px;
         }
 
-        /* Поле ввода - ближе к верху */
         .chat-input-area {
             padding: 16px 20px;
             border-top: 1px solid #333;
@@ -544,7 +565,7 @@
             gap: 10px;
             background: #111;
             flex-shrink: 0;
-            margin-top: auto; /* Прижимаем к низу */
+            margin-top: auto;
         }
 
         .chat-input {
@@ -584,7 +605,7 @@
             cursor: not-allowed;
         }
 
-        /* Правая панель - без изменений */
+        /* Правая панель */
         .profile-panel {
             background: #111;
             border-left: 1px solid #333;
@@ -800,6 +821,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 15px;
+            padding-top: env(safe-area-inset-top, 15px);
             background: #111;
             border-bottom: 1px solid #333;
         }
@@ -825,6 +847,7 @@
             gap: 20px;
             height: calc(100vh - 120px);
             padding: 20px;
+            padding-bottom: env(safe-area-inset-bottom, 20px);
         }
 
         @media (max-width: 768px) {
@@ -832,6 +855,7 @@
                 grid-template-columns: 1fr;
                 height: calc(100vh - 160px);
                 padding: 10px;
+                padding-bottom: env(safe-area-inset-bottom, 10px);
             }
             
             .participants-sidebar {
@@ -966,7 +990,7 @@
 
         .conference-controls {
             position: fixed;
-            bottom: 20px;
+            bottom: max(20px, env(safe-area-inset-bottom, 20px));
             left: 50%;
             transform: translateX(-50%);
             display: flex;
@@ -1037,7 +1061,7 @@
 
     <!-- Основной интерфейс -->
     <div class="main-container" id="mainContainer">
-        <!-- Левая панель - пользователи (шире) -->
+        <!-- Левая панель - пользователи -->
         <div class="users-panel" id="usersPanel">
             <div class="panel-header">
                 <div class="panel-title">Чаты</div>
@@ -1049,7 +1073,7 @@
             <div class="chat-list" id="chatList"></div>
         </div>
 
-        <!-- Центральная панель - чат (с уменьшенной высотой сообщений) -->
+        <!-- Центральная панель - чат -->
         <div class="chat-panel">
             <div class="chat-header">
                 <span class="back-btn" id="chatBackBtn">←</span>
@@ -1231,12 +1255,53 @@
         const chatBackBtn = document.getElementById('chatBackBtn');
 
         // ===============================================
-        // МОБИЛЬНАЯ НАВИГАЦИЯ
+        // НОВЫЙ КОД: Обработка мобильного viewport
         // ===============================================
-
+        
         function isMobile() {
             return window.innerWidth <= 768;
         }
+
+        function handleMobileViewport() {
+            if (isMobile()) {
+                // Устанавливаем CSS переменную с текущей высотой окна
+                const vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', `${vh}px`);
+                
+                // При фокусе на поле ввода прокручиваем его в видимую зону
+                if (document.activeElement === messageInput) {
+                    setTimeout(() => {
+                        messageInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 300);
+                }
+            }
+        }
+
+        // Слушаем события изменения размера и ориентации
+        window.addEventListener('resize', handleMobileViewport);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(handleMobileViewport, 100);
+        });
+
+        // При фокусе на поле ввода
+        messageInput.addEventListener('focus', () => {
+            if (isMobile()) {
+                setTimeout(() => {
+                    messageInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            }
+        });
+
+        // При потере фокуса
+        messageInput.addEventListener('blur', () => {
+            if (isMobile()) {
+                window.scrollTo(0, 0);
+            }
+        });
+
+        // ===============================================
+        // МОБИЛЬНАЯ НАВИГАЦИЯ
+        // ===============================================
 
         function showUsersPanel() {
             if (!isMobile()) return;
@@ -1278,7 +1343,9 @@
 
         chatBackBtn.addEventListener('click', goToChatList);
 
+        // Обновляем обработчик resize
         window.addEventListener('resize', () => {
+            handleMobileViewport();
             if (!isMobile()) {
                 hideUsersPanel();
                 hideProfilePanel();
@@ -1486,7 +1553,16 @@
             
             messageInput.disabled = false;
             sendBtn.disabled = false;
-            messageInput.focus();
+            
+            // На мобилке фокусируемся с задержкой
+            if (isMobile()) {
+                setTimeout(() => {
+                    messageInput.focus();
+                }, 500);
+            } else {
+                messageInput.focus();
+            }
+            
             loadChats();
             
             if (isMobile()) {
@@ -1572,7 +1648,10 @@
         
         messageInput.addEventListener('keydown', (e) => {
             if (isMobile()) {
-                return;
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
             } else {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -1610,6 +1689,13 @@
 
                 messageInput.value = '';
                 messageInput.style.height = 'auto';
+                
+                // После отправки на мобилке немного скроллим
+                if (isMobile()) {
+                    setTimeout(() => {
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    }, 100);
+                }
             } catch (error) {
                 console.error('Ошибка отправки:', error);
                 alert('Ошибка при отправке сообщения');
@@ -2333,7 +2419,9 @@
             }
         })();
 
+        // Инициализация
         checkSavedSession();
+        handleMobileViewport();
     </script>
 </body>
 </html>
