@@ -79,7 +79,7 @@
             position: relative;
         }
 
-        /* Мобильная версия - ПОЛНОСТЬЮ ПЕРЕРАБОТАННАЯ */
+        /* Мобильная версия */
         @media (max-width: 768px) {
             body {
                 overflow: hidden;
@@ -158,7 +158,7 @@
                 display: block;
             }
 
-            /* ИСПРАВЛЕННЫЙ ЧАТ-ПАНЕЛЬ С FLEX-ВЕРСТКОЙ */
+            /* Чат-панель на мобильных */
             .chat-panel {
                 display: flex;
                 flex-direction: column;
@@ -180,21 +180,9 @@
                 min-height: 60px;
             }
 
+            /* Убираем кнопку "назад" на мобильных */
             .chat-header .back-btn {
-                display: flex;
-                width: 44px;
-                height: 44px;
-                align-items: center;
-                justify-content: center;
-                font-size: 24px;
-                cursor: pointer;
-                color: #f0b90b;
-                border-radius: 50%;
-                flex-shrink: 0;
-            }
-
-            .chat-header .back-btn:active {
-                background: #1a1a1a;
+                display: none;
             }
 
             .chat-header .chat-title {
@@ -250,18 +238,29 @@
                 padding: 20px;
             }
 
-            /* ИСПРАВЛЕННАЯ ОБЛАСТЬ ВВОДА */
+            /* Область ввода на мобильных */
             .chat-input-area {
                 flex: 0 0 auto;
                 background: #111;
                 border-top: 1px solid #333;
                 padding: 12px;
                 display: flex;
+                flex-direction: column;
                 gap: 8px;
-                align-items: flex-end;
-                min-height: 70px;
+                min-height: auto;
                 padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
                 transition: padding-bottom 0.2s ease;
+            }
+
+            .reply-preview {
+                margin-bottom: 4px;
+            }
+
+            .input-wrapper {
+                display: flex;
+                gap: 8px;
+                align-items: flex-end;
+                width: 100%;
             }
 
             .chat-input {
@@ -297,6 +296,7 @@
                 align-items: center;
                 justify-content: center;
                 flex-shrink: 0;
+                padding: 0;
             }
 
             .send-btn:disabled {
@@ -326,8 +326,12 @@
 
         /* Десктоп версия */
         @media (min-width: 769px) {
-            .mobile-header, .mobile-menu-btn, .mobile-overlay, .back-btn {
+            .mobile-header, .mobile-menu-btn, .mobile-overlay {
                 display: none;
+            }
+            
+            .back-btn {
+                display: flex;
             }
         }
 
@@ -618,7 +622,6 @@
             background: #1a1a1a;
             border-left: 3px solid #f0b90b;
             padding: 8px 12px;
-            margin-bottom: 8px;
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -631,6 +634,12 @@
             cursor: pointer;
             color: #ff4444;
             font-size: 18px;
+            padding: 0 4px;
+        }
+
+        .reply-preview .close-btn:hover {
+            background: rgba(255,68,68,0.2);
+            border-radius: 4px;
         }
 
         .reply-preview-text {
@@ -1361,7 +1370,7 @@
         const cancelReplyBtn = document.getElementById('cancelReplyBtn');
 
         // ===============================================
-        // НОВЫЙ КОД: Обработка клавиатуры на мобильных
+        // Обработка клавиатуры на мобильных
         // ===============================================
         
         function isMobile() {
@@ -1379,44 +1388,35 @@
                 if (!chatInputArea) return;
 
                 function adjustForKeyboard() {
-                    // Высота клавиатуры = разница между высотой окна и видимой областью
                     const windowHeight = window.innerHeight;
                     const viewportHeight = viewport.height;
                     const keyboardHeight = Math.max(0, windowHeight - viewportHeight);
                     
-                    if (keyboardHeight > 100) { // Клавиатура открыта
-                        // Добавляем отступ снизу равный высоте клавиатуры
+                    if (keyboardHeight > 100) {
                         chatInputArea.style.paddingBottom = `${keyboardHeight + 8}px`;
                         
-                        // Прокручиваем сообщения вниз с задержкой
                         setTimeout(() => {
                             messagesContainer.scrollTop = messagesContainer.scrollHeight;
                         }, 150);
                         
-                        // Добавляем класс для body
                         document.body.classList.add('keyboard-open');
-                    } else { // Клавиатура закрыта
-                        // Возвращаем стандартный отступ
+                    } else {
                         chatInputArea.style.paddingBottom = 'max(12px, env(safe-area-inset-bottom, 12px))';
                         document.body.classList.remove('keyboard-open');
                     }
                 }
 
-                // Слушаем события изменения размера и прокрутки визуального вьюпорта
                 viewport.addEventListener('resize', adjustForKeyboard);
                 viewport.addEventListener('scroll', adjustForKeyboard);
                 
-                // Также слушаем фокус на поле ввода
                 messageInput.addEventListener('focus', () => {
                     setTimeout(adjustForKeyboard, 300);
                 });
                 
-                // И потерю фокуса
                 messageInput.addEventListener('blur', () => {
                     setTimeout(adjustForKeyboard, 100);
                 });
                 
-                // Первоначальный вызов
                 adjustForKeyboard();
             }
         }
@@ -1452,8 +1452,6 @@
         function goToChatList() {
             if (isMobile()) {
                 showUsersPanel();
-            } else {
-                selectChat('group', 'group');
             }
         }
 
@@ -1495,7 +1493,6 @@
                         setupRealtimeSubscriptions();
                         selectChat('group', 'group');
                         
-                        // Настраиваем обработку клавиатуры после загрузки
                         setTimeout(setupKeyboardHandling, 500);
                     } else {
                         localStorage.removeItem('currentUser');
@@ -1547,7 +1544,6 @@
                     setupRealtimeSubscriptions();
                     selectChat('group', 'group');
                     
-                    // Настраиваем обработку клавиатуры после загрузки
                     setTimeout(setupKeyboardHandling, 500);
                 } else {
                     authError.textContent = 'Неверный логин или пароль';
@@ -1653,7 +1649,6 @@
             currentChat = chatId;
             currentChatType = type;
             
-            // Отменяем ответ при смене чата
             cancelReply();
             
             if (type === 'group') {
@@ -1676,7 +1671,6 @@
             messageInput.disabled = false;
             sendBtn.disabled = false;
             
-            // На мобилке фокусируемся с задержкой
             if (isMobile()) {
                 setTimeout(() => {
                     messageInput.focus();
@@ -1748,7 +1742,6 @@
                 
                 const time = new Date(msg.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
                 
-                // Проверяем, есть ли ответ на сообщение
                 let replyHtml = '';
                 if (msg.reply_to_id) {
                     const repliedMsg = messages.find(m => m.id === msg.reply_to_id);
@@ -1807,7 +1800,6 @@
             replyText.textContent = messageText.length > 50 ? messageText.substring(0, 50) + '...' : messageText;
             replyPreview.style.display = 'flex';
             
-            // Фокусируемся на поле ввода
             messageInput.focus();
         };
 
@@ -1822,7 +1814,6 @@
             const messageElement = document.getElementById(`message-${messageId}`);
             if (messageElement) {
                 messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                // Временная подсветка
                 messageElement.style.transition = 'background-color 0.5s';
                 messageElement.style.backgroundColor = 'rgba(240, 185, 11, 0.1)';
                 setTimeout(() => {
@@ -1837,10 +1828,19 @@
 
         sendBtn.addEventListener('click', sendMessage);
         
+        // На мобильных Enter переводит на новую строку, отправка только через кнопку
         messageInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
+            if (e.key === 'Enter') {
+                if (isMobile()) {
+                    // На мобильных Enter просто переводит строку
+                    // Ничего не делаем, пусть браузер обрабатывает стандартно
+                } else {
+                    // На десктопе Enter отправляет, Shift+Enter переводит строку
+                    if (!e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                }
             }
         });
 
@@ -1857,32 +1857,44 @@
                     created_at: new Date()
                 };
 
+                // Добавляем reply_to_id если есть ответ
                 if (replyingTo && replyingTo.type === currentChatType) {
-                    messageData.reply_to_id = replyingTo.id;
+                    messageData.reply_to_id = parseInt(replyingTo.id);
                 }
 
                 if (currentChatType === 'group') {
-                    await supabaseClient
+                    const { error } = await supabaseClient
                         .from('group_messages')
                         .insert([{
                             ...messageData,
                             user_id: currentUser.id
                         }]);
+                    
+                    if (error) {
+                        console.error('Ошибка отправки в группу:', error);
+                        alert('Ошибка при отправке сообщения');
+                        return;
+                    }
                 } else {
-                    await supabaseClient
+                    const { error } = await supabaseClient
                         .from('private_messages')
                         .insert([{
                             ...messageData,
                             sender_id: currentUser.id,
                             receiver_id: currentChat
                         }]);
+                    
+                    if (error) {
+                        console.error('Ошибка отправки личного сообщения:', error);
+                        alert('Ошибка при отправке сообщения');
+                        return;
+                    }
                 }
 
                 messageInput.value = '';
                 messageInput.style.height = 'auto';
                 cancelReply();
                 
-                // После отправки прокручиваем вниз
                 setTimeout(() => {
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 }, 100);
@@ -2565,10 +2577,6 @@
                 if (isMobile()) {
                     hideUsersPanel();
                     hideProfilePanel();
-                } else {
-                    if (currentChat !== 'group') {
-                        selectChat('group', 'group');
-                    }
                 }
             }
         });
@@ -2606,7 +2614,6 @@
                     setupRealtimeSubscriptions();
                     selectChat('group', 'group');
                     
-                    // Настраиваем обработку клавиатуры после загрузки
                     setTimeout(setupKeyboardHandling, 500);
                 }, 500);
             }
