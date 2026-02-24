@@ -204,12 +204,14 @@
             }
 
             .messages-container {
-                flex: 1;
+                flex: 0 0 40vh; /* Уменьшил блок сообщений до 40% высоты экрана */
                 overflow-y: auto;
-                padding: 12px 12px 20px 12px;
+                padding: 12px;
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
+                min-height: 0;
+                background: #0a0a0a;
             }
 
             .message {
@@ -509,13 +511,14 @@
         }
 
         .messages-container {
-            flex: 1;
+            flex: 0 0 40vh; /* Уменьшил блок сообщений до 40% высоты экрана */
             overflow-y: auto;
             padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 15px;
             min-height: 0;
+            background: #0a0a0a;
         }
 
         .empty-messages {
@@ -600,7 +603,7 @@
             border-radius: 16px 16px 4px 16px;
         }
 
-        /* Десктоп версия */
+        /* Десктоп версия нижнего контейнера */
         .bottom-container {
             border-top: 1px solid #333;
             display: flex;
