@@ -142,52 +142,28 @@
                 display: none !important;
             }
 
-            /* Шапка списка чатов */
-            .users-panel .panel-header {
+            /* Новая шапка списка чатов */
+            .panel-header {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 padding: 16px 20px;
-                border-bottom: 1px solid #333;
                 background: #111;
+                border-bottom: 1px solid #333;
+                position: relative;
             }
 
-            .panel-title {
-                font-size: 24px;
-                font-weight: 700;
-                color: #f0b90b;
-                margin: 0;
-            }
-
-            .header-right {
+            .left-header {
                 display: flex;
                 align-items: center;
-                gap: 18px;
-            }
-            
-            .search-icon {
-                font-size: 26px;
-                color: #f0b90b;
+                gap: 8px;
                 cursor: pointer;
-                padding: 6px 8px;
-                border-radius: 50%;
-            }
-            
-            .search-icon:active {
-                background: rgba(240, 185, 11, 0.15);
+                z-index: 2;
             }
 
-            /* Кнопка профиля */
-            .profile-button {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                cursor: pointer;
-            }
-
-            .profile-icon {
-                width: 44px;
-                height: 44px;
+            .left-header .profile-icon {
+                width: 36px;
+                height: 36px;
                 background: #222;
                 border-radius: 50%;
                 display: flex;
@@ -196,18 +172,31 @@
                 color: #f0b90b;
                 font-weight: 600;
                 border: 2px solid #f0b90b;
-                font-size: 20px;
+                font-size: 18px;
             }
 
-            .profile-text {
-                font-size: 10px;
+            .header-text {
+                font-size: 17px;
+                font-weight: 600;
                 color: #f0b90b;
-                margin-top: 2px;
-                opacity: 0.8;
             }
 
-            .profile-button:active .profile-icon {
-                background: #333;
+            .panel-title {
+                font-size: 22px;
+                font-weight: 700;
+                color: #f0b90b;
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1;
+            }
+
+            .search-icon {
+                font-size: 26px;
+                color: #f0b90b;
+                cursor: pointer;
+                padding: 6px;
+                z-index: 2;
             }
 
             /* Поисковая панель */
@@ -237,6 +226,59 @@
                 font-size: 24px;
                 cursor: pointer;
                 padding: 8px;
+            }
+
+            /* Результаты поиска */
+            .search-results {
+                background: #111;
+                border-bottom: 1px solid #333;
+                max-height: 320px;
+                overflow-y: auto;
+            }
+
+            .search-result-item {
+                padding: 14px 20px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                cursor: pointer;
+                border-bottom: 1px solid #222;
+            }
+
+            .search-result-item:hover,
+            .search-result-item:active {
+                background: #1a1a1a;
+            }
+
+            .search-result-avatar {
+                width: 42px;
+                height: 42px;
+                background: #222;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #f0b90b;
+                font-weight: 600;
+                border: 2px solid #f0b90b;
+                font-size: 18px;
+                flex-shrink: 0;
+            }
+
+            .search-result-info {
+                flex: 1;
+            }
+
+            .search-result-info .name {
+                font-weight: 600;
+                color: #fff;
+                font-size: 16px;
+                margin-bottom: 2px;
+            }
+
+            .search-result-info .id {
+                font-size: 13px;
+                color: #888;
             }
 
             /* Шапка профиля на мобильных */
@@ -609,7 +651,7 @@
                 flex: 1;
             }
             
-            .profile-button, .search-icon, .search-bar {
+            .left-header, .search-icon, .search-bar {
                 display: none;
             }
 
@@ -620,7 +662,7 @@
             }
         }
 
-        /* Левая панель */
+        /* Левая панель (десктоп) */
         .users-panel {
             background: #111;
             border-right: 1px solid #333;
@@ -1701,25 +1743,30 @@
 
     <!-- Основной интерфейс -->
     <div class="main-container" id="mainContainer">
-        <!-- Левая панель - пользователи -->
+        <!-- Левая панель - пользователи (обновленная) -->
         <div class="users-panel" id="usersPanel">
             <div class="panel-header">
+                <!-- Слева — Профиль -->
+                <div class="left-header" id="mobileProfileBtn">
+                    <div class="profile-icon">👤</div>
+                    <span class="header-text">Профиль</span>
+                </div>
+                
+                <!-- Посередине — Чаты -->
                 <div class="panel-title">Чаты</div>
                 
-                <div class="header-right">
-                    <span class="search-icon" id="searchIcon">🔍</span>
-                    <div class="profile-button" id="mobileProfileBtn">
-                        <div class="profile-icon">👤</div>
-                        <div class="profile-text">профиль</div>
-                    </div>
-                </div>
+                <!-- Справа — Поиск -->
+                <span class="search-icon" id="searchIcon">🔍</span>
             </div>
             
-            <!-- Поисковая панель (появляется по клику) -->
+            <!-- Строка поиска (появляется по клику) -->
             <div class="search-bar" id="searchBar" style="display: none;">
-                <input type="text" class="search-input" id="userSearch" placeholder="Поиск по ID или имени...">
+                <input type="text" class="search-input" id="userSearch" placeholder="Поиск по имени или ID...">
                 <button class="search-close-btn" id="searchCloseBtn">✕</button>
             </div>
+            
+            <!-- Результаты поиска -->
+            <div class="search-results" id="searchResults" style="display: none;"></div>
             
             <div class="chat-list" id="chatList"></div>
         </div>
@@ -1800,7 +1847,7 @@
         </div>
     </div>
 
-    <!-- Модальное окно подтверждения очистки истории -->
+    <!-- Модальное окно подтверждения -->
     <div class="confirm-modal" id="confirmModal">
         <div class="confirm-content">
             <div class="confirm-title">⚠️ Очистка истории</div>
@@ -1947,12 +1994,15 @@
         const usersPanel = document.getElementById('usersPanel');
         const profilePanel = document.getElementById('profilePanel');
         const chatBackBtn = document.getElementById('chatBackBtn');
-        const mobileProfileBtn = document.getElementById('mobileProfileBtn');
         const profileBackBtn = document.getElementById('profileBackBtn');
+        const mobileProfileBtn = document.getElementById('mobileProfileBtn');
+        
+        // Элементы поиска
         const searchIcon = document.getElementById('searchIcon');
         const searchBar = document.getElementById('searchBar');
         const userSearchInput = document.getElementById('userSearch');
         const searchCloseBtn = document.getElementById('searchCloseBtn');
+        const searchResults = document.getElementById('searchResults');
 
         // Элементы ответов и профиля пользователя
         const replyPreview = document.getElementById('replyPreview');
@@ -2045,7 +2095,6 @@
 
         function showProfilePanel() {
             if (!isMobile()) return;
-            console.log('Открываем профиль');
             profilePanel.classList.add('active');
             mobileOverlay.classList.add('active');
         }
@@ -2073,7 +2122,7 @@
 
         chatBackBtn.addEventListener('click', goToChatList);
         
-        // Кнопка профиля в мобильной версии
+        // Кнопка профиля слева
         if (mobileProfileBtn) {
             mobileProfileBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -2088,7 +2137,13 @@
             });
         }
 
-        // ==================== ПОИСК ПО ИКОНКЕ ====================
+        // ===============================================
+        // УЛУЧШЕННЫЙ ПОИСК
+        // ===============================================
+
+        let searchTimeout = null;
+
+        // Открыть поиск
         if (searchIcon) {
             searchIcon.addEventListener('click', () => {
                 searchBar.style.display = 'flex';
@@ -2096,32 +2151,92 @@
             });
         }
 
+        // Закрыть поиск
         if (searchCloseBtn) {
             searchCloseBtn.addEventListener('click', () => {
                 searchBar.style.display = 'none';
+                searchResults.style.display = 'none';
                 userSearchInput.value = '';
-                loadChats(); // возвращаем все чаты
             });
         }
 
-        // Поиск в реальном времени
+        // Функция поиска
+        async function performSearch() {
+            const term = userSearchInput.value.trim();
+            
+            if (term.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+            
+            try {
+                const { data: users, error } = await supabaseClient
+                    .from('users')
+                    .select('id, username, display_name, user_id_string')
+                    .or(`username.ilike.%${term}%,display_name.ilike.%${term}%,user_id_string.ilike.%${term}%`)
+                    .neq('id', currentUser.id)
+                    .limit(15);
+
+                if (error) throw error;
+
+                searchResults.innerHTML = '';
+
+                if (!users || users.length === 0) {
+                    searchResults.innerHTML = `<div style="padding:20px;color:#666;text-align:center;">Ничего не найдено</div>`;
+                    searchResults.style.display = 'block';
+                    return;
+                }
+
+                users.forEach(user => {
+                    const displayName = user.display_name !== '---' ? user.display_name : user.username;
+                    
+                    const div = document.createElement('div');
+                    div.className = 'search-result-item';
+                    div.innerHTML = `
+                        <div class="search-result-avatar">${displayName[0].toUpperCase()}</div>
+                        <div class="search-result-info">
+                            <div class="name">${displayName}</div>
+                            <div class="id">ID: ${user.user_id_string}</div>
+                        </div>
+                    `;
+                    
+                    div.addEventListener('click', async () => {
+                        // Добавляем в контакты
+                        await addToContactsIfNotExists(user);
+                        // Открываем чат
+                        selectChat(user.id, 'private');
+                        
+                        // Закрываем поиск
+                        searchBar.style.display = 'none';
+                        searchResults.style.display = 'none';
+                        userSearchInput.value = '';
+                    });
+                    
+                    searchResults.appendChild(div);
+                });
+
+                searchResults.style.display = 'block';
+            } catch (err) {
+                console.error('Ошибка поиска:', err);
+            }
+        }
+
+        // Поиск с debounce
         if (userSearchInput) {
             userSearchInput.addEventListener('input', () => {
-                const term = userSearchInput.value.toLowerCase().trim();
-                
-                document.querySelectorAll('.chat-item').forEach(item => {
-                    const name = item.querySelector('.chat-name').textContent.toLowerCase();
-                    const idEl = item.querySelector('.chat-id');
-                    const id = idEl ? idEl.textContent.toLowerCase() : '';
-                    
-                    if (name.includes(term) || id.includes(term)) {
-                        item.style.display = 'flex';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(performSearch, 300);
             });
         }
+
+        // Закрывать результаты при клике вне
+        document.addEventListener('click', (e) => {
+            if (searchBar && searchResults) {
+                if (!searchBar.contains(e.target) && !searchResults.contains(e.target) && e.target !== searchIcon) {
+                    searchResults.style.display = 'none';
+                }
+            }
+        });
 
         // ===============================================
         // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -2157,8 +2272,6 @@
 
         async function markMessagesAsRead() {
             if (!currentChat || !currentUser) return;
-            
-            // Для групповых чатов пока не реализуем (сложнее)
             if (currentChatType === 'group') return;
             
             const messageElements = document.querySelectorAll('.message:not(.own)');
@@ -2928,17 +3041,18 @@
         }
 
         // ===============================================
-        // ПОИСК ПОЛЬЗОВАТЕЛЕЙ
+        // ПОИСК ПОЛЬЗОВАТЕЛЕЙ (старый для десктопа)
         // ===============================================
 
-        // Старый поиск через кнопку оставляем для десктопа
         if (searchBtn) {
             searchBtn.addEventListener('click', searchUserById);
         }
         
-        userSearch.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') searchUserById();
-        });
+        if (userSearch) {
+            userSearch.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') searchUserById();
+            });
+        }
 
         async function searchUserById() {
             const searchId = userSearch.value.trim();
@@ -2962,11 +3076,6 @@
                     await addToContactsIfNotExists(foundUser);
                     userSearch.value = '';
                     alert(`Пользователь ${foundUser.display_name !== '---' ? foundUser.display_name : foundUser.username} добавлен в контакты`);
-                    
-                    // На мобильных закрываем поиск
-                    if (isMobile() && searchBar) {
-                        searchBar.style.display = 'none';
-                    }
                 } else {
                     alert('Пользователь с ID ' + searchId + ' не найден');
                 }
@@ -3075,7 +3184,7 @@
         });
 
         // ===============================================
-        // АДМИН-ПАНЕЛЬ (с кнопкой очистки истории)
+        // АДМИН-ПАНЕЛЬ
         // ===============================================
 
         adminPanelBtn.addEventListener('click', async () => {
@@ -3098,7 +3207,6 @@
 
                 if (error) throw error;
 
-                console.log('Загружено пользователей:', users.length);
                 renderAdminUsers(users);
             } catch (error) {
                 console.error('Ошибка загрузки пользователей:', error);
