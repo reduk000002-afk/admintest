@@ -3016,10 +3016,55 @@
         };
         
         // ===============================================
-        // КОНФЕРЕНЦИЯ — ИСПРАВЛЕННАЯ ВЕРСИЯ С РАСШИРЕННОЙ ОТЛАДКОЙ
+        // КОНФЕРЕНЦИЯ — ИСПРАВЛЕННАЯ ВЕРСИЯ
         // ===============================================
         
-        // Функция обновления UI участников - вынесена в глобальную область
+        // Функция получения удаленных участников
+        function getRemoteParticipants() {
+            if (!room) return [];
+            
+            const remoteParticipants = [];
+            
+            // Пробуем разные способы получить удаленных участников
+            if (room.remoteParticipants) {
+                // Способ 1: прямой доступ к remoteParticipants
+                if (room.remoteParticipants instanceof Map) {
+                    room.remoteParticipants.forEach(p => remoteParticipants.push(p));
+                } else if (typeof room.remoteParticipants.forEach === 'function') {
+                    room.remoteParticipants.forEach(p => remoteParticipants.push(p));
+                } else if (typeof room.remoteParticipants === 'object') {
+                    // Возможно это объект с ключами
+                    Object.values(room.remoteParticipants).forEach(p => {
+                        if (p && p.identity) remoteParticipants.push(p);
+                    });
+                }
+            }
+            
+            // Способ 2: через participants (если есть)
+            if (remoteParticipants.length === 0 && room.participants) {
+                if (room.participants instanceof Map) {
+                    room.participants.forEach(p => {
+                        if (p && p.identity !== room.localParticipant?.identity) {
+                            remoteParticipants.push(p);
+                        }
+                    });
+                }
+            }
+            
+            // Способ 3: если ничего не работает, логируем структуру room
+            if (remoteParticipants.length === 0) {
+                addDebugLog('📊 Структура room для отладки:', {
+                    hasRemoteParticipants: !!room.remoteParticipants,
+                    remoteType: room.remoteParticipants ? typeof room.remoteParticipants : 'undefined',
+                    hasParticipants: !!room.participants,
+                    localIdentity: room.localParticipant?.identity
+                });
+            }
+            
+            return remoteParticipants;
+        }
+        
+        // Функция обновления UI участников
         function updateParticipantsUI() {
             if (!room) {
                 addDebugLog('⚠️ updateParticipantsUI: room не существует');
@@ -3038,31 +3083,21 @@
                     micEnabled: room.localParticipant.isMicrophoneEnabled || false
                 });
                 addDebugLog(`👤 Локальный: ${room.localParticipant.identity}, mic: ${room.localParticipant.isMicrophoneEnabled}`);
-            } else {
-                addDebugLog('⚠️ Нет локального участника');
             }
             
-            // Добавляем удалённых участников
-            if (room.remoteParticipants) {
-                addDebugLog(`📊 remoteParticipants размер: ${room.remoteParticipants.size}`);
-                
-                if (room.remoteParticipants.size > 0) {
-                    room.remoteParticipants.forEach((p, key) => {
-                        if (p) {
-                            participants.push({
-                                identity: p.identity || 'Unknown',
-                                isLocal: false,
-                                micEnabled: p.isMicrophoneEnabled || false
-                            });
-                            addDebugLog(`👤 Удаленный: ${p.identity}, mic: ${p.isMicrophoneEnabled}`);
-                        }
-                    });
-                } else {
-                    addDebugLog('ℹ️ Нет удаленных участников');
-                }
-            } else {
-                addDebugLog('⚠️ room.remoteParticipants не существует');
-            }
+            // Получаем удаленных участников
+            const remoteParticipants = getRemoteParticipants();
+            addDebugLog(`📊 Найдено удаленных участников: ${remoteParticipants.length}`);
+            
+            // Добавляем удаленных участников
+            remoteParticipants.forEach(p => {
+                participants.push({
+                    identity: p.identity || 'Unknown',
+                    isLocal: false,
+                    micEnabled: p.isMicrophoneEnabled || false
+                });
+                addDebugLog(`👤 Удаленный: ${p.identity}, mic: ${p.isMicrophoneEnabled}`);
+            });
             
             // Обновляем счетчик
             participantsCount.textContent = `👥 ${participants.length}`;
@@ -3171,13 +3206,11 @@
                 // События LiveKit
                 room.on(LiveKit.RoomEvent.ParticipantConnected, (participant) => {
                     addDebugLog(`👤 Подключился участник: ${participant.identity}`);
-                    addDebugLog(`📊 Теперь remoteParticipants размер: ${room.remoteParticipants?.size || 0}`);
                     updateParticipantsUI();
                 });
                
                 room.on(LiveKit.RoomEvent.ParticipantDisconnected, (participant) => {
                     addDebugLog(`👤 Отключился участник: ${participant.identity}`);
-                    addDebugLog(`📊 Теперь remoteParticipants размер: ${room.remoteParticipants?.size || 0}`);
                     updateParticipantsUI();
                 });
                
