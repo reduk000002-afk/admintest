@@ -2953,163 +2953,165 @@
             }
         };
         // ===============================================
-        // АУДИО-КОНФЕРЕНЦИЯ (БЕЗ ВИДЕО) - ИСПРАВЛЕНО
+        // АУДИО-БРИФИНГ — ИСПРАВЛЕННАЯ ВЕРСИЯ
         // ===============================================
+
         conferenceBtn.addEventListener('click', async () => {
             const token = TOKENS[currentUser.username];
             if (!token) {
-                alert('У вас нет доступа к брифингу');
+                alert('Нет токена для брифинга');
                 return;
             }
-            
+
             if (room) {
-                try {
-                    room.disconnect();
-                } catch (e) {}
+                room.disconnect();
                 room = null;
             }
-            
+
             videoGrid.innerHTML = '';
             conferenceParticipants.innerHTML = '';
             videoModal.style.display = 'block';
             audioDebug.textContent = '🔄 Подключение...';
-            
-            // ПЕРЕДАЁМ ТОКЕН В ФУНКЦИЮ
-            startAudioConference(token);
+
+            await startAudioBriefing(token);
         });
 
-        async function startAudioConference(token) {  // ← ВАЖНО: добавляем параметр token
-            const LiveKit = window.LivekitClient || window.LiveKit;
-            
-            if (!LiveKit) {
-                alert('LiveKit SDK не загружен');
+        async function startAudioBriefing(token) {
+            if (!window.LiveKit) {
+                audioDebug.textContent = '❌ LiveKit не загружен';
                 return;
             }
-            
+
             try {
                 room = new LiveKit.Room({
                     adaptiveStream: false,
                     dynacast: false,
-                    videoCaptureDefaults: null,  // НИКАКОЙ КАМЕРЫ
+                    videoCaptureDefaults: null,
                     publishDefaults: {
-                        video: false,  // НИКОГДА НЕ ПУБЛИКОВАТЬ ВИДЕО
+                        video: false,
                         audio: true
                     }
                 });
 
+                // ─── СОБЫТИЯ ────────────────────────────────────────
                 room.on(LiveKit.RoomEvent.Connected, async () => {
                     audioDebug.textContent = '✅ Подключено';
-                    console.log("✅ Подключился к брифингу");
-                    
+                    console.log("Комната:", ROOM_NAME, "Identity:", room.localParticipant?.identity);
+
                     try {
-                        // Включаем микрофон
                         await room.localParticipant.setMicrophoneEnabled(true);
-                        audioDebug.textContent = '🎤 Микрофон включён';
-                        updateMicButton();
+                        audioDebug.textContent = '🎤 Микрофон активен';
+                        updateMicButtonUI();
+                        updateParticipantsList();
                     } catch (err) {
-                        console.error("❌ Ошибка с микрофоном:", err);
+                        console.error("Микрофон не запустился:", err);
                         audioDebug.textContent = '⚠️ Проблема с микрофоном';
                     }
-                    
-                    updateParticipantsUI();
-                    startAudioReconnectTimer();
+
+                    startReconnectTimer();
                 });
 
-                // Функция обновления UI участников
-                function updateParticipantsUI() {
-                    if (!room) return;
-                    
-                    const participants = [];
-                    
-                    // Локальный участник
-                    if (room.localParticipant) {
-                        participants.push({
-                            identity: room.localParticipant.identity || currentUser.username,
-                            isLocal: true,
-                            mic: room.localParticipant.isMicrophoneEnabled || false
-                        });
-                    }
-                    
-                    // Удалённые участники
-                    if (room.remoteParticipants) {
-                        room.remoteParticipants.forEach(p => {
-                            participants.push({
-                                identity: p.identity,
-                                isLocal: false,
-                                mic: p.isMicrophoneEnabled || false
-                            });
-                        });
-                    }
-                    
-                    participantsCount.textContent = `👥 ${participants.length}`;
-                    
-                    // Квадратики участников
-                    videoGrid.innerHTML = participants.map(p => `
-                        <div class="video-wrapper ${p.isLocal ? 'local' : ''}">
-                            <div class="participant-avatar-big">${p.identity[0].toUpperCase()}</div>
-                            <div class="participant-name-big">${p.identity} ${p.isLocal ? '(Вы)' : ''}</div>
-                            <div class="mic-status ${p.mic ? 'mic-on' : 'mic-off'}">
-                                ${p.mic ? '🎤' : '🔇'}
-                            </div>
-                        </div>
-                    `).join('');
-                    
-                    // Список в сайдбаре
-                    conferenceParticipants.innerHTML = participants.map(p => `
-                        <div class="participant-item ${p.isLocal ? 'local' : ''}">
-                            <div class="participant-avatar">${p.identity[0].toUpperCase()}</div>
-                            <div class="participant-name">${p.identity} ${p.isLocal ? '(Вы)' : ''}</div>
-                            <div class="mic-status ${p.mic ? 'mic-on' : 'mic-off'}">${p.mic ? '🎤' : '🔇'}</div>
-                        </div>
-                    `).join('');
-                }
-
-                room.on(LiveKit.RoomEvent.ParticipantConnected, updateParticipantsUI);
-                room.on(LiveKit.RoomEvent.ParticipantDisconnected, updateParticipantsUI);
-                room.on(LiveKit.RoomEvent.TrackSubscribed, updateParticipantsUI);
-                room.on(LiveKit.RoomEvent.TrackUnsubscribed, updateParticipantsUI);
-                room.on(LiveKit.RoomEvent.TrackMuted, updateParticipantsUI);
-                room.on(LiveKit.RoomEvent.TrackUnmuted, updateParticipantsUI);
-                room.on(LiveKit.RoomEvent.LocalTrackPublished, updateParticipantsUI);
-                room.on(LiveKit.RoomEvent.LocalTrackUnpublished, updateParticipantsUI);
+                room.on(LiveKit.RoomEvent.ParticipantConnected,    updateParticipantsList);
+                room.on(LiveKit.RoomEvent.ParticipantDisconnected, updateParticipantsList);
+                room.on(LiveKit.RoomEvent.TrackSubscribed,         updateParticipantsList);
+                room.on(LiveKit.RoomEvent.TrackUnsubscribed,       updateParticipantsList);
+                room.on(LiveKit.RoomEvent.TrackMuted,              updateParticipantsList);
+                room.on(LiveKit.RoomEvent.TrackUnmuted,            updateParticipantsList);
+                room.on(LiveKit.RoomEvent.LocalTrackPublished,     updateParticipantsList);
+                room.on(LiveKit.RoomEvent.LocalTrackUnpublished,   updateParticipantsList);
 
                 room.on(LiveKit.RoomEvent.Disconnected, () => {
                     audioDebug.textContent = '📴 Отключено';
-                    if (audioReconnectTimer) clearInterval(audioReconnectTimer);
+                    clearInterval(audioReconnectTimer);
+                    room = null;
                 });
 
+                // Подключаемся
                 await room.connect(LIVEKIT_URL, token, {
-                    roomName: ROOM_NAME,
                     autoSubscribe: true
                 });
-            } catch (error) {
-                console.error('❌ Ошибка подключения к конференции:', error);
-                audioDebug.textContent = '❌ Ошибка';
+
+            } catch (err) {
+                console.error("Ошибка подключения:", err);
+                audioDebug.textContent = '❌ ' + (err.message || 'Не удалось подключиться');
             }
         }
 
+        // ─── КНОПКА МИКРОФОНА ────────────────────────────────────────
         videoMicBtn.addEventListener('click', async () => {
             if (!room?.localParticipant) return;
-            
+
             try {
-                const currentlyEnabled = room.localParticipant.isMicrophoneEnabled;
-                await room.localParticipant.setMicrophoneEnabled(!currentlyEnabled);
-                updateMicButton();
-                updateParticipantsUI();
-                audioDebug.textContent = !currentlyEnabled ? '🎤 Микрофон включён' : '🔇 Микрофон выключен';
-            } catch (e) {
-                console.error('Ошибка микрофона:', e);
+                const nowEnabled = room.localParticipant.isMicrophoneEnabled;
+                await room.localParticipant.setMicrophoneEnabled(!nowEnabled);
+                updateMicButtonUI();
+                updateParticipantsList();
+                audioDebug.textContent = !nowEnabled ? '🎤 Включён' : '🔇 Выключен';
+            } catch (err) {
+                console.error("Ошибка переключения микрофона:", err);
+                audioDebug.textContent = '⚠️ Ошибка микрофона';
             }
         });
 
-        function updateMicButton() {
+        function updateMicButtonUI() {
             if (!room?.localParticipant) return;
             const enabled = room.localParticipant.isMicrophoneEnabled;
             videoMicBtn.textContent = enabled ? '🎤' : '🔇';
             videoMicBtn.classList.toggle('mic-off', !enabled);
-            videoMicBtn.title = enabled ? 'Выключить микрофон' : 'Включить микрофон';
         }
 
+        // ─── ОБНОВЛЕНИЕ СПИСКА УЧАСТНИКОВ ────────────────────────────
+        function updateParticipantsList() {
+            if (!room) return;
+
+            const list = [];
+
+            // Локальный
+            if (room.localParticipant) {
+                list.push({
+                    identity: room.localParticipant.identity || currentUser?.username || 'Вы',
+                    isLocal: true,
+                    mic: room.localParticipant.isMicrophoneEnabled || false
+                });
+            }
+
+            // Удалённые
+            room.remoteParticipants.forEach(p => {
+                list.push({
+                    identity: p.identity || '???',
+                    isLocal: false,
+                    mic: p.isMicrophoneEnabled || false
+                });
+            });
+
+            participantsCount.textContent = `👥 ${list.length}`;
+
+            if (list.length <= 1) {
+                audioDebug.textContent = 'Ожидание других участников...';
+            }
+
+            // Квадратики
+            videoGrid.innerHTML = list.map(p => `
+                <div class="video-wrapper ${p.isLocal ? 'local' : ''}">
+                    <div class="participant-avatar-big">${p.identity[0].toUpperCase()}</div>
+                    <div class="participant-name-big">${p.identity}${p.isLocal ? ' (Вы)' : ''}</div>
+                    <div class="mic-status ${p.mic ? 'mic-on' : 'mic-off'}">
+                        ${p.mic ? '🎤' : '🔇'}
+                    </div>
+                </div>
+            `).join('');
+
+            // Сайдбар
+            conferenceParticipants.innerHTML = list.map(p => `
+                <div class="participant-item ${p.isLocal ? 'local' : ''}">
+                    <div class="participant-avatar">${p.identity[0].toUpperCase()}</div>
+                    <div class="participant-name">${p.identity}${p.isLocal ? ' (Вы)' : ''}</div>
+                    <div class="mic-status ${p.mic ? 'mic-on' : 'mic-off'}">${p.mic ? '🎤' : '🔇'}</div>
+                </div>
+            `).join('');
+        }
+
+        // ─── ВЫХОД ────────────────────────────────────────────────────
         videoLeaveBtn.addEventListener('click', () => {
             if (room) {
                 room.disconnect();
@@ -3117,24 +3119,29 @@
             }
             videoModal.style.display = 'none';
             if (audioReconnectTimer) clearInterval(audioReconnectTimer);
+            audioDebug.textContent = '';
         });
 
-        function startAudioReconnectTimer() {
+        // ─── ТАЙМЕР ПЕРЕПОДКЛЮЧЕНИЯ АУДИО ─────────────────────────────
+        function startReconnectTimer() {
             if (audioReconnectTimer) clearInterval(audioReconnectTimer);
-            
+
             audioReconnectTimer = setInterval(async () => {
                 if (!room?.localParticipant) return;
-                
-                const enabled = room.localParticipant.isMicrophoneEnabled;
-                await room.localParticipant.setMicrophoneEnabled(false);
-                await new Promise(r => setTimeout(r, 500));
-                await room.localParticipant.setMicrophoneEnabled(enabled);
-                
-                audioDebug.textContent = '🔄 Аудио переподключено';
-                setTimeout(() => {
-                    audioDebug.textContent = room?.localParticipant?.isMicrophoneEnabled ? '🎤 В брифинге' : '🔇 В брифинге';
-                }, 2000);
-            }, 180000);
+
+                try {
+                    const wasEnabled = room.localParticipant.isMicrophoneEnabled;
+                    await room.localParticipant.setMicrophoneEnabled(false);
+                    await new Promise(r => setTimeout(r, 400));
+                    await room.localParticipant.setMicrophoneEnabled(wasEnabled);
+                    audioDebug.textContent = '🔄 Аудио перезапущено';
+                    setTimeout(() => {
+                        audioDebug.textContent = wasEnabled ? '🎤 Активен' : '🔇 Выключен';
+                    }, 1800);
+                } catch (e) {
+                    console.warn("Переподключение аудио не удалось", e);
+                }
+            }, 180000); // 3 минуты
         }
 
         document.addEventListener('keydown', (e) => {
