@@ -3328,7 +3328,7 @@
         };
 
         // ===============================================
-        // КОНФЕРЕНЦИЯ — ТОЛЬКО АУДИО (без камеры)
+        // КОНФЕРЕНЦИЯ — ТОЛЬКО АУДИО (исправленная версия)
         // ===============================================
 
         conferenceBtn.addEventListener('click', async () => {
@@ -3367,16 +3367,24 @@
                     dynacast: true
                 });
 
-                // Никогда не включаем камеру
+                // Обработка подключения
                 room.on(LiveKit.RoomEvent.Connected, async () => {
                     audioDebug.textContent = '✅ Подключено (только аудио)';
+                    console.log("✅ Успешно подключился к комнате", ROOM_NAME);
+                    console.log("👤 Мой identity:", room.localParticipant?.identity);
                     
-                    // Включаем только микрофон
                     try {
+                        // Отключаем видео на всякий случай (но не блокируем)
+                        await room.localParticipant.setCameraEnabled(false);
+                        
+                        // Явно включаем микрофон - этого достаточно для публикации аудио
                         await room.localParticipant.setMicrophoneEnabled(true);
-                        await room.localParticipant.setCameraEnabled(false); // на всякий случай
+                        
+                        console.log("🎤 Микрофон включён, аудио публикуется");
+                        audioDebug.textContent = '🎤 Микрофон активен';
                     } catch (err) {
-                        console.warn('Ошибка включения микрофона:', err);
+                        console.error("❌ Ошибка с микрофоном:", err);
+                        audioDebug.textContent = '⚠️ Проблема с микрофоном';
                     }
                     
                     updateParticipantsUI();
@@ -3386,6 +3394,13 @@
                 // Обновление списка участников
                 function updateParticipantsUI() {
                     if (!room) return;
+                    
+                    console.log("[UI] Всего remote participants:", room.remoteParticipants?.size || 0);
+                    if (room.remoteParticipants) {
+                        room.remoteParticipants.forEach((p, key) => {
+                            console.log(` → ${key}: mic=${p.isMicrophoneEnabled}, tracks=${p.tracks.size}`);
+                        });
+                    }
                     
                     const list = [];
                     
@@ -3435,73 +3450,77 @@
                 }
 
                 // События участников
-                room.on(LiveKit.RoomEvent.ParticipantConnected, updateParticipantsUI);
-                room.on(LiveKit.RoomEvent.ParticipantDisconnected, updateParticipantsUI);
-                room.on(LiveKit.RoomEvent.TrackSubscribed, updateParticipantsUI);
-                room.on(LiveKit.RoomEvent.TrackUnsubscribed, updateParticipantsUI);
+                room.on(LiveKit.RoomEvent.ParticipantConnected, (participant) => {
+                    console.log("👤 Участник подключился:", participant.identity);
+                    updateParticipantsUI();
+                });
+                
+                room.on(LiveKit.RoomEvent.ParticipantDisconnected, (participant) => {
+                    console.log("👤 Участник отключился:", participant.identity);
+                    updateParticipantsUI();
+                });
+                
+                room.on(LiveKit.RoomEvent.TrackSubscribed, (track, publication, participant) => {
+                    console.log(`📡 Трек подписан: ${track.kind} от ${participant.identity}`);
+                    if (track.kind === 'audio') {
+                        const audioEl = track.attach();
+                        audioEl.volume = 1.0;
+                        audioEl.muted = false;
+                        audioEl.play().catch(e => console.warn('Ошибка воспроизведения аудио:', e));
+                    }
+                    updateParticipantsUI();
+                });
+                
+                room.on(LiveKit.RoomEvent.TrackUnsubscribed, (track) => {
+                    console.log("📡 Трек отписан");
+                    track.detach().forEach(el => el.remove());
+                    updateParticipantsUI();
+                });
+
+                room.on(LiveKit.RoomEvent.TrackMuted, (pub, participant) => {
+                    console.log(`🔇 Микрофон выключен у ${participant.identity}`);
+                    updateParticipantsUI();
+                });
+                
+                room.on(LiveKit.RoomEvent.TrackUnmuted, (pub, participant) => {
+                    console.log(`🎤 Микрофон включён у ${participant.identity}`);
+                    updateParticipantsUI();
+                });
 
                 room.on(LiveKit.RoomEvent.Disconnected, () => {
+                    console.log("📴 Отключено от конференции");
                     audioDebug.textContent = '📴 Отключено';
                     if (audioReconnectTimer) clearInterval(audioReconnectTimer);
                 });
 
-                // Подключаемся ТОЛЬКО с аудио
+                // Подключаемся
+                console.log("🔄 Подключаюсь к комнате...");
                 await room.connect(LIVEKIT_URL, token, {
                     roomName: ROOM_NAME,
                     autoSubscribe: true
                 });
+                console.log("✅ Подключение выполнено");
 
             } catch (error) {
-                console.error('Ошибка подключения к конференции:', error);
+                console.error('❌ Ошибка подключения к конференции:', error);
                 audioDebug.textContent = '❌ Ошибка';
             }
         }
 
-        // Кнопка микрофона — максимально надёжная
+        // Кнопка микрофона
         videoMicBtn.addEventListener('click', async () => {
             if (!room?.localParticipant) return;
             
             try {
                 const currentlyEnabled = room.localParticipant.isMicrophoneEnabled;
+                console.log(`🎤 Переключение микрофона: ${currentlyEnabled ? 'выкл' : 'вкл'}`);
+                
                 await room.localParticipant.setMicrophoneEnabled(!currentlyEnabled);
                 
                 videoMicBtn.textContent = !currentlyEnabled ? '🎤' : '🔇';
                 videoMicBtn.classList.toggle('mic-off', currentlyEnabled);
                 
-                // Обновляем UI
-                if (room) {
-                    const list = [];
-                    
-                    if (room.localParticipant) {
-                        list.push({
-                            identity: room.localParticipant.identity,
-                            isLocal: true,
-                            mic: room.localParticipant.isMicrophoneEnabled
-                        });
-                    }
-                    
-                    // Обновляем отображение
-                    const videoWrappers = document.querySelectorAll('.video-wrapper');
-                    if (videoWrappers.length > 0) {
-                        const localWrapper = Array.from(videoWrappers).find(w => w.classList.contains('local'));
-                        if (localWrapper) {
-                            const micStatus = localWrapper.querySelector('.mic-status');
-                            if (micStatus) {
-                                micStatus.className = `mic-status ${room.localParticipant.isMicrophoneEnabled ? 'mic-on' : 'mic-off'}`;
-                                micStatus.textContent = room.localParticipant.isMicrophoneEnabled ? '🎤' : '🔇';
-                            }
-                        }
-                    }
-                }
-                
-                // Дополнительная защита от случайного включения
-                if (!currentlyEnabled) {
-                    setTimeout(() => {
-                        if (room && room.localParticipant && !room.localParticipant.isMicrophoneEnabled) {
-                            console.log('Микрофон выключен');
-                        }
-                    }, 500);
-                }
+                updateParticipantsUI();
             } catch (e) {
                 console.error('Ошибка микрофона:', e);
                 alert('Не удалось переключить микрофон');
