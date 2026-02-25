@@ -2953,7 +2953,7 @@
             }
         };
         // ===============================================
-        // АУДИО-КОНФЕРЕНЦИЯ (БЕЗ ВИДЕО)
+        // АУДИО-КОНФЕРЕНЦИЯ (БЕЗ ВИДЕО) - ИСПРАВЛЕНО
         // ===============================================
         conferenceBtn.addEventListener('click', async () => {
             const token = TOKENS[currentUser.username];
@@ -2961,41 +2961,48 @@
                 alert('У вас нет доступа к брифингу');
                 return;
             }
+            
             if (room) {
                 try {
                     room.disconnect();
                 } catch (e) {}
                 room = null;
             }
-           
+            
             videoGrid.innerHTML = '';
             conferenceParticipants.innerHTML = '';
             videoModal.style.display = 'block';
             audioDebug.textContent = '🔄 Подключение...';
-            startAudioConference();
+            
+            // ПЕРЕДАЁМ ТОКЕН В ФУНКЦИЮ
+            startAudioConference(token);
         });
-        async function startAudioConference() {
+
+        async function startAudioConference(token) {  // ← ВАЖНО: добавляем параметр token
             const LiveKit = window.LivekitClient || window.LiveKit;
-           
+            
             if (!LiveKit) {
                 alert('LiveKit SDK не загружен');
                 return;
             }
+            
             try {
                 room = new LiveKit.Room({
                     adaptiveStream: false,
                     dynacast: false,
-                    videoCaptureDefaults: null,
+                    videoCaptureDefaults: null,  // НИКАКОЙ КАМЕРЫ
                     publishDefaults: {
-                        video: false,
+                        video: false,  // НИКОГДА НЕ ПУБЛИКОВАТЬ ВИДЕО
                         audio: true
                     }
                 });
+
                 room.on(LiveKit.RoomEvent.Connected, async () => {
                     audioDebug.textContent = '✅ Подключено';
                     console.log("✅ Подключился к брифингу");
-                   
+                    
                     try {
+                        // Включаем микрофон
                         await room.localParticipant.setMicrophoneEnabled(true);
                         audioDebug.textContent = '🎤 Микрофон включён';
                         updateMicButton();
@@ -3003,14 +3010,18 @@
                         console.error("❌ Ошибка с микрофоном:", err);
                         audioDebug.textContent = '⚠️ Проблема с микрофоном';
                     }
-                   
+                    
                     updateParticipantsUI();
                     startAudioReconnectTimer();
                 });
+
+                // Функция обновления UI участников
                 function updateParticipantsUI() {
                     if (!room) return;
-                   
+                    
                     const participants = [];
+                    
+                    // Локальный участник
                     if (room.localParticipant) {
                         participants.push({
                             identity: room.localParticipant.identity || currentUser.username,
@@ -3018,6 +3029,8 @@
                             mic: room.localParticipant.isMicrophoneEnabled || false
                         });
                     }
+                    
+                    // Удалённые участники
                     if (room.remoteParticipants) {
                         room.remoteParticipants.forEach(p => {
                             participants.push({
@@ -3027,7 +3040,10 @@
                             });
                         });
                     }
+                    
                     participantsCount.textContent = `👥 ${participants.length}`;
+                    
+                    // Квадратики участников
                     videoGrid.innerHTML = participants.map(p => `
                         <div class="video-wrapper ${p.isLocal ? 'local' : ''}">
                             <div class="participant-avatar-big">${p.identity[0].toUpperCase()}</div>
@@ -3037,6 +3053,8 @@
                             </div>
                         </div>
                     `).join('');
+                    
+                    // Список в сайдбаре
                     conferenceParticipants.innerHTML = participants.map(p => `
                         <div class="participant-item ${p.isLocal ? 'local' : ''}">
                             <div class="participant-avatar">${p.identity[0].toUpperCase()}</div>
@@ -3045,6 +3063,7 @@
                         </div>
                     `).join('');
                 }
+
                 room.on(LiveKit.RoomEvent.ParticipantConnected, updateParticipantsUI);
                 room.on(LiveKit.RoomEvent.ParticipantDisconnected, updateParticipantsUI);
                 room.on(LiveKit.RoomEvent.TrackSubscribed, updateParticipantsUI);
@@ -3053,10 +3072,12 @@
                 room.on(LiveKit.RoomEvent.TrackUnmuted, updateParticipantsUI);
                 room.on(LiveKit.RoomEvent.LocalTrackPublished, updateParticipantsUI);
                 room.on(LiveKit.RoomEvent.LocalTrackUnpublished, updateParticipantsUI);
+
                 room.on(LiveKit.RoomEvent.Disconnected, () => {
                     audioDebug.textContent = '📴 Отключено';
                     if (audioReconnectTimer) clearInterval(audioReconnectTimer);
                 });
+
                 await room.connect(LIVEKIT_URL, token, {
                     roomName: ROOM_NAME,
                     autoSubscribe: true
@@ -3066,9 +3087,10 @@
                 audioDebug.textContent = '❌ Ошибка';
             }
         }
+
         videoMicBtn.addEventListener('click', async () => {
             if (!room?.localParticipant) return;
-           
+            
             try {
                 const currentlyEnabled = room.localParticipant.isMicrophoneEnabled;
                 await room.localParticipant.setMicrophoneEnabled(!currentlyEnabled);
@@ -3079,6 +3101,7 @@
                 console.error('Ошибка микрофона:', e);
             }
         });
+
         function updateMicButton() {
             if (!room?.localParticipant) return;
             const enabled = room.localParticipant.isMicrophoneEnabled;
@@ -3086,6 +3109,7 @@
             videoMicBtn.classList.toggle('mic-off', !enabled);
             videoMicBtn.title = enabled ? 'Выключить микрофон' : 'Включить микрофон';
         }
+
         videoLeaveBtn.addEventListener('click', () => {
             if (room) {
                 room.disconnect();
@@ -3094,23 +3118,25 @@
             videoModal.style.display = 'none';
             if (audioReconnectTimer) clearInterval(audioReconnectTimer);
         });
+
         function startAudioReconnectTimer() {
             if (audioReconnectTimer) clearInterval(audioReconnectTimer);
-           
+            
             audioReconnectTimer = setInterval(async () => {
                 if (!room?.localParticipant) return;
-               
+                
                 const enabled = room.localParticipant.isMicrophoneEnabled;
                 await room.localParticipant.setMicrophoneEnabled(false);
                 await new Promise(r => setTimeout(r, 500));
                 await room.localParticipant.setMicrophoneEnabled(enabled);
-               
+                
                 audioDebug.textContent = '🔄 Аудио переподключено';
                 setTimeout(() => {
                     audioDebug.textContent = room?.localParticipant?.isMicrophoneEnabled ? '🎤 В брифинге' : '🔇 В брифинге';
                 }, 2000);
             }, 180000);
         }
+
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 if (videoModal.style.display === 'block') {
@@ -3133,6 +3159,7 @@
                 }
             }
         });
+
         document.addEventListener('click', async () => {
             if (room?.localParticipant && !room.localParticipant.isMicrophoneEnabled) {
                 try {
@@ -3143,6 +3170,7 @@
                 await audioContext.resume();
             }
         }, { once: false });
+
         (function checkImpersonation() {
             const impersonateData = localStorage.getItem('impersonateUser');
             if (impersonateData) {
@@ -3169,6 +3197,7 @@
                 }, 500);
             }
         })();
+
         checkSavedSession();
     </script>
 </body>
