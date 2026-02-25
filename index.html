@@ -1504,8 +1504,13 @@
             color: #f0b90b;
         }
 
-        #participantsCount {
-            display: none; /* Скрываем счётчик */
+        .participants-count {
+            background: #1a1a1a;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #f0b90b;
+            border: 1px solid #333;
         }
 
         .video-grid-container {
@@ -1872,7 +1877,7 @@
     <div class="video-modal" id="videoModal">
         <div class="video-header">
             <div class="video-title">🔐 Secure Audio Briefing</div>
-            <div id="participantsCount" style="display: none;"></div>
+            <div class="participants-count" id="participantsCount">👥 0</div>
         </div>
         
         <div class="video-grid-container">
@@ -1970,6 +1975,7 @@
         const videoGrid = document.getElementById('videoGrid');
         const videoMicBtn = document.getElementById('videoMicBtn');
         const videoLeaveBtn = document.getElementById('videoLeaveBtn');
+        const participantsCount = document.getElementById('participantsCount');
         const conferenceParticipants = document.getElementById('conferenceParticipants');
         const participantsSidebar = document.getElementById('participantsSidebar');
         const audioDebug = document.getElementById('audioDebug');
@@ -3346,6 +3352,13 @@
         });
 
         async function startAudioOnlyConference(token) {
+            const LiveKit = window.LivekitClient || window.LiveKit;
+            
+            if (!LiveKit) {
+                alert('LiveKit SDK не загружен');
+                return;
+            }
+
             try {
                 room = new LiveKit.Room({
                     adaptiveStream: true,
@@ -3394,13 +3407,17 @@
                     }
 
                     // Все остальные
-                    room.remoteParticipants.forEach(p => {
-                        list.push({
-                            identity: p.identity,
-                            isLocal: false,
-                            mic: p.isMicrophoneEnabled || false
+                    if (room.remoteParticipants) {
+                        room.remoteParticipants.forEach(p => {
+                            if (p) {
+                                list.push({
+                                    identity: p.identity,
+                                    isLocal: false,
+                                    mic: p.isMicrophoneEnabled || false
+                                });
+                            }
                         });
-                    });
+                    }
 
                     // Рендер квадратиков (все участники, включая себя)
                     videoGrid.innerHTML = list.map(p => `
@@ -3421,6 +3438,8 @@
                             <div class="mic-status ${p.mic ? 'mic-on' : 'mic-off'}">${p.mic ? '🎤' : '🔇'}</div>
                         </div>
                     `).join('');
+                    
+                    participantsCount.textContent = `👥 ${list.length}`;
                 }
 
                 // ==================== СОБЫТИЯ ====================
