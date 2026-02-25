@@ -574,9 +574,6 @@
                 flex: 1;
             }
            
-            .left-header, .search-icon, .search-bar {
-                display: none;
-            }
             .read-status {
                 font-size: 14px;
                 color: #4caf50;
@@ -587,46 +584,138 @@
         .users-panel {
             background: #111;
             border-right: 1px solid #333;
-            padding: 20px 0;
+            padding: 0;
             overflow-y: auto;
             width: 100%;
+            display: flex;
+            flex-direction: column;
         }
         .panel-header {
-            padding: 0 20px 20px;
+            padding: 16px 20px;
             border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #111;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
-        .panel-title {
+        .left-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .left-header .profile-icon {
+            width: 36px;
+            height: 36px;
+            background: #222;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f0b90b;
+            font-weight: 600;
+            border: 2px solid #f0b90b;
             font-size: 18px;
+        }
+        .header-text {
+            font-size: 17px;
             font-weight: 600;
             color: #f0b90b;
-            margin-bottom: 15px;
         }
-        .search-container {
+        .panel-title {
+            display: none;
+        }
+        .search-icon {
+            font-size: 24px;
+            color: #f0b90b;
+            cursor: pointer;
+            padding: 6px;
+            background: #222;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
             display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            padding: 0 20px;
+            align-items: center;
+            justify-content: center;
         }
-        .search-input {
+        .search-icon:hover {
+            background: #333;
+        }
+        .search-bar {
+            padding: 12px 20px;
+            background: #111;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .search-bar input {
             flex: 1;
             padding: 10px 15px;
             background: #1a1a1a;
-            border: 1px solid #333;
+            border: 1px solid #f0b90b;
             border-radius: 12px;
             color: #f0b90b;
             font-size: 14px;
         }
-        .search-btn {
-            padding: 10px 20px;
-            background: #f0b90b;
+        .search-close-btn {
+            background: none;
             border: none;
-            border-radius: 12px;
-            color: #0a0a0a;
-            font-weight: 600;
+            color: #ff4444;
+            font-size: 20px;
             cursor: pointer;
+            padding: 5px 10px;
+        }
+        .search-results {
+            background: #111;
+            border-bottom: 1px solid #333;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .search-result-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #222;
+        }
+        .search-result-item:hover {
+            background: #1a1a1a;
+        }
+        .search-result-avatar {
+            width: 36px;
+            height: 36px;
+            background: #222;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f0b90b;
+            font-weight: 600;
+            border: 2px solid #f0b90b;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .search-result-info {
+            flex: 1;
+        }
+        .search-result-info .name {
+            font-weight: 600;
+            color: #fff;
+            font-size: 14px;
+        }
+        .search-result-info .id {
+            font-size: 12px;
+            color: #888;
         }
         .chat-list {
             padding: 10px 0;
+            flex: 1;
+            overflow-y: auto;
         }
         .chat-item {
             display: flex;
@@ -698,6 +787,7 @@
             gap: 15px;
             background: #111;
             flex-shrink: 0;
+            position: relative;
         }
         .chat-header .back-btn {
             display: flex;
@@ -736,6 +826,40 @@
             background: transparent;
             border: 2px solid #f0b90b;
             color: #f0b90b;
+        }
+        /* Индикатор активного звонка */
+        .active-call-bar {
+            background: #2ecc71;
+            color: #000;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 14px;
+            border-bottom: 1px solid #27ae60;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .active-call-bar:hover {
+            background: #27ae60;
+        }
+        .active-call-bar .call-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .active-call-bar .call-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .active-call-bar .call-actions span {
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .active-call-bar .call-actions span:hover {
+            background: rgba(0,0,0,0.1);
         }
         .messages-container {
             flex: 1;
@@ -1331,6 +1455,21 @@
             color: #f0b90b;
             border: 1px solid #333;
         }
+        .minimize-btn {
+            background: #333;
+            color: #f0b90b;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .minimize-btn:hover {
+            background: #444;
+        }
         .video-grid-container {
             display: grid;
             grid-template-columns: 1fr 280px;
@@ -1580,19 +1719,36 @@
         <!-- Левая панель - пользователи -->
         <div class="users-panel" id="usersPanel">
             <div class="panel-header">
+                <!-- Слева — Профиль -->
                 <div class="left-header" id="mobileProfileBtn">
                     <div class="profile-icon">👤</div>
                     <span class="header-text">Профиль</span>
                 </div>
+               
+                <!-- Справа — Поиск -->
                 <span class="search-icon" id="searchIcon">🔍</span>
             </div>
            
+            <!-- Строка поиска (появляется по клику) -->
             <div class="search-bar" id="searchBar" style="display: none;">
                 <input type="text" class="search-input" id="userSearch" placeholder="Поиск по имени или ID...">
                 <button class="search-close-btn" id="searchCloseBtn">✕</button>
             </div>
            
+            <!-- Результаты поиска -->
             <div class="search-results" id="searchResults" style="display: none;"></div>
+           
+            <!-- Индикатор активного звонка -->
+            <div class="active-call-bar" id="activeCallBar" style="display: none;">
+                <div class="call-info">
+                    <span>🔴</span>
+                    <span>Активный звонок</span>
+                </div>
+                <div class="call-actions">
+                    <span id="returnToCallBtn">🔊 Вернуться</span>
+                    <span id="endCallFromBarBtn">✕ Завершить</span>
+                </div>
+            </div>
            
             <div class="chat-list" id="chatList"></div>
         </div>
@@ -1671,10 +1827,10 @@
     <!-- Модальное окно подтверждения -->
     <div class="confirm-modal" id="confirmModal">
         <div class="confirm-content">
-            <div class="confirm-title">⚠️ Очистка истории</div>
-            <div class="confirm-text" id="confirmText">Вы уверены, что хотите очистить историю для этого пользователя?</div>
+            <div class="confirm-title" id="confirmTitle">⚠️ Подтверждение</div>
+            <div class="confirm-text" id="confirmText">Вы уверены, что хотите выйти из конференции?</div>
             <div class="confirm-buttons">
-                <button class="confirm-btn yes" id="confirmYesBtn">Да, очистить</button>
+                <button class="confirm-btn yes" id="confirmYesBtn">Да, выйти</button>
                 <button class="confirm-btn no" id="confirmNoBtn">Отмена</button>
             </div>
         </div>
@@ -1705,6 +1861,7 @@
         <div class="video-header">
             <div class="video-title">🔐 Secure Audio Briefing</div>
             <div class="participants-count" id="participantsCount">👥 1</div>
+            <button class="minimize-btn" id="minimizeConferenceBtn">⤵ Свернуть</button>
         </div>
        
         <div class="video-grid-container">
@@ -1759,6 +1916,7 @@
         let replyingTo = null;
         let selectedUserForProfile = null;
         let pendingClearUserId = null;
+        let isConferenceActive = false;
         
         // DOM элементы
         const authContainer = document.getElementById('authContainer');
@@ -1807,6 +1965,19 @@
         const participantsSidebar = document.getElementById('participantsSidebar');
         const audioDebug = document.getElementById('audioDebug');
         const hiddenVideoContainer = document.getElementById('hiddenVideoContainer');
+        const minimizeConferenceBtn = document.getElementById('minimizeConferenceBtn');
+        
+        // Элементы активного звонка
+        const activeCallBar = document.getElementById('activeCallBar');
+        const returnToCallBtn = document.getElementById('returnToCallBtn');
+        const endCallFromBarBtn = document.getElementById('endCallFromBarBtn');
+        
+        // Элементы подтверждения
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmTitle = document.getElementById('confirmTitle');
+        const confirmText = document.getElementById('confirmText');
+        const confirmYesBtn = document.getElementById('confirmYesBtn');
+        const confirmNoBtn = document.getElementById('confirmNoBtn');
         
         // Элементы отладки
         const debugPanel = document.getElementById('debugPanel');
@@ -1833,7 +2004,6 @@
             debugPanel.appendChild(div);
             debugPanel.scrollTop = debugPanel.scrollHeight;
             
-            // Ограничим количество строк
             while (debugPanel.children.length > 20) {
                 debugPanel.removeChild(debugPanel.firstChild);
             }
@@ -1868,12 +2038,6 @@
         const userProfileId = document.getElementById('userProfileId');
         const userProfileMessageBtn = document.getElementById('userProfileMessageBtn');
         const userProfileCloseBtn = document.getElementById('userProfileCloseBtn');
-        
-        // Элементы подтверждения
-        const confirmModal = document.getElementById('confirmModal');
-        const confirmText = document.getElementById('confirmText');
-        const confirmYesBtn = document.getElementById('confirmYesBtn');
-        const confirmNoBtn = document.getElementById('confirmNoBtn');
         
         // ===============================================
         // МОБИЛЬНАЯ НАВИГАЦИЯ
@@ -3016,7 +3180,7 @@
         };
         
         // ===============================================
-        // КОНФЕРЕНЦИЯ — ИСПРАВЛЕННАЯ ВЕРСИЯ
+        // КОНФЕРЕНЦИЯ
         // ===============================================
         
         // Функция получения удаленных участников
@@ -3025,22 +3189,18 @@
             
             const remoteParticipants = [];
             
-            // Пробуем разные способы получить удаленных участников
             if (room.remoteParticipants) {
-                // Способ 1: прямой доступ к remoteParticipants
                 if (room.remoteParticipants instanceof Map) {
                     room.remoteParticipants.forEach(p => remoteParticipants.push(p));
                 } else if (typeof room.remoteParticipants.forEach === 'function') {
                     room.remoteParticipants.forEach(p => remoteParticipants.push(p));
                 } else if (typeof room.remoteParticipants === 'object') {
-                    // Возможно это объект с ключами
                     Object.values(room.remoteParticipants).forEach(p => {
                         if (p && p.identity) remoteParticipants.push(p);
                     });
                 }
             }
             
-            // Способ 2: через participants (если есть)
             if (remoteParticipants.length === 0 && room.participants) {
                 if (room.participants instanceof Map) {
                     room.participants.forEach(p => {
@@ -3051,20 +3211,10 @@
                 }
             }
             
-            // Способ 3: если ничего не работает, логируем структуру room
-            if (remoteParticipants.length === 0) {
-                addDebugLog('📊 Структура room для отладки:', {
-                    hasRemoteParticipants: !!room.remoteParticipants,
-                    remoteType: room.remoteParticipants ? typeof room.remoteParticipants : 'undefined',
-                    hasParticipants: !!room.participants,
-                    localIdentity: room.localParticipant?.identity
-                });
-            }
-            
             return remoteParticipants;
         }
         
-        // Функция обновления UI участников
+        // Функция обновления UI участников с сортировкой
         function updateParticipantsUI() {
             if (!room) {
                 addDebugLog('⚠️ updateParticipantsUI: room не существует');
@@ -3075,35 +3225,33 @@
             
             const participants = [];
             
-            // Добавляем локального участника
             if (room.localParticipant) {
                 participants.push({
                     identity: room.localParticipant.identity || 'Unknown',
                     isLocal: true,
                     micEnabled: room.localParticipant.isMicrophoneEnabled || false
                 });
-                addDebugLog(`👤 Локальный: ${room.localParticipant.identity}, mic: ${room.localParticipant.isMicrophoneEnabled}`);
             }
             
-            // Получаем удаленных участников
             const remoteParticipants = getRemoteParticipants();
-            addDebugLog(`📊 Найдено удаленных участников: ${remoteParticipants.length}`);
             
-            // Добавляем удаленных участников
             remoteParticipants.forEach(p => {
                 participants.push({
                     identity: p.identity || 'Unknown',
                     isLocal: false,
                     micEnabled: p.isMicrophoneEnabled || false
                 });
-                addDebugLog(`👤 Удаленный: ${p.identity}, mic: ${p.isMicrophoneEnabled}`);
             });
             
-            // Обновляем счетчик
-            participantsCount.textContent = `👥 ${participants.length}`;
-            addDebugLog(`📊 Всего участников: ${participants.length}`);
+            // Сортировка: сначала те у кого включен микрофон, потом остальные
+            participants.sort((a, b) => {
+                if (a.micEnabled && !b.micEnabled) return -1;
+                if (!a.micEnabled && b.micEnabled) return 1;
+                return 0;
+            });
             
-            // Рендерим сетку с аватарами
+            participantsCount.textContent = `👥 ${participants.length}`;
+            
             videoGrid.innerHTML = participants.map(p => `
                 <div class="video-wrapper ${p.isLocal ? 'local' : ''}">
                     <div class="participant-avatar-big">${p.identity[0].toUpperCase()}</div>
@@ -3114,7 +3262,6 @@
                 </div>
             `).join('');
             
-            // Рендерим список в сайдбаре
             conferenceParticipants.innerHTML = participants.map(p => `
                 <div class="participant-item ${p.isLocal ? 'local' : ''}">
                     <div class="participant-avatar">${p.identity[0].toUpperCase()}</div>
@@ -3123,7 +3270,6 @@
                 </div>
             `).join('');
             
-            // Обновляем иконку кнопки микрофона
             if (room.localParticipant) {
                 const isMicEnabled = room.localParticipant.isMicrophoneEnabled;
                 videoMicBtn.textContent = isMicEnabled ? '🎤' : '🔇';
@@ -3131,6 +3277,35 @@
             }
             
             addDebugLog('✅ UI участников обновлен');
+        }
+        
+        // Функция показа/скрытия активного звонка
+        function updateActiveCallBar(show) {
+            isConferenceActive = show;
+            if (show && room) {
+                activeCallBar.style.display = 'flex';
+            } else {
+                activeCallBar.style.display = 'none';
+            }
+        }
+        
+        // Функция выхода из конференции с подтверждением
+        function leaveConference() {
+            confirmTitle.textContent = '⚠️ Выход из конференции';
+            confirmText.textContent = 'Вы уверены, что хотите выйти из активного звонка?';
+            confirmYesBtn.onclick = () => {
+                if (room) {
+                    room.disconnect();
+                    room = null;
+                }
+                videoModal.style.display = 'none';
+                updateActiveCallBar(false);
+                confirmModal.style.display = 'none';
+            };
+            confirmNoBtn.onclick = () => {
+                confirmModal.style.display = 'none';
+            };
+            confirmModal.style.display = 'flex';
         }
         
         conferenceBtn.addEventListener('click', async () => {
@@ -3150,6 +3325,7 @@
             conferenceParticipants.innerHTML = '';
             hiddenVideoContainer.innerHTML = '';
             videoModal.style.display = 'block';
+            updateActiveCallBar(true);
             audioDebug.textContent = '🔄 Подключение...';
             addDebugLog('🚀 Запуск конференции');
             startConference(token);
@@ -3171,18 +3347,15 @@
                 
                 addDebugLog('📦 Комната создана');
                 
-                // Обработка подключения
                 room.on(LiveKit.RoomEvent.Connected, async () => {
                     audioDebug.textContent = '✅ Подключено';
                     addDebugLog(`✅ Подключился к комнате ${ROOM_NAME}`);
                     addDebugLog(`👤 Identity: ${room.localParticipant?.identity}`);
                    
                     try {
-                        // Включаем микрофон
                         await room.localParticipant.setMicrophoneEnabled(true);
                         addDebugLog("🎤 Микрофон включён");
                        
-                        // Пытаемся включить камеру (игнорируем ошибки)
                         try {
                             await room.localParticipant.setCameraEnabled(true);
                             addDebugLog("📹 Камера включена (скрыта)");
@@ -3196,14 +3369,12 @@
                         audioDebug.textContent = '⚠️ Проблема с микрофоном';
                     }
                    
-                    // Первое обновление UI
                     setTimeout(() => {
                         addDebugLog('🔄 Первое обновление UI после подключения');
                         updateParticipantsUI();
                     }, 500);
                 });
                 
-                // События LiveKit
                 room.on(LiveKit.RoomEvent.ParticipantConnected, (participant) => {
                     addDebugLog(`👤 Подключился участник: ${participant.identity}`);
                     updateParticipantsUI();
@@ -3233,7 +3404,6 @@
                         audioEl.muted = false;
                         audioEl.play().catch(e => addDebugLog(`⚠️ Ошибка аудио: ${e.message}`));
                     } else if (track.kind === 'video') {
-                        // Видео треки прячем в невидимый контейнер
                         const videoEl = track.attach();
                         videoEl.style.display = 'none';
                         videoEl.muted = true;
@@ -3257,9 +3427,9 @@
                     addDebugLog("📴 Отключено от конференции");
                     audioDebug.textContent = '📴 Отключено';
                     hiddenVideoContainer.innerHTML = '';
+                    updateActiveCallBar(false);
                 });
                 
-                // Добавляем таймер для периодического обновления UI (для отладки)
                 const debugInterval = setInterval(() => {
                     if (room && videoModal.style.display === 'block') {
                         addDebugLog('🔄 Периодическое обновление UI (отладка)');
@@ -3269,7 +3439,6 @@
                     }
                 }, 5000);
                 
-                // Подключаемся
                 addDebugLog(`🔄 Подключение к комнате ${ROOM_NAME}...`);
                 await room.connect(LIVEKIT_URL, token, {
                     roomName: ROOM_NAME,
@@ -3280,46 +3449,46 @@
             } catch (error) {
                 addDebugLog(`❌ Ошибка подключения: ${error.message}`);
                 audioDebug.textContent = '❌ Ошибка';
+                updateActiveCallBar(false);
             }
         }
         
-        // Кнопка микрофона - используем нативный метод LiveKit
         videoMicBtn.addEventListener('click', async () => {
             if (!room?.localParticipant) return;
            
             try {
                 const currentlyEnabled = room.localParticipant.isMicrophoneEnabled;
                 addDebugLog(`🎤 Переключение микрофона: ${currentlyEnabled ? 'выкл' : 'вкл'}`);
-               
-                // Вызываем нативный метод LiveKit для переключения микрофона
                 await room.localParticipant.setMicrophoneEnabled(!currentlyEnabled);
-               
-                // UI обновится через события TrackMuted/TrackUnmuted
-               
             } catch (e) {
                 addDebugLog(`❌ Ошибка микрофона: ${e.message}`);
                 alert('Не удалось переключить микрофон');
             }
         });
         
-        // Кнопка выхода
         videoLeaveBtn.addEventListener('click', () => {
-            if (room) {
-                room.disconnect();
-                room = null;
-            }
-            videoModal.style.display = 'none';
+            leaveConference();
         });
         
-        // Обработка клавиши Escape
+        minimizeConferenceBtn.addEventListener('click', () => {
+            videoModal.style.display = 'none';
+            updateActiveCallBar(true);
+        });
+        
+        returnToCallBtn.addEventListener('click', () => {
+            if (room) {
+                videoModal.style.display = 'block';
+            }
+        });
+        
+        endCallFromBarBtn.addEventListener('click', () => {
+            leaveConference();
+        });
+        
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 if (videoModal.style.display === 'block') {
-                    if (room) {
-                        room.disconnect();
-                        room = null;
-                    }
-                    videoModal.style.display = 'none';
+                    minimizeConferenceBtn.click();
                 }
                 if (editModal.style.display === 'flex') {
                     editModal.style.display = 'none';
@@ -3339,7 +3508,6 @@
             }
         });
         
-        // Проверка имперсонации
         (function checkImpersonation() {
             const impersonateData = localStorage.getItem('impersonateUser');
             if (impersonateData) {
@@ -3365,7 +3533,6 @@
             } 
         })();
         
-        // Инициализация
         checkSavedSession();
     </script>
 </body>
