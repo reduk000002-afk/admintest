@@ -78,7 +78,6 @@
                 height: 100dvh;
                 position: relative;
             }
-            /* Список чатов — полноэкранный */
             .users-panel {
                 position: fixed;
                 top: 0;
@@ -96,7 +95,6 @@
             .users-panel.active {
                 transform: translateX(0);
             }
-            /* Чат-панель */
             .chat-panel {
                 position: fixed;
                 top: 0;
@@ -108,7 +106,6 @@
                 flex-direction: column;
                 background: #0a0a0a;
             }
-            /* Оверлей для профиля справа */
             .mobile-overlay {
                 display: none;
                 position: fixed;
@@ -124,11 +121,9 @@
             .mobile-overlay.active {
                 display: block;
             }
-            /* Когда список чатов открыт — прячем чат полностью */
             .users-panel.active ~ .chat-panel {
                 display: none !important;
             }
-            /* Новая шапка списка чатов (без надписи "Чаты") */
             .panel-header {
                 display: flex;
                 align-items: center;
@@ -162,7 +157,7 @@
                 color: #f0b90b;
             }
             .panel-title {
-                display: none; /* Полностью убираем надпись "Чаты" */
+                display: none;
             }
             .search-icon {
                 font-size: 26px;
@@ -170,7 +165,6 @@
                 cursor: pointer;
                 padding: 6px;
             }
-            /* Поисковая панель */
             .search-bar {
                 padding: 12px 20px;
                 background: #111;
@@ -198,7 +192,6 @@
                 cursor: pointer;
                 padding: 8px;
             }
-            /* Результаты поиска */
             .search-results {
                 background: #111;
                 border-bottom: 1px solid #333;
@@ -244,7 +237,6 @@
                 font-size: 13px;
                 color: #888;
             }
-            /* Шапка профиля на мобильных */
             .profile-header-mobile {
                 display: flex;
                 align-items: center;
@@ -271,7 +263,6 @@
                 font-weight: 700;
                 color: #f0b90b;
             }
-            /* Правая панель профиля на мобильных */
             .profile-panel {
                 position: fixed;
                 top: 0;
@@ -1110,7 +1101,6 @@
             color: #f0b90b;
             margin-bottom: 5px;
         }
-        /* Модальное окно профиля пользователя */
         .user-profile-modal {
             display: none;
             position: fixed;
@@ -1185,7 +1175,6 @@
             background: #333;
             color: #fff;
         }
-        /* Модальное окно подтверждения */
         .confirm-modal {
             display: none;
             position: fixed;
@@ -1297,7 +1286,7 @@
             background: #333;
             color: white;
         }
-        /* ==================== КОНФЕРЕНЦИЯ (ТОЛЬКО АУДИО) ==================== */
+        /* ==================== АУДИО-КОНФЕРЕНЦИЯ (БЕЗ ВИДЕО) ==================== */
         .video-modal {
             display: none;
             position: fixed;
@@ -1372,7 +1361,6 @@
             overflow-y: auto;
             justify-content: center;
         }
-        /* Квадратики участников (без камеры) */
         .video-wrapper {
             width: 100%;
             max-width: 280px;
@@ -1501,6 +1489,10 @@
             border-color: #ff4444;
             color: white;
         }
+        .conf-control-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
         .audio-debug {
             position: fixed;
             bottom: 90px;
@@ -1531,28 +1523,22 @@
     </div>
     <!-- Основной интерфейс -->
     <div class="main-container" id="mainContainer">
-        <!-- Левая панель - пользователи (обновленная) -->
+        <!-- Левая панель - пользователи -->
         <div class="users-panel" id="usersPanel">
             <div class="panel-header">
-                <!-- Слева — Профиль -->
                 <div class="left-header" id="mobileProfileBtn">
                     <div class="profile-icon">👤</div>
                     <span class="header-text">Профиль</span>
                 </div>
                
-                <!-- Надпись "Чаты" полностью убрана -->
-               
-                <!-- Справа — Поиск -->
                 <span class="search-icon" id="searchIcon">🔍</span>
             </div>
            
-            <!-- Строка поиска (появляется по клику) -->
             <div class="search-bar" id="searchBar" style="display: none;">
                 <input type="text" class="search-input" id="userSearch" placeholder="Поиск по имени или ID...">
                 <button class="search-close-btn" id="searchCloseBtn">✕</button>
             </div>
            
-            <!-- Результаты поиска -->
             <div class="search-results" id="searchResults" style="display: none;"></div>
            
             <div class="chat-list" id="chatList"></div>
@@ -1562,7 +1548,7 @@
             <div class="chat-header">
                 <span class="back-btn" id="chatBackBtn">←</span>
                 <span class="chat-title" id="currentChatTitle">Spam команда Германа</span>
-                <button class="conference-btn" id="conferenceBtn" style="display: none;">📹</button>
+                <button class="conference-btn" id="conferenceBtn" style="display: none;">🎧</button>
             </div>
             <div class="messages-container" id="messagesContainer">
                 <div class="empty-messages">Выберите чат чтобы начать общение</div>
@@ -1581,7 +1567,6 @@
         </div>
         <!-- Правая панель - профиль -->
         <div class="profile-panel" id="profilePanel">
-            <!-- Шапка профиля на мобильных -->
             <div class="profile-header-mobile" id="profileHeaderMobile">
                 <span class="profile-back-btn" id="profileBackBtn">←</span>
                 <span class="profile-header-title">Профиль</span>
@@ -1662,7 +1647,7 @@
             </div>
         </div>
     </div>
-    <!-- Конференция (только аудио, без камеры) -->
+    <!-- АУДИО-КОНФЕРЕНЦИЯ (БЕЗ ВИДЕО) -->
     <div class="video-modal" id="videoModal">
         <div class="video-header">
             <div class="video-title">🔐 Secure Audio Briefing</div>
@@ -1672,17 +1657,16 @@
         <div class="video-grid-container">
             <div class="video-grid" id="videoGrid"></div>
            
-            <!-- Боковая панель участников (на телефоне будет снизу) -->
             <div class="participants-sidebar" id="participantsSidebar">
                 <div class="sidebar-title">👥 Участники</div>
                 <div class="participants-list" id="conferenceParticipants"></div>
             </div>
         </div>
        
-        <!-- Управление только микрофоном и выходом -->
+        <!-- Управление ТОЛЬКО микрофоном -->
         <div class="conference-controls">
             <button class="conf-control-btn" id="videoMicBtn" title="Микрофон">🎤</button>
-            <button class="conf-control-btn leave" id="videoLeaveBtn" title="Выйти из конференции">✕</button>
+            <button class="conf-control-btn leave" id="videoLeaveBtn" title="Выйти из брифинга">✕</button>
         </div>
        
         <div class="audio-debug" id="audioDebug"></div>
@@ -1881,14 +1865,12 @@
         });
         chatBackBtn.addEventListener('click', goToChatList);
        
-        // Кнопка профиля слева
         if (mobileProfileBtn) {
             mobileProfileBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 showProfilePanel();
             });
         }
-        // Кнопка "Назад" в профиле
         if (profileBackBtn) {
             profileBackBtn.addEventListener('click', () => {
                 hideProfilePanel();
@@ -1898,14 +1880,12 @@
         // УЛУЧШЕННЫЙ ПОИСК
         // ===============================================
         let searchTimeout = null;
-        // Открыть поиск
         if (searchIcon) {
             searchIcon.addEventListener('click', () => {
                 searchBar.style.display = 'flex';
                 userSearchInput.focus();
             });
         }
-        // Закрыть поиск
         if (searchCloseBtn) {
             searchCloseBtn.addEventListener('click', () => {
                 searchBar.style.display = 'none';
@@ -1913,7 +1893,6 @@
                 userSearchInput.value = '';
             });
         }
-        // Функция поиска
         async function performSearch() {
             const term = userSearchInput.value.trim();
            
@@ -1950,12 +1929,9 @@
                     `;
                    
                     div.addEventListener('click', async () => {
-                        // Добавляем в контакты
                         await addToContactsIfNotExists(user);
-                        // Открываем чат
                         selectChat(user.id, 'private');
                        
-                        // Закрываем поиск
                         searchBar.style.display = 'none';
                         searchResults.style.display = 'none';
                         userSearchInput.value = '';
@@ -1968,14 +1944,12 @@
                 console.error('Ошибка поиска:', err);
             }
         }
-        // Поиск с debounce
         if (userSearchInput) {
             userSearchInput.addEventListener('input', () => {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(performSearch, 300);
             });
         }
-        // Закрывать результаты при клике вне
         document.addEventListener('click', (e) => {
             if (searchBar && searchResults) {
                 if (!searchBar.contains(e.target) && !searchResults.contains(e.target) && e.target !== searchIcon) {
@@ -2378,7 +2352,6 @@
            
             loadChats();
            
-            // Отмечаем сообщения как прочитанные через небольшую задержку
             setTimeout(() => {
                 markMessagesAsRead();
             }, 1500);
@@ -2395,7 +2368,6 @@
                 if (error) throw error;
                 renderMessages(messages || [], 'group');
                
-                // Инициализируем свайп после рендера
                 setTimeout(initSwipeToReply, 100);
             } catch (error) {
                 console.error('Ошибка загрузки сообщений:', error);
@@ -2411,7 +2383,6 @@
                 if (error) throw error;
                 renderMessages(messages || [], 'private');
                
-                // Инициализируем свайп после рендера
                 setTimeout(() => {
                     initSwipeToReply();
                     updateReadStatuses();
@@ -2546,7 +2517,6 @@
         messageInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 if (isMobile()) {
-                    // На мобильных Enter просто переводит строку
                 } else {
                     if (!e.shiftKey) {
                         e.preventDefault();
@@ -2699,7 +2669,6 @@
                     }
                 )
                 .subscribe();
-            // Подписка на прочтения
             const readsChannel = supabaseClient
                 .channel('reads-channel')
                 .on('postgres_changes',
@@ -2984,12 +2953,12 @@
             }
         };
         // ===============================================
-        // КОНФЕРЕНЦИЯ — ТОЛЬКО АУДИО (исправленная версия)
+        // АУДИО-КОНФЕРЕНЦИЯ (БЕЗ ВИДЕО)
         // ===============================================
         conferenceBtn.addEventListener('click', async () => {
             const token = TOKENS[currentUser.username];
             if (!token) {
-                alert('У вас нет доступа к конференции');
+                alert('У вас нет доступа к брифингу');
                 return;
             }
             if (room) {
@@ -3003,9 +2972,9 @@
             conferenceParticipants.innerHTML = '';
             videoModal.style.display = 'block';
             audioDebug.textContent = '🔄 Подключение...';
-            startAudioOnlyConference(token);
+            startAudioConference();
         });
-        async function startAudioOnlyConference(token) {
+        async function startAudioConference() {
             const LiveKit = window.LivekitClient || window.LiveKit;
            
             if (!LiveKit) {
@@ -3014,24 +2983,22 @@
             }
             try {
                 room = new LiveKit.Room({
-                    adaptiveStream: true,
-                    dynacast: true
+                    adaptiveStream: false,
+                    dynacast: false,
+                    videoCaptureDefaults: null,
+                    publishDefaults: {
+                        video: false,
+                        audio: true
+                    }
                 });
-                // Обработка подключения
                 room.on(LiveKit.RoomEvent.Connected, async () => {
-                    audioDebug.textContent = '✅ Подключено (только аудио)';
-                    console.log("✅ Успешно подключился к комнате", ROOM_NAME);
-                    console.log("👤 Мой identity:", room.localParticipant?.identity);
+                    audioDebug.textContent = '✅ Подключено';
+                    console.log("✅ Подключился к брифингу");
                    
                     try {
-                        // Отключаем видео на всякий случай (но не блокируем)
-                        await room.localParticipant.setCameraEnabled(false);
-                       
-                        // Явно включаем микрофон - этого достаточно для публикации аудио
                         await room.localParticipant.setMicrophoneEnabled(true);
-                       
-                        console.log("🎤 Микрофон включён, аудио публикуется");
-                        audioDebug.textContent = '🎤 Микрофон активен';
+                        audioDebug.textContent = '🎤 Микрофон включён';
+                        updateMicButton();
                     } catch (err) {
                         console.error("❌ Ошибка с микрофоном:", err);
                         audioDebug.textContent = '⚠️ Проблема с микрофоном';
@@ -3040,43 +3007,28 @@
                     updateParticipantsUI();
                     startAudioReconnectTimer();
                 });
-                // Обновление списка участников
                 function updateParticipantsUI() {
                     if (!room) return;
                    
-                    console.log("[UI] Всего remote participants:", room.remoteParticipants?.size || 0);
-                    if (room.remoteParticipants) {
-                        room.remoteParticipants.forEach((p, key) => {
-                            console.log(` → ${key}: mic=${p.isMicrophoneEnabled}, tracks=${p.tracks.size}`);
-                        });
-                    }
-                   
-                    const list = [];
-                   
-                    // Локальный участник
+                    const participants = [];
                     if (room.localParticipant) {
-                        list.push({
-                            identity: room.localParticipant.identity || 'Unknown',
+                        participants.push({
+                            identity: room.localParticipant.identity || currentUser.username,
                             isLocal: true,
                             mic: room.localParticipant.isMicrophoneEnabled || false
                         });
                     }
-                   
-                    // Удалённые участники
                     if (room.remoteParticipants) {
                         room.remoteParticipants.forEach(p => {
-                            if (p) {
-                                list.push({
-                                    identity: p.identity || 'Unknown',
-                                    isLocal: false,
-                                    mic: p.isMicrophoneEnabled || false
-                                });
-                            }
+                            participants.push({
+                                identity: p.identity,
+                                isLocal: false,
+                                mic: p.isMicrophoneEnabled || false
+                            });
                         });
                     }
-                    participantsCount.textContent = `👥 ${list.length}`;
-                    // Рендер квадратиков
-                    videoGrid.innerHTML = list.map(p => `
+                    participantsCount.textContent = `👥 ${participants.length}`;
+                    videoGrid.innerHTML = participants.map(p => `
                         <div class="video-wrapper ${p.isLocal ? 'local' : ''}">
                             <div class="participant-avatar-big">${p.identity[0].toUpperCase()}</div>
                             <div class="participant-name-big">${p.identity} ${p.isLocal ? '(Вы)' : ''}</div>
@@ -3085,8 +3037,7 @@
                             </div>
                         </div>
                     `).join('');
-                    // Список в сайдбаре
-                    conferenceParticipants.innerHTML = list.map(p => `
+                    conferenceParticipants.innerHTML = participants.map(p => `
                         <div class="participant-item ${p.isLocal ? 'local' : ''}">
                             <div class="participant-avatar">${p.identity[0].toUpperCase()}</div>
                             <div class="participant-name">${p.identity} ${p.isLocal ? '(Вы)' : ''}</div>
@@ -3094,79 +3045,47 @@
                         </div>
                     `).join('');
                 }
-                // События участников
-                room.on(LiveKit.RoomEvent.ParticipantConnected, (participant) => {
-                    console.log("👤 Участник подключился:", participant.identity);
-                    updateParticipantsUI();
-                });
-               
-                room.on(LiveKit.RoomEvent.ParticipantDisconnected, (participant) => {
-                    console.log("👤 Участник отключился:", participant.identity);
-                    updateParticipantsUI();
-                });
-               
-                room.on(LiveKit.RoomEvent.TrackSubscribed, (track, publication, participant) => {
-                    console.log(`📡 Трек подписан: ${track.kind} от ${participant.identity}`);
-                    if (track.kind === 'audio') {
-                        const audioEl = track.attach();
-                        audioEl.volume = 1.0;
-                        audioEl.muted = false;
-                        audioEl.play().catch(e => console.warn('Ошибка воспроизведения аудио:', e));
-                    }
-                    updateParticipantsUI();
-                });
-               
-                room.on(LiveKit.RoomEvent.TrackUnsubscribed, (track) => {
-                    console.log("📡 Трек отписан");
-                    track.detach().forEach(el => el.remove());
-                    updateParticipantsUI();
-                });
-                room.on(LiveKit.RoomEvent.TrackMuted, (pub, participant) => {
-                    console.log(`🔇 Микрофон выключен у ${participant.identity}`);
-                    updateParticipantsUI();
-                });
-               
-                room.on(LiveKit.RoomEvent.TrackUnmuted, (pub, participant) => {
-                    console.log(`🎤 Микрофон включён у ${participant.identity}`);
-                    updateParticipantsUI();
-                });
+                room.on(LiveKit.RoomEvent.ParticipantConnected, updateParticipantsUI);
+                room.on(LiveKit.RoomEvent.ParticipantDisconnected, updateParticipantsUI);
+                room.on(LiveKit.RoomEvent.TrackSubscribed, updateParticipantsUI);
+                room.on(LiveKit.RoomEvent.TrackUnsubscribed, updateParticipantsUI);
+                room.on(LiveKit.RoomEvent.TrackMuted, updateParticipantsUI);
+                room.on(LiveKit.RoomEvent.TrackUnmuted, updateParticipantsUI);
+                room.on(LiveKit.RoomEvent.LocalTrackPublished, updateParticipantsUI);
+                room.on(LiveKit.RoomEvent.LocalTrackUnpublished, updateParticipantsUI);
                 room.on(LiveKit.RoomEvent.Disconnected, () => {
-                    console.log("📴 Отключено от конференции");
                     audioDebug.textContent = '📴 Отключено';
                     if (audioReconnectTimer) clearInterval(audioReconnectTimer);
                 });
-                // Подключаемся
-                console.log("🔄 Подключаюсь к комнате...");
                 await room.connect(LIVEKIT_URL, token, {
                     roomName: ROOM_NAME,
                     autoSubscribe: true
                 });
-                console.log("✅ Подключение выполнено");
             } catch (error) {
                 console.error('❌ Ошибка подключения к конференции:', error);
                 audioDebug.textContent = '❌ Ошибка';
             }
         }
-        // Кнопка микрофона
         videoMicBtn.addEventListener('click', async () => {
             if (!room?.localParticipant) return;
            
             try {
                 const currentlyEnabled = room.localParticipant.isMicrophoneEnabled;
-                console.log(`🎤 Переключение микрофона: ${currentlyEnabled ? 'выкл' : 'вкл'}`);
-               
                 await room.localParticipant.setMicrophoneEnabled(!currentlyEnabled);
-               
-                videoMicBtn.textContent = !currentlyEnabled ? '🎤' : '🔇';
-                videoMicBtn.classList.toggle('mic-off', currentlyEnabled);
-               
+                updateMicButton();
                 updateParticipantsUI();
+                audioDebug.textContent = !currentlyEnabled ? '🎤 Микрофон включён' : '🔇 Микрофон выключен';
             } catch (e) {
                 console.error('Ошибка микрофона:', e);
-                alert('Не удалось переключить микрофон');
             }
         });
-        // Кнопка выхода
+        function updateMicButton() {
+            if (!room?.localParticipant) return;
+            const enabled = room.localParticipant.isMicrophoneEnabled;
+            videoMicBtn.textContent = enabled ? '🎤' : '🔇';
+            videoMicBtn.classList.toggle('mic-off', !enabled);
+            videoMicBtn.title = enabled ? 'Выключить микрофон' : 'Включить микрофон';
+        }
         videoLeaveBtn.addEventListener('click', () => {
             if (room) {
                 room.disconnect();
@@ -3175,49 +3094,27 @@
             videoModal.style.display = 'none';
             if (audioReconnectTimer) clearInterval(audioReconnectTimer);
         });
-        // ===============================================
-        // ТАЙМЕР ПЕРЕПОДКЛЮЧЕНИЯ АУДИО
-        // ===============================================
         function startAudioReconnectTimer() {
-            if (audioReconnectTimer) {
-                clearInterval(audioReconnectTimer);
-            }
+            if (audioReconnectTimer) clearInterval(audioReconnectTimer);
            
             audioReconnectTimer = setInterval(async () => {
-                if (!room || !room.localParticipant) return;
+                if (!room?.localParticipant) return;
                
-                console.log('🔄 Плановое переподключение аудио (3 минуты)');
-                audioDebug.textContent = '🔄 Переподключение аудио...';
+                const enabled = room.localParticipant.isMicrophoneEnabled;
+                await room.localParticipant.setMicrophoneEnabled(false);
+                await new Promise(r => setTimeout(r, 500));
+                await room.localParticipant.setMicrophoneEnabled(enabled);
                
-                try {
-                    const enabled = room.localParticipant.isMicrophoneEnabled;
-                    await room.localParticipant.setMicrophoneEnabled(false);
-                    await new Promise(r => setTimeout(r, 500));
-                    await room.localParticipant.setMicrophoneEnabled(enabled);
-                   
-                    if (audioContext) {
-                        if (audioContext.state === 'suspended') {
-                            await audioContext.resume();
-                        }
-                    }
-                   
-                    audioDebug.textContent = '✅ Аудио переподключено';
-                    setTimeout(() => {
-                        audioDebug.textContent = '✅ В конференции';
-                    }, 2000);
-                } catch (e) {
-                    console.warn('Ошибка переподключения аудио:', e);
-                }
+                audioDebug.textContent = '🔄 Аудио переподключено';
+                setTimeout(() => {
+                    audioDebug.textContent = room?.localParticipant?.isMicrophoneEnabled ? '🎤 В брифинге' : '🔇 В брифинге';
+                }, 2000);
             }, 180000);
         }
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 if (videoModal.style.display === 'block') {
-                    if (room) {
-                        room.disconnect();
-                        room = null;
-                    }
-                    videoModal.style.display = 'none';
+                    videoLeaveBtn.click();
                 }
                 if (editModal.style.display === 'flex') {
                     editModal.style.display = 'none';
@@ -3272,9 +3169,7 @@
                 }, 500);
             }
         })();
-        // Инициализация
         checkSavedSession();
     </script>
 </body>
 </html>
-в этом коде все работало отлично
