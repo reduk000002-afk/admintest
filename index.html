@@ -827,39 +827,48 @@
             border: 2px solid #f0b90b;
             color: #f0b90b;
         }
-        /* Индикатор активного звонка */
+        /* Индикатор активного звонка - глобальный */
         .active-call-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 32px;
             background: #2ecc71;
             color: #000;
-            padding: 8px 16px;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: space-between;
-            font-weight: 600;
+            padding: 0 20px;
             font-size: 14px;
+            font-weight: 500;
+            z-index: 10000;
             border-bottom: 1px solid #27ae60;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .active-call-bar:hover {
-            background: #27ae60;
         }
         .active-call-bar .call-info {
             display: flex;
             align-items: center;
-            gap: 8px;
         }
         .active-call-bar .call-actions {
             display: flex;
-            gap: 12px;
+            gap: 16px;
         }
         .active-call-bar .call-actions span {
             cursor: pointer;
-            padding: 4px 8px;
+            padding: 2px 8px;
             border-radius: 4px;
         }
         .active-call-bar .call-actions span:hover {
             background: rgba(0,0,0,0.1);
+        }
+        /* Отступ для контента из-за фиксированной шторки */
+        .main-container {
+            margin-top: 32px;
+        }
+        .video-modal {
+            margin-top: 32px;
+            height: calc(100vh - 32px);
+            height: calc(100dvh - 32px);
         }
         .messages-container {
             flex: 1;
@@ -1126,7 +1135,7 @@
         .admin-panel {
             display: none;
             position: fixed;
-            top: 0;
+            top: 32px;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1238,7 +1247,7 @@
         .user-profile-modal {
             display: none;
             position: fixed;
-            top: 0;
+            top: 32px;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1313,7 +1322,7 @@
         .confirm-modal {
             display: none;
             position: fixed;
-            top: 0;
+            top: 32px;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1368,7 +1377,7 @@
         .modal {
             display: none;
             position: fixed;
-            top: 0;
+            top: 32px;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1425,7 +1434,7 @@
         .video-modal {
             display: none;
             position: fixed;
-            top: 0;
+            top: 32px;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1474,16 +1483,16 @@
             display: grid;
             grid-template-columns: 1fr 280px;
             gap: 20px;
-            height: calc(100vh - 120px);
-            height: calc(100dvh - 120px);
+            height: calc(100vh - 120px - 32px);
+            height: calc(100dvh - 120px - 32px);
             padding: 20px;
             padding-bottom: env(safe-area-inset-bottom, 20px);
         }
         @media (max-width: 768px) {
             .video-grid-container {
                 grid-template-columns: 1fr;
-                height: calc(100vh - 160px);
-                height: calc(100dvh - 160px);
+                height: calc(100vh - 160px - 32px);
+                height: calc(100dvh - 160px - 32px);
                 padding: 10px;
                 padding-bottom: env(safe-area-inset-bottom, 10px);
             }
@@ -1495,7 +1504,7 @@
             .participants-sidebar.active {
                 display: block;
                 position: fixed;
-                top: 60px;
+                top: 92px;
                 left: 0;
                 right: 0;
                 bottom: 80px;
@@ -1665,43 +1674,18 @@
             opacity: 0;
             pointer-events: none;
         }
-        /* Панель отладки */
-        .debug-panel {
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.8);
-            border: 1px solid #f0b90b;
-            border-radius: 8px;
-            padding: 10px;
-            color: #0f0;
-            font-size: 12px;
-            font-family: monospace;
-            max-width: 400px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 3000;
-            display: none;
-        }
-        .debug-panel.visible {
-            display: block;
-        }
-        .debug-toggle {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: #f0b90b;
-            color: #000;
-            border: none;
-            border-radius: 20px;
-            padding: 5px 10px;
-            font-size: 12px;
-            cursor: pointer;
-            z-index: 3001;
-        }
     </style>
 </head>
 <body>
+    <!-- Глобальная шторка активного звонка -->
+    <div class="active-call-bar" id="activeCallBar">
+        <div class="call-info">Активный звонок</div>
+        <div class="call-actions">
+            <span id="returnToCallBtn">Вернуться</span>
+            <span id="endCallFromBarBtn">Завершить</span>
+        </div>
+    </div>
+
     <!-- Оверлей для мобильного меню -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
     <!-- Авторизация -->
@@ -1737,18 +1721,6 @@
            
             <!-- Результаты поиска -->
             <div class="search-results" id="searchResults" style="display: none;"></div>
-           
-            <!-- Индикатор активного звонка -->
-            <div class="active-call-bar" id="activeCallBar" style="display: none;">
-                <div class="call-info">
-                    <span>🔴</span>
-                    <span>Активный звонок</span>
-                </div>
-                <div class="call-actions">
-                    <span id="returnToCallBtn">🔊 Вернуться</span>
-                    <span id="endCallFromBarBtn">✕ Завершить</span>
-                </div>
-            </div>
            
             <div class="chat-list" id="chatList"></div>
         </div>
@@ -1881,10 +1853,6 @@
     </div>
     <div class="hidden-video-container" id="hiddenVideoContainer"></div>
     
-    <!-- Панель отладки -->
-    <div class="debug-panel" id="debugPanel"></div>
-    <button class="debug-toggle" id="debugToggle">🐞 Отладка</button>
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="livekit.js"></script>
     <script>
@@ -1978,38 +1946,6 @@
         const confirmText = document.getElementById('confirmText');
         const confirmYesBtn = document.getElementById('confirmYesBtn');
         const confirmNoBtn = document.getElementById('confirmNoBtn');
-        
-        // Элементы отладки
-        const debugPanel = document.getElementById('debugPanel');
-        const debugToggle = document.getElementById('debugToggle');
-        let debugEnabled = false;
-        
-        debugToggle.addEventListener('click', () => {
-            debugEnabled = !debugEnabled;
-            debugPanel.classList.toggle('visible', debugEnabled);
-            debugToggle.textContent = debugEnabled ? '🐞 Отладка (вкл)' : '🐞 Отладка';
-        });
-        
-        function addDebugLog(message, data = null) {
-            if (!debugEnabled) return;
-            
-            const time = new Date().toLocaleTimeString();
-            let logLine = `[${time}] ${message}`;
-            if (data) {
-                logLine += ` ${JSON.stringify(data)}`;
-            }
-            
-            const div = document.createElement('div');
-            div.textContent = logLine;
-            debugPanel.appendChild(div);
-            debugPanel.scrollTop = debugPanel.scrollHeight;
-            
-            while (debugPanel.children.length > 20) {
-                debugPanel.removeChild(debugPanel.firstChild);
-            }
-            
-            console.log(logLine);
-        }
         
         // Мобильные элементы
         const mobileOverlay = document.getElementById('mobileOverlay');
@@ -3216,12 +3152,7 @@
         
         // Функция обновления UI участников с сортировкой
         function updateParticipantsUI() {
-            if (!room) {
-                addDebugLog('⚠️ updateParticipantsUI: room не существует');
-                return;
-            }
-            
-            addDebugLog('🔄 Обновление списка участников');
+            if (!room) return;
             
             const participants = [];
             
@@ -3275,8 +3206,6 @@
                 videoMicBtn.textContent = isMicEnabled ? '🎤' : '🔇';
                 videoMicBtn.classList.toggle('mic-off', !isMicEnabled);
             }
-            
-            addDebugLog('✅ UI участников обновлен');
         }
         
         // Функция показа/скрытия активного звонка
@@ -3291,8 +3220,8 @@
         
         // Функция выхода из конференции с подтверждением
         function leaveConference() {
-            confirmTitle.textContent = '⚠️ Выход из конференции';
-            confirmText.textContent = 'Вы уверены, что хотите выйти из активного звонка?';
+            confirmTitle.textContent = '⚠️ Подтверждение';
+            confirmText.textContent = 'Вы уверены, что хотите выйти из конференции?';
             confirmYesBtn.onclick = () => {
                 if (room) {
                     room.disconnect();
@@ -3327,7 +3256,6 @@
             videoModal.style.display = 'block';
             updateActiveCallBar(true);
             audioDebug.textContent = '🔄 Подключение...';
-            addDebugLog('🚀 Запуск конференции');
             startConference(token);
         });
         
@@ -3345,64 +3273,50 @@
                     dynacast: true
                 });
                 
-                addDebugLog('📦 Комната создана');
-                
                 room.on(LiveKit.RoomEvent.Connected, async () => {
                     audioDebug.textContent = '✅ Подключено';
-                    addDebugLog(`✅ Подключился к комнате ${ROOM_NAME}`);
-                    addDebugLog(`👤 Identity: ${room.localParticipant?.identity}`);
                    
                     try {
                         await room.localParticipant.setMicrophoneEnabled(true);
-                        addDebugLog("🎤 Микрофон включён");
                        
                         try {
                             await room.localParticipant.setCameraEnabled(true);
-                            addDebugLog("📹 Камера включена (скрыта)");
                         } catch (cameraErr) {
-                            addDebugLog("📹 Камера не доступна (продолжаем без видео)");
+                            // Игнорируем ошибки камеры
                         }
                        
                         audioDebug.textContent = '🎤 Микрофон активен';
                     } catch (err) {
-                        addDebugLog(`❌ Ошибка микрофона: ${err.message}`);
                         audioDebug.textContent = '⚠️ Проблема с микрофоном';
                     }
                    
                     setTimeout(() => {
-                        addDebugLog('🔄 Первое обновление UI после подключения');
                         updateParticipantsUI();
                     }, 500);
                 });
                 
-                room.on(LiveKit.RoomEvent.ParticipantConnected, (participant) => {
-                    addDebugLog(`👤 Подключился участник: ${participant.identity}`);
+                room.on(LiveKit.RoomEvent.ParticipantConnected, () => {
                     updateParticipantsUI();
                 });
                
-                room.on(LiveKit.RoomEvent.ParticipantDisconnected, (participant) => {
-                    addDebugLog(`👤 Отключился участник: ${participant.identity}`);
+                room.on(LiveKit.RoomEvent.ParticipantDisconnected, () => {
                     updateParticipantsUI();
                 });
                
-                room.on(LiveKit.RoomEvent.TrackMuted, (publication, participant) => {
-                    addDebugLog(`🔇 Микрофон выключен у ${participant.identity}`);
+                room.on(LiveKit.RoomEvent.TrackMuted, () => {
                     updateParticipantsUI();
                 });
                
-                room.on(LiveKit.RoomEvent.TrackUnmuted, (publication, participant) => {
-                    addDebugLog(`🎤 Микрофон включён у ${participant.identity}`);
+                room.on(LiveKit.RoomEvent.TrackUnmuted, () => {
                     updateParticipantsUI();
                 });
                
                 room.on(LiveKit.RoomEvent.TrackSubscribed, (track, publication, participant) => {
-                    addDebugLog(`📡 Трек подписан: ${track.kind} от ${participant.identity}`);
-                   
                     if (track.kind === 'audio') {
                         const audioEl = track.attach();
                         audioEl.volume = 1.0;
                         audioEl.muted = false;
-                        audioEl.play().catch(e => addDebugLog(`⚠️ Ошибка аудио: ${e.message}`));
+                        audioEl.play().catch(() => {});
                     } else if (track.kind === 'video') {
                         const videoEl = track.attach();
                         videoEl.style.display = 'none';
@@ -3410,12 +3324,11 @@
                         videoEl.autoplay = true;
                         videoEl.playsInline = true;
                         hiddenVideoContainer.appendChild(videoEl);
-                        videoEl.play().catch(e => addDebugLog(`⚠️ Ошибка видео: ${e.message}`));
+                        videoEl.play().catch(() => {});
                     }
                 });
                
                 room.on(LiveKit.RoomEvent.TrackUnsubscribed, (track) => {
-                    addDebugLog("📡 Трек отписан");
                     track.detach().forEach(el => {
                         if (el.parentNode === hiddenVideoContainer) {
                             el.remove();
@@ -3424,30 +3337,17 @@
                 });
                
                 room.on(LiveKit.RoomEvent.Disconnected, () => {
-                    addDebugLog("📴 Отключено от конференции");
                     audioDebug.textContent = '📴 Отключено';
                     hiddenVideoContainer.innerHTML = '';
                     updateActiveCallBar(false);
                 });
                 
-                const debugInterval = setInterval(() => {
-                    if (room && videoModal.style.display === 'block') {
-                        addDebugLog('🔄 Периодическое обновление UI (отладка)');
-                        updateParticipantsUI();
-                    } else {
-                        clearInterval(debugInterval);
-                    }
-                }, 5000);
-                
-                addDebugLog(`🔄 Подключение к комнате ${ROOM_NAME}...`);
                 await room.connect(LIVEKIT_URL, token, {
                     roomName: ROOM_NAME,
                     autoSubscribe: true
                 });
-                addDebugLog("✅ Подключение выполнено");
                 
             } catch (error) {
-                addDebugLog(`❌ Ошибка подключения: ${error.message}`);
                 audioDebug.textContent = '❌ Ошибка';
                 updateActiveCallBar(false);
             }
@@ -3458,10 +3358,8 @@
            
             try {
                 const currentlyEnabled = room.localParticipant.isMicrophoneEnabled;
-                addDebugLog(`🎤 Переключение микрофона: ${currentlyEnabled ? 'выкл' : 'вкл'}`);
                 await room.localParticipant.setMicrophoneEnabled(!currentlyEnabled);
             } catch (e) {
-                addDebugLog(`❌ Ошибка микрофона: ${e.message}`);
                 alert('Не удалось переключить микрофон');
             }
         });
