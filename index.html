@@ -142,13 +142,27 @@
                 display: none !important;
             }
 
-            /* Шапка списка чатов с иконкой профиля */
+            /* Шапка списка чатов с кнопкой профиля справа */
             .users-panel .panel-header {
                 display: flex;
                 align-items: center;
-                gap: 12px;
+                justify-content: space-between;
                 padding: 16px 20px;
                 border-bottom: 1px solid #333;
+            }
+
+            .panel-title {
+                font-size: 24px;
+                font-weight: 600;
+                color: #f0b90b;
+                margin: 0;
+            }
+
+            .profile-button {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                cursor: pointer;
             }
 
             .profile-icon {
@@ -162,20 +176,18 @@
                 color: #f0b90b;
                 font-weight: 600;
                 border: 2px solid #f0b90b;
-                cursor: pointer;
-                flex-shrink: 0;
-            }
-
-            .profile-icon:active {
-                background: #333;
-            }
-
-            .panel-title {
-                flex: 1;
                 font-size: 20px;
-                font-weight: 600;
+            }
+
+            .profile-text {
+                font-size: 10px;
                 color: #f0b90b;
-                margin: 0;
+                margin-top: 2px;
+                opacity: 0.8;
+            }
+
+            .profile-button:active .profile-icon {
+                background: #333;
             }
 
             .chat-header {
@@ -462,7 +474,7 @@
                 flex: 1;
             }
             
-            .profile-icon {
+            .profile-button {
                 display: none;
             }
         }
@@ -1015,6 +1027,7 @@
         .admin-user-actions {
             display: flex;
             gap: 8px;
+            flex-wrap: wrap;
         }
 
         .admin-user-btn {
@@ -1547,8 +1560,11 @@
         <!-- Левая панель - пользователи -->
         <div class="users-panel" id="usersPanel">
             <div class="panel-header">
-                <div class="profile-icon" id="mobileProfileIcon">👤</div>
                 <div class="panel-title">Чаты</div>
+                <div class="profile-button" id="mobileProfileBtn">
+                    <div class="profile-icon">👤</div>
+                    <div class="profile-text">профиль</div>
+                </div>
             </div>
             <div class="search-container" style="padding: 0 20px 15px;">
                 <input type="text" class="search-input" id="userSearch" placeholder="Введите ID (7 цифр)">
@@ -1772,7 +1788,7 @@
         const usersPanel = document.getElementById('usersPanel');
         const profilePanel = document.getElementById('profilePanel');
         const chatBackBtn = document.getElementById('chatBackBtn');
-        const mobileProfileIcon = document.getElementById('mobileProfileIcon');
+        const mobileProfileBtn = document.getElementById('mobileProfileBtn');
 
         // Элементы ответов и профиля пользователя
         const replyPreview = document.getElementById('replyPreview');
@@ -1892,9 +1908,12 @@
 
         chatBackBtn.addEventListener('click', goToChatList);
         
-        mobileProfileIcon.addEventListener('click', () => {
-            showProfilePanel();
-        });
+        // Кнопка профиля в мобильной версии
+        if (mobileProfileBtn) {
+            mobileProfileBtn.addEventListener('click', () => {
+                showProfilePanel();
+            });
+        }
 
         // ===============================================
         // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -1933,6 +1952,9 @@
             confirmText.textContent = `Вы уверены, что хотите очистить историю для пользователя ${userName}? Он будет видеть только сообщения с этого момента.`;
             confirmModal.style.display = 'flex';
         }
+
+        // Делаем функцию глобальной для доступа из HTML
+        window.showConfirmModal = showConfirmModal;
 
         function hideConfirmModal() {
             confirmModal.style.display = 'none';
@@ -2891,8 +2913,6 @@
                 window.location.reload();
             }
         };
-
-        window.showConfirmModal = showConfirmModal;
 
         // ===============================================
         // ВИДЕОКОНФЕРЕНЦИЯ
