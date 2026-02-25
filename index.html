@@ -128,7 +128,7 @@
             .users-panel.active ~ .chat-panel {
                 display: none !important;
             }
-            /* Новая шапка списка чатов (без надписи "Чаты") */
+            /* Новая шапка списка чатов */
             .panel-header {
                 display: flex;
                 align-items: center;
@@ -1297,7 +1297,7 @@
             background: #333;
             color: white;
         }
-        /* ==================== КОНФЕРЕНЦИЯ (ТОЛЬКО АУДИО) ==================== */
+        /* ==================== КОНФЕРЕНЦИЯ (ТОЛЬКО АУДИО, НО КАМЕРА ЗАПРАШИВАЕТСЯ) ==================== */
         .video-modal {
             display: none;
             position: fixed;
@@ -1372,7 +1372,7 @@
             overflow-y: auto;
             justify-content: center;
         }
-        /* Квадратики участников (без камеры) */
+        /* Квадратики участников (всегда показываем аватар, даже если есть видео) */
         .video-wrapper {
             width: 100%;
             max-width: 280px;
@@ -1389,6 +1389,9 @@
         }
         .video-wrapper.local {
             border-color: #f0b90b;
+        }
+        .video-wrapper video {
+            display: none !important; /* Полностью скрываем видео */
         }
         .participant-avatar-big {
             width: 68px;
@@ -1514,6 +1517,17 @@
             border: 1px solid #333;
             z-index: 2100;
         }
+        /* Контейнер для скрытых видео */
+        .hidden-video-container {
+            position: fixed;
+            top: -9999px;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -1531,7 +1545,7 @@
     </div>
     <!-- Основной интерфейс -->
     <div class="main-container" id="mainContainer">
-        <!-- Левая панель - пользователи (обновленная) -->
+        <!-- Левая панель - пользователи -->
         <div class="users-panel" id="usersPanel">
             <div class="panel-header">
                 <!-- Слева — Профиль -->
@@ -1662,7 +1676,7 @@
             </div>
         </div>
     </div>
-    <!-- Конференция (только аудио, без камеры) -->
+    <!-- Конференция (только аудио, камера запрашивается но не показывается) -->
     <div class="video-modal" id="videoModal">
         <div class="video-header">
             <div class="video-title">🔐 Secure Audio Briefing</div>
@@ -1672,7 +1686,7 @@
         <div class="video-grid-container">
             <div class="video-grid" id="videoGrid"></div>
            
-            <!-- Боковая панель участников (на телефоне будет снизу) -->
+            <!-- Боковая панель участников -->
             <div class="participants-sidebar" id="participantsSidebar">
                 <div class="sidebar-title">👥 Участники</div>
                 <div class="participants-list" id="conferenceParticipants"></div>
@@ -1687,6 +1701,8 @@
        
         <div class="audio-debug" id="audioDebug"></div>
     </div>
+    <!-- Контейнер для скрытых видео -->
+    <div class="hidden-video-container" id="hiddenVideoContainer"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="livekit.js"></script>
     <script>
@@ -1762,6 +1778,7 @@
         const conferenceParticipants = document.getElementById('conferenceParticipants');
         const participantsSidebar = document.getElementById('participantsSidebar');
         const audioDebug = document.getElementById('audioDebug');
+        const hiddenVideoContainer = document.getElementById('hiddenVideoContainer');
         // Мобильные элементы
         const mobileOverlay = document.getElementById('mobileOverlay');
         const usersPanel = document.getElementById('usersPanel');
@@ -2984,7 +3001,7 @@
             }
         };
         // ===============================================
-        // КОНФЕРЕНЦИЯ — ТОЛЬКО АУДИО (исправленная версия)
+        // КОНФЕРЕНЦИЯ — ТОЛЬКО АУДИО, КАМЕРА СКРЫТА
         // ===============================================
         conferenceBtn.addEventListener('click', async () => {
             const token = TOKENS[currentUser.username];
@@ -3001,6 +3018,7 @@
            
             videoGrid.innerHTML = '';
             conferenceParticipants.innerHTML = '';
+            hiddenVideoContainer.innerHTML = ''; // Очищаем контейнер для скрытых видео
             videoModal.style.display = 'block';
             audioDebug.textContent = '🔄 Подключение...';
             startAudioOnlyConference(token);
@@ -3015,25 +3033,28 @@
             try {
                 room = new LiveKit.Room({
                     adaptiveStream: true,
-                    dynacast: true
+                    dynacast: true,
+                    videoCaptureDefaults: {
+                        resolution: LiveKit.VideoPresets.h90.resolution, // Минимальное разрешение
+                    }
                 });
                 // Обработка подключения
                 room.on(LiveKit.RoomEvent.Connected, async () => {
-                    audioDebug.textContent = '✅ Подключено (только аудио)';
+                    audioDebug.textContent = '✅ Подключено';
                     console.log("✅ Успешно подключился к комнате", ROOM_NAME);
                     console.log("👤 Мой identity:", room.localParticipant?.identity);
                    
                     try {
-                        // Отключаем видео на всякий случай (но не блокируем)
-                        await room.localParticipant.setCameraEnabled(false);
-                       
-                        // Явно включаем микрофон - этого достаточно для публикации аудио
+                        // Явно включаем микрофон
                         await room.localParticipant.setMicrophoneEnabled(true);
+                        console.log("🎤 Микрофон включён");
                        
-                        console.log("🎤 Микрофон включён, аудио публикуется");
+                        // Включаем камеру, но видео будет скрыто
+                        await room.localParticipant.setCameraEnabled(true);
+                        console.log("📹 Камера включена (скрыта от других)");
                         audioDebug.textContent = '🎤 Микрофон активен';
                     } catch (err) {
-                        console.error("❌ Ошибка с микрофоном:", err);
+                        console.error("❌ Ошибка с микрофоном/камерой:", err);
                         audioDebug.textContent = '⚠️ Проблема с микрофоном';
                     }
                    
@@ -3045,11 +3066,6 @@
                     if (!room) return;
                    
                     console.log("[UI] Всего remote participants:", room.remoteParticipants?.size || 0);
-                    if (room.remoteParticipants) {
-                        room.remoteParticipants.forEach((p, key) => {
-                            console.log(` → ${key}: mic=${p.isMicrophoneEnabled}, tracks=${p.tracks.size}`);
-                        });
-                    }
                    
                     const list = [];
                    
@@ -3075,7 +3091,8 @@
                         });
                     }
                     participantsCount.textContent = `👥 ${list.length}`;
-                    // Рендер квадратиков
+                   
+                    // Рендер квадратиков (всегда показываем аватар, видео скрыто)
                     videoGrid.innerHTML = list.map(p => `
                         <div class="video-wrapper ${p.isLocal ? 'local' : ''}">
                             <div class="participant-avatar-big">${p.identity[0].toUpperCase()}</div>
@@ -3085,6 +3102,7 @@
                             </div>
                         </div>
                     `).join('');
+                   
                     // Список в сайдбаре
                     conferenceParticipants.innerHTML = list.map(p => `
                         <div class="participant-item ${p.isLocal ? 'local' : ''}">
@@ -3107,20 +3125,44 @@
                
                 room.on(LiveKit.RoomEvent.TrackSubscribed, (track, publication, participant) => {
                     console.log(`📡 Трек подписан: ${track.kind} от ${participant.identity}`);
+                   
                     if (track.kind === 'audio') {
+                        // Аудио треки подключаем нормально
                         const audioEl = track.attach();
                         audioEl.volume = 1.0;
                         audioEl.muted = false;
                         audioEl.play().catch(e => console.warn('Ошибка воспроизведения аудио:', e));
+                    } else if (track.kind === 'video') {
+                        // Видео треки скрываем - помещаем их в невидимый контейнер
+                        // Это нужно, чтобы камера работала (трансляция шла), но видео не показывалось
+                        const videoEl = track.attach();
+                        videoEl.style.display = 'none'; // Скрываем через CSS дополнительно
+                        videoEl.volume = 0;
+                        videoEl.muted = true;
+                        videoEl.autoplay = true;
+                        videoEl.playsInline = true;
+                       
+                        // Добавляем в скрытый контейнер
+                        hiddenVideoContainer.appendChild(videoEl);
+                       
+                        // Запускаем воспроизведение (нужно для активации камеры)
+                        videoEl.play().catch(e => console.warn('Ошибка воспроизведения видео (ожидаемо):', e));
+                       
+                        console.log(`📹 Видео трек от ${participant.identity} скрыт в невидимом контейнере`);
                     }
                     updateParticipantsUI();
                 });
                
                 room.on(LiveKit.RoomEvent.TrackUnsubscribed, (track) => {
                     console.log("📡 Трек отписан");
-                    track.detach().forEach(el => el.remove());
+                    track.detach().forEach(el => {
+                        if (el.parentNode === hiddenVideoContainer) {
+                            el.remove();
+                        }
+                    });
                     updateParticipantsUI();
                 });
+               
                 room.on(LiveKit.RoomEvent.TrackMuted, (pub, participant) => {
                     console.log(`🔇 Микрофон выключен у ${participant.identity}`);
                     updateParticipantsUI();
@@ -3130,10 +3172,12 @@
                     console.log(`🎤 Микрофон включён у ${participant.identity}`);
                     updateParticipantsUI();
                 });
+               
                 room.on(LiveKit.RoomEvent.Disconnected, () => {
                     console.log("📴 Отключено от конференции");
                     audioDebug.textContent = '📴 Отключено';
                     if (audioReconnectTimer) clearInterval(audioReconnectTimer);
+                    hiddenVideoContainer.innerHTML = ''; // Очищаем скрытые видео
                 });
                 // Подключаемся
                 console.log("🔄 Подключаюсь к комнате...");
@@ -3270,11 +3314,10 @@
                    
                     setTimeout(setupKeyboardHandling, 500);
                 }, 500);
-            }
+            } 
         })();
         // Инициализация
         checkSavedSession();
     </script>
 </body>
 </html>
-
