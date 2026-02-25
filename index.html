@@ -159,6 +159,24 @@
                 margin: 0;
             }
 
+            .header-right {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+            }
+            
+            .search-icon {
+                font-size: 26px;
+                color: #f0b90b;
+                cursor: pointer;
+                padding: 6px 8px;
+                border-radius: 50%;
+            }
+            
+            .search-icon:active {
+                background: rgba(240, 185, 11, 0.15);
+            }
+
             /* Кнопка профиля */
             .profile-button {
                 display: flex;
@@ -192,34 +210,61 @@
                 background: #333;
             }
 
-            /* Поиск */
-            .search-container {
-                padding: 16px 20px;
+            /* Поисковая панель */
+            .search-bar {
+                padding: 12px 20px;
                 background: #111;
                 border-bottom: 1px solid #333;
                 display: flex;
+                align-items: center;
                 gap: 10px;
             }
-
-            .search-input {
+            
+            .search-bar input {
                 flex: 1;
                 padding: 12px 16px;
                 background: #1a1a1a;
-                border: 1px solid #333;
+                border: 1px solid #f0b90b;
                 border-radius: 12px;
                 color: #f0b90b;
-                font-size: 14px;
+                font-size: 15px;
+            }
+            
+            .search-close-btn {
+                background: none;
+                border: none;
+                color: #ff4444;
+                font-size: 24px;
+                cursor: pointer;
+                padding: 8px;
             }
 
-            .search-btn {
-                padding: 12px 20px;
-                background: #f0b90b;
-                border: none;
-                border-radius: 12px;
-                color: #0a0a0a;
-                font-weight: 600;
+            /* Шапка профиля на мобильных */
+            .profile-header-mobile {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 16px 20px;
+                background: #111;
+                border-bottom: 1px solid #333;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+            
+            .profile-back-btn {
+                font-size: 28px;
+                color: #f0b90b;
                 cursor: pointer;
-                white-space: nowrap;
+                width: 40px;
+                text-align: center;
+                padding: 4px;
+            }
+            
+            .profile-header-title {
+                font-size: 20px;
+                font-weight: 700;
+                color: #f0b90b;
             }
 
             /* Правая панель профиля на мобильных */
@@ -236,13 +281,18 @@
                 transform: translateX(100%);
                 transition: transform 0.3s ease;
                 overflow-y: auto;
-                padding: 20px;
+                padding: 0;
                 padding-bottom: env(safe-area-inset-bottom, 0);
             }
 
             .profile-panel.active {
                 transform: translateX(0);
                 box-shadow: -4px 0 20px rgba(0,0,0,0.6);
+            }
+
+            .profile-panel .profile-header {
+                padding: 20px;
+                margin-top: 10px;
             }
 
             .chat-header {
@@ -313,6 +363,30 @@
                 display: flex;
                 gap: 8px;
                 max-width: 85%;
+                position: relative;
+                transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .message.swiping {
+                transform: translateX(70px) !important;
+            }
+
+            .message::after {
+                content: "↩️ Ответить";
+                position: absolute;
+                left: -80px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 20px;
+                color: #f0b90b;
+                opacity: 0;
+                white-space: nowrap;
+                transition: opacity 0.2s;
+                pointer-events: none;
+            }
+
+            .message.swiping::after {
+                opacity: 0.85;
             }
 
             .message.own {
@@ -359,6 +433,12 @@
 
             .message-time {
                 color: #666;
+            }
+
+            .read-status {
+                font-size: 14px;
+                color: #4caf50;
+                margin-left: 4px;
             }
 
             .reply-btn {
@@ -482,7 +562,7 @@
 
         /* Десктоп версия */
         @media (min-width: 769px) {
-            .mobile-header, .mobile-overlay {
+            .mobile-header, .mobile-overlay, .profile-header-mobile {
                 display: none;
             }
             
@@ -529,8 +609,14 @@
                 flex: 1;
             }
             
-            .profile-button {
+            .profile-button, .search-icon, .search-bar {
                 display: none;
+            }
+
+            .read-status {
+                font-size: 14px;
+                color: #4caf50;
+                margin-left: 4px;
             }
         }
 
@@ -1619,15 +1705,22 @@
         <div class="users-panel" id="usersPanel">
             <div class="panel-header">
                 <div class="panel-title">Чаты</div>
-                <div class="profile-button" id="mobileProfileBtn">
-                    <div class="profile-icon">👤</div>
-                    <div class="profile-text">профиль</div>
+                
+                <div class="header-right">
+                    <span class="search-icon" id="searchIcon">🔍</span>
+                    <div class="profile-button" id="mobileProfileBtn">
+                        <div class="profile-icon">👤</div>
+                        <div class="profile-text">профиль</div>
+                    </div>
                 </div>
             </div>
-            <div class="search-container">
-                <input type="text" class="search-input" id="userSearch" placeholder="Введите ID (7 цифр)">
-                <button class="search-btn" id="searchBtn">Найти</button>
+            
+            <!-- Поисковая панель (появляется по клику) -->
+            <div class="search-bar" id="searchBar" style="display: none;">
+                <input type="text" class="search-input" id="userSearch" placeholder="Поиск по ID или имени...">
+                <button class="search-close-btn" id="searchCloseBtn">✕</button>
             </div>
+            
             <div class="chat-list" id="chatList"></div>
         </div>
 
@@ -1656,6 +1749,13 @@
 
         <!-- Правая панель - профиль -->
         <div class="profile-panel" id="profilePanel">
+            <!-- Шапка профиля на мобильных -->
+            <div class="profile-header-mobile" id="profileHeaderMobile">
+                <span class="profile-back-btn" id="profileBackBtn">←</span>
+                <span class="profile-header-title">Профиль</span>
+                <div style="width: 40px;"></div>
+            </div>
+            
             <div class="profile-header">
                 <div class="profile-avatar" id="profileAvatar">?</div>
                 <div class="profile-name" id="profileName">---</div>
@@ -1785,6 +1885,7 @@
         let currentChatType = 'group';
         let messagesSubscription = null;
         let contactsSubscription = null;
+        let readsSubscription = null;
         let unreadCounts = {};
         let room = null;
         let audioContext = null;
@@ -1847,6 +1948,11 @@
         const profilePanel = document.getElementById('profilePanel');
         const chatBackBtn = document.getElementById('chatBackBtn');
         const mobileProfileBtn = document.getElementById('mobileProfileBtn');
+        const profileBackBtn = document.getElementById('profileBackBtn');
+        const searchIcon = document.getElementById('searchIcon');
+        const searchBar = document.getElementById('searchBar');
+        const userSearchInput = document.getElementById('userSearch');
+        const searchCloseBtn = document.getElementById('searchCloseBtn');
 
         // Элементы ответов и профиля пользователя
         const replyPreview = document.getElementById('replyPreview');
@@ -1975,6 +2081,48 @@
             });
         }
 
+        // Кнопка "Назад" в профиле
+        if (profileBackBtn) {
+            profileBackBtn.addEventListener('click', () => {
+                hideProfilePanel();
+            });
+        }
+
+        // ==================== ПОИСК ПО ИКОНКЕ ====================
+        if (searchIcon) {
+            searchIcon.addEventListener('click', () => {
+                searchBar.style.display = 'flex';
+                userSearchInput.focus();
+            });
+        }
+
+        if (searchCloseBtn) {
+            searchCloseBtn.addEventListener('click', () => {
+                searchBar.style.display = 'none';
+                userSearchInput.value = '';
+                loadChats(); // возвращаем все чаты
+            });
+        }
+
+        // Поиск в реальном времени
+        if (userSearchInput) {
+            userSearchInput.addEventListener('input', () => {
+                const term = userSearchInput.value.toLowerCase().trim();
+                
+                document.querySelectorAll('.chat-item').forEach(item => {
+                    const name = item.querySelector('.chat-name').textContent.toLowerCase();
+                    const idEl = item.querySelector('.chat-id');
+                    const id = idEl ? idEl.textContent.toLowerCase() : '';
+                    
+                    if (name.includes(term) || id.includes(term)) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        }
+
         // ===============================================
         // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
         // ===============================================
@@ -2004,60 +2152,130 @@
         }
 
         // ===============================================
-        // ФУНКЦИИ ДЛЯ ОЧИСТКИ ИСТОРИИ
+        // ФУНКЦИИ ДЛЯ ГАЛОЧЕК ПРОЧТЕНИЯ
         // ===============================================
 
-        function showConfirmModal(userId, userName) {
-            pendingClearUserId = userId;
-            confirmText.textContent = `Вы уверены, что хотите очистить историю для пользователя ${userName}? Он будет видеть только сообщения с этого момента.`;
-            confirmModal.style.display = 'flex';
+        async function markMessagesAsRead() {
+            if (!currentChat || !currentUser) return;
+            
+            // Для групповых чатов пока не реализуем (сложнее)
+            if (currentChatType === 'group') return;
+            
+            const messageElements = document.querySelectorAll('.message:not(.own)');
+            if (messageElements.length === 0) return;
+            
+            const reads = [];
+            messageElements.forEach(msg => {
+                const msgId = parseInt(msg.id.replace('message-', ''));
+                reads.push({
+                    message_id: msgId,
+                    chat_type: currentChatType,
+                    reader_id: currentUser.id,
+                    read_at: new Date().toISOString()
+                });
+            });
+            
+            if (reads.length > 0) {
+                try {
+                    await supabaseClient
+                        .from('message_reads')
+                        .insert(reads);
+                } catch (error) {
+                    console.warn('Ошибка при отметке прочтения:', error);
+                }
+            }
         }
 
-        // Делаем функцию глобальной для доступа из HTML
-        window.showConfirmModal = showConfirmModal;
-
-        function hideConfirmModal() {
-            confirmModal.style.display = 'none';
-            pendingClearUserId = null;
-        }
-
-        confirmYesBtn.addEventListener('click', async () => {
-            if (!pendingClearUserId) return;
+        async function updateReadStatuses() {
+            if (!currentChat || !currentUser) return;
             
             try {
-                console.log('Очищаем историю для пользователя:', pendingClearUserId);
+                const { data: reads } = await supabaseClient
+                    .from('message_reads')
+                    .select('message_id')
+                    .eq('chat_type', currentChatType);
                 
-                const { error } = await supabaseClient
-                    .from('user_group_clears')
-                    .insert([{
-                        user_id: pendingClearUserId,
-                        cleared_at: new Date().toISOString() // Важно: toISOString()!
-                    }]);
-
-                if (error) {
-                    console.error('Ошибка Supabase:', error);
-                    throw error;
-                }
+                if (!reads) return;
                 
-                alert(`✅ История группы успешно очищена!`);
-                hideConfirmModal();
+                const readMessageIds = new Set(reads.map(r => r.message_id));
                 
-                // Обновляем список пользователей в админке
-                if (currentUser && currentUser.username === 'German') {
-                    loadAdminUsers();
-                }
-                
-                // Если сейчас открыт групповой чат, перезагружаем сообщения
-                if (currentChatType === 'group') {
-                    loadGroupMessages();
-                }
+                document.querySelectorAll('.message.own').forEach(msg => {
+                    const msgId = parseInt(msg.id.replace('message-', ''));
+                    const readStatus = msg.querySelector('.read-status');
+                    
+                    if (readStatus) {
+                        if (readMessageIds.has(msgId)) {
+                            readStatus.textContent = '✓✓';
+                            readStatus.style.color = '#4caf50';
+                        } else {
+                            readStatus.textContent = '✓';
+                            readStatus.style.color = '#888';
+                        }
+                    }
+                });
             } catch (error) {
-                console.error('Ошибка очистки истории:', error);
-                alert('❌ Ошибка при очистке истории: ' + error.message);
+                console.warn('Ошибка при обновлении статусов:', error);
             }
-        });
+        }
 
-        confirmNoBtn.addEventListener('click', hideConfirmModal);
+        // ===============================================
+        // SWIPE-TO-REPLY
+        // ===============================================
+
+        function initSwipeToReply() {
+            if (!isMobile()) return;
+
+            let startX = 0;
+            let currentMessage = null;
+            let isSwiping = false;
+
+            messagesContainer.addEventListener('touchstart', e => {
+                const msg = e.target.closest('.message');
+                if (!msg || msg.classList.contains('own')) return;
+                
+                startX = e.touches[0].clientX;
+                currentMessage = msg;
+                isSwiping = false;
+            }, { passive: true });
+
+            messagesContainer.addEventListener('touchmove', e => {
+                if (!currentMessage) return;
+                
+                const delta = e.touches[0].clientX - startX;
+                
+                if (delta > 10) {
+                    isSwiping = true;
+                    e.preventDefault();
+                    
+                    if (delta < 140) {
+                        currentMessage.style.transform = `translateX(${delta}px)`;
+                        currentMessage.classList.add('swiping');
+                    }
+                }
+            }, { passive: false });
+
+            messagesContainer.addEventListener('touchend', e => {
+                if (!currentMessage || !isSwiping) {
+                    currentMessage = null;
+                    return;
+                }
+
+                const delta = e.changedTouches[0].clientX - startX;
+                currentMessage.style.transform = '';
+                currentMessage.classList.remove('swiping');
+
+                if (delta > 65) {
+                    const msgId = currentMessage.id.replace('message-', '');
+                    const sender = currentMessage.querySelector('.message-sender').textContent;
+                    const text = currentMessage.querySelector('.message-content').textContent.trim();
+                    
+                    setReply(msgId, sender, text, currentChatType);
+                }
+
+                currentMessage = null;
+                isSwiping = false;
+            }, { passive: true });
+        }
 
         // ===============================================
         // ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
@@ -2342,51 +2560,32 @@
             }
             
             loadChats();
+            
+            // Отмечаем сообщения как прочитанные через небольшую задержку
+            setTimeout(() => {
+                markMessagesAsRead();
+            }, 1500);
         };
 
         // ===============================================
-        // ЗАГРУЗКА СООБЩЕНИЙ (с учетом очистки истории)
+        // ЗАГРУЗКА СООБЩЕНИЙ
         // ===============================================
 
         async function loadGroupMessages() {
             try {
-                // Получаем дату очистки истории для текущего пользователя
-                const { data: clears, error: clearError } = await supabaseClient
-                    .from('user_group_clears')
-                    .select('cleared_at')
-                    .eq('user_id', currentUser.id)
-                    .order('cleared_at', { ascending: false })
-                    .limit(1);
-
-                if (clearError) {
-                    console.warn('Не удалось загрузить данные об очистке:', clearError);
-                }
-
-                let query = supabaseClient
+                const { data: messages, error } = await supabaseClient
                     .from('group_messages')
                     .select('*, users!inner(*)')
                     .order('created_at', { ascending: true });
 
-                // Если есть запись об очистке, фильтруем сообщения
-                if (clears && clears.length > 0) {
-                    const clearedAt = clears[0].cleared_at;
-                    console.log('Фильтруем сообщения с даты:', clearedAt);
-                    query = query.gte('created_at', clearedAt);
-                } else {
-                    console.log('Очистки не было, показываем все сообщения');
-                }
-
-                const { data: messages, error } = await query;
-
-                if (error) {
-                    console.error('Ошибка загрузки сообщений:', error);
-                    throw error;
-                }
+                if (error) throw error;
 
                 renderMessages(messages || [], 'group');
+                
+                // Инициализируем свайп после рендера
+                setTimeout(initSwipeToReply, 100);
             } catch (error) {
                 console.error('Ошибка загрузки сообщений:', error);
-                messagesContainer.innerHTML = '<div class="empty-messages">Ошибка загрузки сообщений</div>';
             }
         }
 
@@ -2401,6 +2600,12 @@
                 if (error) throw error;
 
                 renderMessages(messages || [], 'private');
+                
+                // Инициализируем свайп после рендера
+                setTimeout(() => {
+                    initSwipeToReply();
+                    updateReadStatuses();
+                }, 100);
             } catch (error) {
                 console.error('Ошибка загрузки сообщений:', error);
             }
@@ -2460,13 +2665,12 @@
                 
                 if (isOwn) {
                     return `
-                        <div class="message own" id="message-${msg.id}">
-                            <div class="message-avatar" onclick="showUserProfile('${senderId}')">${senderAvatar}</div>
+                        <div class="message own" id="message-${msg.id}" data-id="${msg.id}">
                             <div class="message-content-wrapper">
                                 <div class="message-header">
                                     <span class="message-sender">${senderName}</span>
                                     <span class="message-time">${time}</span>
-                                    <button class="reply-btn" onclick="setReply('${msg.id}', '${senderName.replace(/'/g, "\\'")}', '${msg.message.replace(/'/g, "\\'").replace(/\n/g, '\\n')}', '${type}')">↩️</button>
+                                    <span class="read-status" data-msg-id="${msg.id}">✓</span>
                                 </div>
                                 ${replyHtml}
                                 <div class="message-content">${msg.message}</div>
@@ -2475,7 +2679,7 @@
                     `;
                 } else {
                     return `
-                        <div class="message" id="message-${msg.id}">
+                        <div class="message" id="message-${msg.id}" data-id="${msg.id}">
                             <div class="message-avatar" onclick="showUserProfile('${senderId}')">${senderAvatar}</div>
                             <div class="message-content-wrapper">
                                 <div class="message-header">
@@ -2704,13 +2908,34 @@
                     }
                 )
                 .subscribe();
+
+            // Подписка на прочтения
+            const readsChannel = supabaseClient
+                .channel('reads-channel')
+                .on('postgres_changes',
+                    {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'message_reads'
+                    },
+                    () => {
+                        if (currentChatType === 'private') {
+                            updateReadStatuses();
+                        }
+                    }
+                )
+                .subscribe();
         }
 
         // ===============================================
         // ПОИСК ПОЛЬЗОВАТЕЛЕЙ
         // ===============================================
 
-        searchBtn.addEventListener('click', searchUserById);
+        // Старый поиск через кнопку оставляем для десктопа
+        if (searchBtn) {
+            searchBtn.addEventListener('click', searchUserById);
+        }
+        
         userSearch.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') searchUserById();
         });
@@ -2737,6 +2962,11 @@
                     await addToContactsIfNotExists(foundUser);
                     userSearch.value = '';
                     alert(`Пользователь ${foundUser.display_name !== '---' ? foundUser.display_name : foundUser.username} добавлен в контакты`);
+                    
+                    // На мобильных закрываем поиск
+                    if (isMobile() && searchBar) {
+                        searchBar.style.display = 'none';
+                    }
                 } else {
                     alert('Пользователь с ID ' + searchId + ' не найден');
                 }
@@ -2841,6 +3071,7 @@
             
             if (messagesSubscription) supabaseClient.removeChannel(messagesSubscription);
             if (contactsSubscription) supabaseClient.removeChannel(contactsSubscription);
+            if (readsSubscription) supabaseClient.removeChannel(readsSubscription);
         });
 
         // ===============================================
@@ -2886,7 +3117,6 @@
                             <button class="admin-user-btn" onclick="impersonateUser('${user.id}')">👤 Войти</button>
                             <button class="admin-user-btn" onclick="editUser('${user.id}')">✎</button>
                             <button class="admin-user-btn" onclick="toggleBlockUser('${user.id}', '${user.status}')">${user.status === 'blocked' ? '🔓' : '🔒'}</button>
-                            <button class="admin-user-btn" style="background: #ff4444; color: white; border-color: #ff4444;" onclick="showConfirmModal('${user.id}', '${displayName}')">🗑️ Очистить</button>
                         </div>
                     </div>
                     
