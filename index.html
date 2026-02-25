@@ -70,6 +70,10 @@
             grid-template-columns: 400px 1fr 320px;
             background: #0a0a0a;
             position: relative;
+            transition: margin-top 0.3s ease;
+        }
+        .main-container.with-call-bar {
+            margin-top: 32px;
         }
         /* ==================== МОБИЛЬНАЯ НАВИГАЦИЯ ==================== */
         @media (max-width: 768px) {
@@ -827,7 +831,7 @@
             border: 2px solid #f0b90b;
             color: #f0b90b;
         }
-        /* Индикатор активного звонка - глобальный */
+        /* Индикатор активного звонка - сдвигает контент */
         .active-call-bar {
             position: fixed;
             top: 0;
@@ -843,7 +847,6 @@
             font-size: 14px;
             font-weight: 500;
             z-index: 10000;
-            border-bottom: 1px solid #27ae60;
         }
         .active-call-bar .call-info {
             display: flex;
@@ -861,14 +864,14 @@
         .active-call-bar .call-actions span:hover {
             background: rgba(0,0,0,0.1);
         }
-        /* Отступ для контента из-за фиксированной шторки */
-        .main-container {
-            margin-top: 32px;
+        /* Контейнер с контентом сдвигается вниз */
+        .content-wrapper {
+            height: 100vh;
+            height: 100dvh;
+            transition: margin-top 0.3s ease;
         }
-        .video-modal {
+        .content-wrapper.with-call-bar {
             margin-top: 32px;
-            height: calc(100vh - 32px);
-            height: calc(100dvh - 32px);
         }
         .messages-container {
             flex: 1;
@@ -1135,7 +1138,7 @@
         .admin-panel {
             display: none;
             position: fixed;
-            top: 32px;
+            top: 0;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1247,7 +1250,7 @@
         .user-profile-modal {
             display: none;
             position: fixed;
-            top: 32px;
+            top: 0;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1322,7 +1325,7 @@
         .confirm-modal {
             display: none;
             position: fixed;
-            top: 32px;
+            top: 0;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1377,7 +1380,7 @@
         .modal {
             display: none;
             position: fixed;
-            top: 32px;
+            top: 0;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1434,13 +1437,17 @@
         .video-modal {
             display: none;
             position: fixed;
-            top: 32px;
+            top: 0;
             left: 0;
             right: 0;
             bottom: 0;
             background: #0a0a0a;
             z-index: 2000;
             overflow: hidden;
+            transition: top 0.3s ease;
+        }
+        .video-modal.with-call-bar {
+            top: 32px;
         }
         .video-header {
             display: flex;
@@ -1483,16 +1490,16 @@
             display: grid;
             grid-template-columns: 1fr 280px;
             gap: 20px;
-            height: calc(100vh - 120px - 32px);
-            height: calc(100dvh - 120px - 32px);
+            height: calc(100vh - 120px);
+            height: calc(100dvh - 120px);
             padding: 20px;
             padding-bottom: env(safe-area-inset-bottom, 20px);
         }
         @media (max-width: 768px) {
             .video-grid-container {
                 grid-template-columns: 1fr;
-                height: calc(100vh - 160px - 32px);
-                height: calc(100dvh - 160px - 32px);
+                height: calc(100vh - 160px);
+                height: calc(100dvh - 160px);
                 padding: 10px;
                 padding-bottom: env(safe-area-inset-bottom, 10px);
             }
@@ -1504,7 +1511,7 @@
             .participants-sidebar.active {
                 display: block;
                 position: fixed;
-                top: 92px;
+                top: 60px;
                 left: 0;
                 right: 0;
                 bottom: 80px;
@@ -3213,8 +3220,12 @@
             isConferenceActive = show;
             if (show && room) {
                 activeCallBar.style.display = 'flex';
+                mainContainer.classList.add('with-call-bar');
+                videoModal.classList.add('with-call-bar');
             } else {
                 activeCallBar.style.display = 'none';
+                mainContainer.classList.remove('with-call-bar');
+                videoModal.classList.remove('with-call-bar');
             }
         }
         
