@@ -70,10 +70,6 @@
             grid-template-columns: 400px 1fr 320px;
             background: #0a0a0a;
             position: relative;
-            transition: margin-top 0.3s ease;
-        }
-        .main-container.with-call-bar {
-            margin-top: 48px;
         }
         /* ==================== МОБИЛЬНАЯ НАВИГАЦИЯ ==================== */
         @media (max-width: 768px) {
@@ -831,13 +827,17 @@
             border: 2px solid #f0b90b;
             color: #f0b90b;
         }
-        /* Индикатор активного звонка - сдвигает контент */
+        /* ==================== АКТИВНАЯ ШТОРКА (новая версия) ==================== */
+        :root {
+            --call-bar-height: 0px;
+        }
+
         .active-call-bar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: 48px;
+            height: var(--call-bar-height);
             background: #2ecc71;
             color: #000;
             display: none;
@@ -849,17 +849,44 @@
             cursor: pointer;
             text-align: center;
         }
+
         .active-call-bar:hover {
             background: #27ae60;
         }
-        /* Контейнер с контентом сдвигается вниз */
-        .content-wrapper {
-            height: 100vh;
-            height: 100dvh;
-            transition: margin-top 0.3s ease;
+
+        /* Десктоп: сдвигаем контент padding'ом и уменьшаем высоту панелей */
+        @media (min-width: 769px) {
+            .main-container.with-call-bar .users-panel,
+            .main-container.with-call-bar .chat-panel,
+            .main-container.with-call-bar .profile-panel {
+                padding-top: var(--call-bar-height);
+            }
+
+            /* Самое важное — уменьшаем высоту чат-панели, чтобы input остался внизу */
+            .main-container.with-call-bar .chat-panel {
+                height: calc(100vh - var(--call-bar-height)) !important;
+                height: calc(100dvh - var(--call-bar-height)) !important;
+            }
         }
-        .content-wrapper.with-call-bar {
-            margin-top: 48px;
+
+        /* Мобильные: сдвигаем fixed-панели */
+        @media (max-width: 768px) {
+            .users-panel,
+            .chat-panel,
+            .profile-panel {
+                top: var(--call-bar-height) !important;
+            }
+
+            .chat-header,
+            .panel-header,
+            .profile-header-mobile {
+                padding-top: calc(env(safe-area-inset-top, 0px) + var(--call-bar-height));
+            }
+        }
+
+        /* Убираем старый margin-top полностью */
+        .main-container.with-call-bar {
+            margin-top: 0 !important;
         }
         .messages-container {
             flex: 1;
@@ -1238,7 +1265,7 @@
         .user-profile-modal {
             display: none;
             position: fixed;
-            top: 48px;
+            top: 0;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1313,7 +1340,7 @@
         .confirm-modal {
             display: none;
             position: fixed;
-            top: 48px;
+            top: 0;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1368,7 +1395,7 @@
         .modal {
             display: none;
             position: fixed;
-            top: 48px;
+            top: 0;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1425,7 +1452,7 @@
         .video-modal {
             display: none;
             position: fixed;
-            top: 48px;
+            top: 0;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1474,16 +1501,16 @@
             display: grid;
             grid-template-columns: 1fr 280px;
             gap: 20px;
-            height: calc(100vh - 120px - 48px);
-            height: calc(100dvh - 120px - 48px);
+            height: calc(100vh - 120px);
+            height: calc(100dvh - 120px);
             padding: 20px;
             padding-bottom: env(safe-area-inset-bottom, 20px);
         }
         @media (max-width: 768px) {
             .video-grid-container {
                 grid-template-columns: 1fr;
-                height: calc(100vh - 160px - 48px);
-                height: calc(100dvh - 160px - 48px);
+                height: calc(100vh - 160px);
+                height: calc(100dvh - 160px);
                 padding: 10px;
                 padding-bottom: env(safe-area-inset-bottom, 10px);
             }
@@ -1495,7 +1522,7 @@
             .participants-sidebar.active {
                 display: block;
                 position: fixed;
-                top: 108px;
+                top: 60px;
                 left: 0;
                 right: 0;
                 bottom: 80px;
@@ -1818,7 +1845,7 @@
     <!-- Конференция -->
     <div class="video-modal" id="videoModal">
         <div class="video-header">
-            <div class="video-title">🔐 Secure Audio Briefing</div>
+            <div class="video-title"></div>
             <div class="participants-count" id="participantsCount">👥 1</div>
             <button class="minimize-btn" id="minimizeConferenceBtn">⤵ Свернуть</button>
         </div>
@@ -3195,12 +3222,13 @@
         
         // Функция показа/скрытия активного звонка
         function updateActiveCallBar(show) {
-            isConferenceActive = show;
-            if (show && room) {
+            if (show) {
                 activeCallBar.style.display = 'flex';
+                document.documentElement.style.setProperty('--call-bar-height', '32px');
                 mainContainer.classList.add('with-call-bar');
             } else {
                 activeCallBar.style.display = 'none';
+                document.documentElement.style.setProperty('--call-bar-height', '0px');
                 mainContainer.classList.remove('with-call-bar');
             }
         }
@@ -3364,6 +3392,7 @@
         activeCallBar.addEventListener('click', () => {
             if (room) {
                 videoModal.style.display = 'block';
+                updateActiveCallBar(false);
             }
         });
         
