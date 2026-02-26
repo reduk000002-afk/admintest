@@ -10,6 +10,47 @@
             padding: 0;
             box-sizing: border-box;
         }
+
+        /* ==================== СКРОЛЛБАРЫ В СТИЛЕ САЙТА ==================== */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #444 #1a1a1a;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f0f0f;
+            border-radius: 10px;
+            margin: 2px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 10px;
+            border: 1px solid #333;
+            transition: background 0.2s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f0b90b;
+        }
+
+        ::-webkit-scrollbar-thumb:active {
+            background: #d4a017;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #555;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: #f0b90b;
+        }
+
         body {
             background: #0a0a0a;
             color: #f0b90b;
@@ -827,7 +868,7 @@
             border: 2px solid #f0b90b;
             color: #f0b90b;
         }
-        /* ==================== АКТИВНАЯ ШТОРКА (новая версия) ==================== */
+        /* ==================== АКТИВНАЯ ШТОРКА ==================== */
         :root {
             --call-bar-height: 0px;
         }
@@ -862,7 +903,6 @@
                 padding-top: var(--call-bar-height);
             }
 
-            /* Самое важное — уменьшаем высоту чат-панели, чтобы input остался внизу */
             .main-container.with-call-bar .chat-panel {
                 height: calc(100vh - var(--call-bar-height)) !important;
                 height: calc(100dvh - var(--call-bar-height)) !important;
@@ -884,7 +924,6 @@
             }
         }
 
-        /* Убираем старый margin-top полностью */
         .main-container.with-call-bar {
             margin-top: 0 !important;
         }
@@ -1584,54 +1623,89 @@
         }
         .mic-status.mic-on { color: #4caf50; }
         .mic-status.mic-off { color: #ff4444; }
+
+        /* ==================== КРАСИВЫЙ СПИСОК УЧАСТНИКОВ (НОВАЯ ВЕРСИЯ) ==================== */
         .participants-sidebar {
             background: #111;
-            border-left: 1px solid #333;
-            padding: 15px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            padding: 16px;
             overflow-y: auto;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #333;
         }
-        .sidebar-title {
-            font-size: 16px;
-            font-weight: 600;
+
+        .participants-sidebar .sidebar-title {
+            font-size: 17px;
+            font-weight: 700;
             color: #f0b90b;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #333;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #444;
+            letter-spacing: 0.3px;
         }
+
         .participants-list {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
+
         .participant-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px;
+            gap: 12px;
+            padding: 10px 12px;
             background: #1a1a1a;
-            border-radius: 8px;
-            border-left: 3px solid transparent;
+            border-radius: 12px;
+            border: 1px solid #333;
+            transition: all 0.18s ease;
         }
+
+        .participant-item:hover {
+            background: #222;
+            border-color: #555;
+            transform: translateX(2px);
+        }
+
         .participant-item.local {
-            border-left-color: #f0b90b;
+            border-left: 4px solid #f0b90b;
+            background: rgba(240, 185, 11, 0.08);
         }
+
         .participant-avatar {
-            width: 32px;
-            height: 32px;
+            width: 38px;
+            height: 38px;
             background: #222;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #f0b90b;
-            font-weight: 600;
-            border: 1px solid #f0b90b;
+            font-weight: 700;
+            font-size: 16px;
+            border: 2px solid #444;
+            flex-shrink: 0;
         }
+
         .participant-name {
-            color: #fff;
-            font-size: 13px;
+            color: #e0e0e0;
+            font-size: 14px;
             font-weight: 500;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+
+        .mic-status {
+            font-size: 18px;
+            min-width: 24px;
+            text-align: center;
+        }
+
         .conference-controls {
             position: fixed;
             bottom: max(20px, env(safe-area-inset-bottom, 20px));
@@ -1668,6 +1742,14 @@
             background: #ff4444;
             border-color: #ff4444;
             color: white;
+        }
+        .conf-control-btn.recover {
+            background: #3498db;
+            border-color: #2980b9;
+            color: white;
+        }
+        .conf-control-btn.recover:hover {
+            background: #2980b9;
         }
         .audio-debug {
             position: fixed;
@@ -1860,6 +1942,7 @@
        
         <div class="conference-controls">
             <button class="conf-control-btn" id="videoMicBtn" title="Микрофон">🎤</button>
+            <button class="conf-control-btn recover" id="recoverAudioBtn" title="Восстановить звук">🔊</button>
             <button class="conf-control-btn leave" id="videoLeaveBtn" title="Выйти из конференции">✕</button>
         </div>
        
@@ -1873,7 +1956,7 @@
         // Конфигурация
         const SUPABASE_URL = 'https://mqqlcfcwufdqwslukziy.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_pj766xnnI6WD4kiw7_kSSg_oaIiSYIr';
-        const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
+        const LIVEKIT_URL = 'wss://livekit.voxy.work';
         const ROOM_NAME = 'secure-stack-1k5b95';
         const GROUP_NAME = 'Spam команда Германа';
         
@@ -1948,6 +2031,7 @@
         const audioDebug = document.getElementById('audioDebug');
         const hiddenVideoContainer = document.getElementById('hiddenVideoContainer');
         const minimizeConferenceBtn = document.getElementById('minimizeConferenceBtn');
+        const recoverAudioBtn = document.getElementById('recoverAudioBtn');
         
         // Элементы активного звонка
         const activeCallBar = document.getElementById('activeCallBar');
@@ -3222,7 +3306,8 @@
         
         // Функция показа/скрытия активного звонка
         function updateActiveCallBar(show) {
-            if (show) {
+            isConferenceActive = show;
+            if (show && room) {
                 activeCallBar.style.display = 'flex';
                 document.documentElement.style.setProperty('--call-bar-height', '32px');
                 mainContainer.classList.add('with-call-bar');
@@ -3395,6 +3480,45 @@
                 updateActiveCallBar(false);
             }
         });
+
+        // Кнопка восстановления звука
+        if (recoverAudioBtn) {
+            recoverAudioBtn.addEventListener('click', async () => {
+                if (!room || !room.localParticipant) {
+                    alert('Конференция не активна');
+                    return;
+                }
+
+                recoverAudioBtn.style.opacity = '0.4';
+                recoverAudioBtn.style.transform = 'scale(0.9)';
+
+                try {
+                    if (window.audioContext && window.audioContext.state === 'suspended') {
+                        await window.audioContext.resume();
+                    }
+
+                    const wasEnabled = room.localParticipant.isMicrophoneEnabled;
+
+                    await room.localParticipant.setMicrophoneEnabled(false);
+                    await new Promise(r => setTimeout(r, 180));
+
+                    await room.localParticipant.setMicrophoneEnabled(true);
+
+                    if (!wasEnabled) {
+                        await new Promise(r => setTimeout(r, 100));
+                        await room.localParticipant.setMicrophoneEnabled(false);
+                    }
+                } catch (error) {
+                    console.error('❌ [Recover Audio] Ошибка:', error);
+                    alert('Не удалось восстановить звук');
+                }
+
+                setTimeout(() => {
+                    recoverAudioBtn.style.opacity = '1';
+                    recoverAudioBtn.style.transform = 'scale(1)';
+                }, 600);
+            });
+        }
         
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
