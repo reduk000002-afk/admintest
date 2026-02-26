@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Secure Briefing</title>
+    <title>Voxy Messenger</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <style>
         * {
@@ -10,6 +10,47 @@
             padding: 0;
             box-sizing: border-box;
         }
+
+        /* ==================== СКРОЛЛБАРЫ В СТИЛЕ САЙТА ==================== */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #444 #1a1a1a;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f0f0f;
+            border-radius: 10px;
+            margin: 2px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 10px;
+            border: 1px solid #333;
+            transition: background 0.2s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f0b90b;
+        }
+
+        ::-webkit-scrollbar-thumb:active {
+            background: #d4a017;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #555;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: #f0b90b;
+        }
+
         body {
             background: #0a0a0a;
             color: #f0b90b;
@@ -1584,54 +1625,89 @@
         }
         .mic-status.mic-on { color: #4caf50; }
         .mic-status.mic-off { color: #ff4444; }
+
+        /* ==================== КРАСИВЫЙ СПИСОК УЧАСТНИКОВ (НОВАЯ ВЕРСИЯ) ==================== */
         .participants-sidebar {
             background: #111;
-            border-left: 1px solid #333;
-            padding: 15px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            padding: 16px;
             overflow-y: auto;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #333;
         }
-        .sidebar-title {
-            font-size: 16px;
-            font-weight: 600;
+
+        .participants-sidebar .sidebar-title {
+            font-size: 17px;
+            font-weight: 700;
             color: #f0b90b;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #333;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #444;
+            letter-spacing: 0.3px;
         }
+
         .participants-list {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
+
         .participant-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px;
+            gap: 12px;
+            padding: 10px 12px;
             background: #1a1a1a;
-            border-radius: 8px;
-            border-left: 3px solid transparent;
+            border-radius: 12px;
+            border: 1px solid #333;
+            transition: all 0.18s ease;
         }
+
+        .participant-item:hover {
+            background: #222;
+            border-color: #555;
+            transform: translateX(2px);
+        }
+
         .participant-item.local {
-            border-left-color: #f0b90b;
+            border-left: 4px solid #f0b90b;
+            background: rgba(240, 185, 11, 0.08);
         }
+
         .participant-avatar {
-            width: 32px;
-            height: 32px;
+            width: 38px;
+            height: 38px;
             background: #222;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #f0b90b;
-            font-weight: 600;
-            border: 1px solid #f0b90b;
+            font-weight: 700;
+            font-size: 16px;
+            border: 2px solid #444;
+            flex-shrink: 0;
         }
+
         .participant-name {
-            color: #fff;
-            font-size: 13px;
+            color: #e0e0e0;
+            font-size: 14px;
             font-weight: 500;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+
+        .mic-status {
+            font-size: 18px;
+            min-width: 24px;
+            text-align: center;
+        }
+
         .conference-controls {
             position: fixed;
             bottom: max(20px, env(safe-area-inset-bottom, 20px));
@@ -1669,6 +1745,14 @@
             border-color: #ff4444;
             color: white;
         }
+        .conf-control-btn.recover {
+            background: #3498db;
+            border-color: #2980b9;
+            color: white;
+        }
+        .conf-control-btn.recover:hover {
+            background: #2980b9;
+        }
         .audio-debug {
             position: fixed;
             bottom: 90px;
@@ -1705,7 +1789,7 @@
     <!-- Авторизация -->
     <div class="auth-container" id="authContainer">
         <div class="auth-box">
-            <div class="auth-title">Вход в систему</div>
+            <div class="auth-title">Вход в Voxy Messenger</div>
             <input type="text" class="auth-input" id="loginInput" placeholder="Логин">
             <input type="password" class="auth-input" id="passwordInput" placeholder="Пароль">
             <button class="auth-btn" id="loginBtn">Войти</button>
@@ -1742,7 +1826,7 @@
         <div class="chat-panel">
             <div class="chat-header">
                 <span class="back-btn" id="chatBackBtn">←</span>
-                <span class="chat-title" id="currentChatTitle">Spam команда Германа</span>
+                <span class="chat-title" id="currentChatTitle">Voxy Messenger</span>
                 <button class="conference-btn" id="conferenceBtn" style="display: none;">📹</button>
             </div>
             <div class="messages-container" id="messagesContainer">
@@ -1845,7 +1929,7 @@
     <!-- Конференция -->
     <div class="video-modal" id="videoModal">
         <div class="video-header">
-            <div class="video-title"></div>
+            <div class="video-title">Voxy Messenger</div>
             <div class="participants-count" id="participantsCount">👥 1</div>
             <button class="minimize-btn" id="minimizeConferenceBtn">⤵ Свернуть</button>
         </div>
@@ -1873,9 +1957,9 @@
         // Конфигурация
         const SUPABASE_URL = 'https://mqqlcfcwufdqwslukziy.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_pj766xnnI6WD4kiw7_kSSg_oaIiSYIr';
-        const LIVEKIT_URL = 'wss://testzvonok-3q10z44j.livekit.cloud';
+        const LIVEKIT_URL = 'wss://livekit.voxy.work';
         const ROOM_NAME = 'secure-stack-1k5b95';
-        const GROUP_NAME = 'Spam команда Германа';
+        const GROUP_NAME = 'Voxy Messenger';
         
         const TOKENS = {
             user1: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODE4NTg2MjQsImlkZW50aXR5IjoidXNlcjEiLCJpc3MiOiJBUEk4aGZuaHc3WXlueE4iLCJuYmYiOjE3NzE4NTg2MjQsInN1YiI6InVzZXIxIiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwicm9vbSI6InNlY3VyZS1zdGFjay0xazViOTUiLCJyb29tSm9pbiI6dHJ1ZX19.AI2c1jnzC8jgxkw4TMIH4NgKw4vWJhO9VVBQHeY27RM',
