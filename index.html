@@ -73,7 +73,7 @@
             transition: margin-top 0.3s ease;
         }
         .main-container.with-call-bar {
-            margin-top: 32px;
+            margin-top: 48px;
         }
         /* ==================== МОБИЛЬНАЯ НАВИГАЦИЯ ==================== */
         @media (max-width: 768px) {
@@ -837,32 +837,20 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 32px;
+            height: 48px;
             background: #2ecc71;
             color: #000;
             display: none;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
+            justify-content: center;
             font-size: 14px;
             font-weight: 500;
             z-index: 10000;
-        }
-        .active-call-bar .call-info {
-            display: flex;
-            align-items: center;
-        }
-        .active-call-bar .call-actions {
-            display: flex;
-            gap: 16px;
-        }
-        .active-call-bar .call-actions span {
             cursor: pointer;
-            padding: 2px 8px;
-            border-radius: 4px;
+            text-align: center;
         }
-        .active-call-bar .call-actions span:hover {
-            background: rgba(0,0,0,0.1);
+        .active-call-bar:hover {
+            background: #27ae60;
         }
         /* Контейнер с контентом сдвигается вниз */
         .content-wrapper {
@@ -871,7 +859,7 @@
             transition: margin-top 0.3s ease;
         }
         .content-wrapper.with-call-bar {
-            margin-top: 32px;
+            margin-top: 48px;
         }
         .messages-container {
             flex: 1;
@@ -1250,7 +1238,7 @@
         .user-profile-modal {
             display: none;
             position: fixed;
-            top: 0;
+            top: 48px;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1325,7 +1313,7 @@
         .confirm-modal {
             display: none;
             position: fixed;
-            top: 0;
+            top: 48px;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1380,7 +1368,7 @@
         .modal {
             display: none;
             position: fixed;
-            top: 0;
+            top: 48px;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1437,17 +1425,13 @@
         .video-modal {
             display: none;
             position: fixed;
-            top: 0;
+            top: 48px;
             left: 0;
             right: 0;
             bottom: 0;
             background: #0a0a0a;
             z-index: 2000;
             overflow: hidden;
-            transition: top 0.3s ease;
-        }
-        .video-modal.with-call-bar {
-            top: 32px;
         }
         .video-header {
             display: flex;
@@ -1490,16 +1474,16 @@
             display: grid;
             grid-template-columns: 1fr 280px;
             gap: 20px;
-            height: calc(100vh - 120px);
-            height: calc(100dvh - 120px);
+            height: calc(100vh - 120px - 48px);
+            height: calc(100dvh - 120px - 48px);
             padding: 20px;
             padding-bottom: env(safe-area-inset-bottom, 20px);
         }
         @media (max-width: 768px) {
             .video-grid-container {
                 grid-template-columns: 1fr;
-                height: calc(100vh - 160px);
-                height: calc(100dvh - 160px);
+                height: calc(100vh - 160px - 48px);
+                height: calc(100dvh - 160px - 48px);
                 padding: 10px;
                 padding-bottom: env(safe-area-inset-bottom, 10px);
             }
@@ -1511,7 +1495,7 @@
             .participants-sidebar.active {
                 display: block;
                 position: fixed;
-                top: 60px;
+                top: 108px;
                 left: 0;
                 right: 0;
                 bottom: 80px;
@@ -1686,11 +1670,7 @@
 <body>
     <!-- Глобальная шторка активного звонка -->
     <div class="active-call-bar" id="activeCallBar">
-        <div class="call-info">Активный звонок</div>
-        <div class="call-actions">
-            <span id="returnToCallBtn">Вернуться</span>
-            <span id="endCallFromBarBtn">Завершить</span>
-        </div>
+        Активный звонок
     </div>
 
     <!-- Оверлей для мобильного меню -->
@@ -1944,8 +1924,6 @@
         
         // Элементы активного звонка
         const activeCallBar = document.getElementById('activeCallBar');
-        const returnToCallBtn = document.getElementById('returnToCallBtn');
-        const endCallFromBarBtn = document.getElementById('endCallFromBarBtn');
         
         // Элементы подтверждения
         const confirmModal = document.getElementById('confirmModal');
@@ -3221,11 +3199,9 @@
             if (show && room) {
                 activeCallBar.style.display = 'flex';
                 mainContainer.classList.add('with-call-bar');
-                videoModal.classList.add('with-call-bar');
             } else {
                 activeCallBar.style.display = 'none';
                 mainContainer.classList.remove('with-call-bar');
-                videoModal.classList.remove('with-call-bar');
             }
         }
         
@@ -3384,14 +3360,11 @@
             updateActiveCallBar(true);
         });
         
-        returnToCallBtn.addEventListener('click', () => {
+        // Шторка работает как кнопка возврата в конференцию
+        activeCallBar.addEventListener('click', () => {
             if (room) {
                 videoModal.style.display = 'block';
             }
-        });
-        
-        endCallFromBarBtn.addEventListener('click', () => {
-            leaveConference();
         });
         
         document.addEventListener('keydown', (e) => {
