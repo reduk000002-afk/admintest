@@ -1952,25 +1952,24 @@
     <script src="livekit.js"></script>
     <script>
         // ===============================================
-        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ ВОССТАНОВЛЕНИЯ СЕССИИ
+        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
         // ===============================================
         let isInConference = false;
         let conferenceRoom = null;
         let conferenceToken = null;
+        let viewedUserProfile = null; // Для отслеживания просматриваемого профиля в админке
+        let adminViewingUser = false; // Флаг, что админ смотрит чужой профиль
 
         // ===============================================
-        // ГЕНЕРАЦИЯ ТОКЕНОВ ДЛЯ LIVEKIT (ПРЯМО В БРАУЗЕРЕ)
+        // ГЕНЕРАЦИЯ ТОКЕНОВ ДЛЯ LIVEKIT
         // ===============================================
 
         // Твои мастер-ключи
         const LIVEKIT_API_KEY = 'API9Fmof43XYeNL';
         const LIVEKIT_API_SECRET = 'nkCvyRLXowRKtjdKShQmXi0dVQgfX3eMDlFnkF50QOW';
 
-        // Функция для генерации токена
         async function generateToken(identity, name, roomName) {
             console.log('Генерация токена для:', identity);
-            // Используем встроенную библиотеку для JWT
-            // Подключаем библиотеку если ещё не подключена
             if (typeof window.KJUR === 'undefined') {
                 await loadJavascript('https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.5.27/jsrsasign-all-min.js');
             }
@@ -1987,16 +1986,14 @@
                     canPublish: true,
                     canSubscribe: true
                 },
-                exp: now + 3600, // 1 час
+                exp: now + 3600,
                 nbf: now
             };
             
-            // Генерируем JWT
             const token = KJUR.jws.JWS.sign('HS256', JSON.stringify(header), JSON.stringify(payload), LIVEKIT_API_SECRET);
             return token;
         }
 
-        // Вспомогательная функция для загрузки скриптов
         function loadJavascript(url) {
             return new Promise((resolve, reject) => {
                 const script = document.createElement('script');
@@ -2122,19 +2119,17 @@
         const userProfileCloseBtn = document.getElementById('userProfileCloseBtn');
         
         // ===============================================
-        // ФУНКЦИЯ ДЛЯ ВОССТАНОВЛЕНИЯ СЕССИИ ПРИ ОБНОВЛЕНИИ
+        // ВОССТАНОВЛЕНИЕ СЕССИИ КОНФЕРЕНЦИИ
         // ===============================================
         function restoreConferenceSession() {
             const savedConference = localStorage.getItem('activeConference');
             if (savedConference && currentUser) {
                 try {
                     const confData = JSON.parse(savedConference);
-                    // Проверяем, что сессия не устарела (меньше 1 часа)
                     if (Date.now() - confData.timestamp < 3600000) {
                         isInConference = true;
                         conferenceRoom = confData.room;
                         conferenceToken = confData.token;
-                        // Показываем конференцию
                         videoModal.style.display = 'block';
                         updateActiveCallBar(false);
                         startConference(confData.token);
@@ -2193,11 +2188,9 @@
         
         chatBackBtn.addEventListener('click', goToChatList);
         
-        // Стрелка назад на мобильных
         if (mobileBackBtn) {
             mobileBackBtn.addEventListener('click', () => {
                 if (isMobile()) {
-                    // Если мы в чате, возвращаемся в список чатов
                     if (currentChat) {
                         currentChat = null;
                         chatHeader.style.display = 'none';
@@ -2206,7 +2199,6 @@
                         sendBtn.disabled = true;
                         showUsersPanel();
                     } else {
-                        // Если мы на черном экране, просто показываем список чатов
                         showUsersPanel();
                     }
                 }
@@ -2283,7 +2275,7 @@
                     `;
                    
                     div.addEventListener('click', async () => {
-                        await addToContactsIfNotExists(user);
+                        // Просто открываем чат, но НЕ добавляем в контакты
                         selectChat(user.id, 'private');
                         searchBar.style.display = 'none';
                         searchResults.style.display = 'none';
@@ -2393,9 +2385,9 @@
         }
         
         // ===============================================
-        // ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
+        // ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ (для админа и обычных)
         // ===============================================
-        async function showUserProfile(userId) {
+        async function showUserProfile(userId, fromAdmin = false) {
             try {
                 const { data: user, error } = await supabaseClient
                     .from('users')
@@ -2417,6 +2409,30 @@
                     userProfileMessageBtn.style.display = 'block';
                 }
                
+                // Если админ смотрит профиль через админку, показываем крестик для возврата
+                if (fromAdmin) {
+                    // Добавляем крестик в модальное окно
+                    const closeBtn = document.querySelector('#userProfileModal .close-btn');
+                    if (!closeBtn) {
+                        const header = document.querySelector('#userProfileModal .user-profile-content');
+                        const closeX = document.createElement('div');
+                        closeX.className = 'admin-close-btn';
+                        closeX.innerHTML = '×';
+                        closeX.style.position = 'absolute';
+                        closeX.style.top = '10px';
+                        closeX.style.right = '20px';
+                        closeX.style.fontSize = '32px';
+                        closeX.style.cursor = 'pointer';
+                        closeX.style.color = '#ff4444';
+                        closeX.onclick = function() {
+                            userProfileModal.style.display = 'none';
+                            adminViewingUser = false;
+                        };
+                        header.style.position = 'relative';
+                        header.appendChild(closeX);
+                    }
+                }
+               
                 userProfileModal.style.display = 'flex';
             } catch (error) {
                 console.error('Ошибка загрузки профиля:', error);
@@ -2429,23 +2445,60 @@
         userProfileMessageBtn.addEventListener('click', () => {
             if (selectedUserForProfile) {
                 userProfileModal.style.display = 'none';
-                addToContactsIfNotExists(selectedUserForProfile).then(() => {
-                    selectChat(selectedUserForProfile.id, 'private');
-                });
+                adminViewingUser = false;
+                // Открываем чат, но НЕ добавляем в контакты
+                selectChat(selectedUserForProfile.id, 'private');
             }
         });
         
         userProfileCloseBtn.addEventListener('click', () => {
             userProfileModal.style.display = 'none';
             selectedUserForProfile = null;
+            adminViewingUser = false;
         });
         
         userProfileModal.addEventListener('click', (e) => {
             if (e.target === userProfileModal) {
                 userProfileModal.style.display = 'none';
                 selectedUserForProfile = null;
+                adminViewingUser = false;
             }
         });
+        
+        // ===============================================
+        // ОЧИСТКА ИСТОРИИ ГРУППЫ
+        // ===============================================
+        async function clearGroupHistory() {
+            if (!currentUser || currentChatType !== 'group') return;
+            
+            confirmTitle.textContent = '⚠️ Очистка истории';
+            confirmText.textContent = 'Вы уверены, что хотите очистить историю группы? Это действие необратимо.';
+            
+            confirmYesBtn.onclick = async () => {
+                try {
+                    // Удаляем все сообщения в группе
+                    const { error } = await supabaseClient
+                        .from('group_messages')
+                        .delete()
+                        .gte('id', 0); // удаляем все
+                    
+                    if (error) throw error;
+                    
+                    // Обновляем сообщения в чате
+                    loadGroupMessages();
+                    confirmModal.style.display = 'none';
+                } catch (error) {
+                    console.error('Ошибка очистки истории:', error);
+                    alert('Не удалось очистить историю');
+                }
+            };
+            
+            confirmNoBtn.onclick = () => {
+                confirmModal.style.display = 'none';
+            };
+            
+            confirmModal.style.display = 'flex';
+        }
         
         // ===============================================
         // АВТОРИЗАЦИЯ
@@ -2466,7 +2519,8 @@
                         authContainer.style.display = 'none';
                         mainContainer.style.display = 'grid';
                        
-                        if (user.username === 'German') {
+                        // Проверка на админа (без учета регистра)
+                        if (currentUser.username.toLowerCase() === 'german') {
                             adminPanelBtn.style.display = 'block';
                         }
                        
@@ -2474,18 +2528,15 @@
                         loadChats();
                         setupRealtimeSubscriptions();
                         
-                        // Скрываем заголовок чата и поле ввода
                         chatHeader.style.display = 'none';
                         chatInputArea.style.display = 'none';
                         messageInput.disabled = true;
                         sendBtn.disabled = true;
                         
-                        // На мобильных показываем список чатов
                         if (isMobile()) {
                             showUsersPanel();
                         }
                         
-                        // Восстанавливаем сессию конференции
                         restoreConferenceSession();
                     } else {
                         localStorage.removeItem('currentUser');
@@ -2523,7 +2574,8 @@
                     authContainer.style.display = 'none';
                     mainContainer.style.display = 'grid';
                    
-                    if (user.username === 'German') {
+                    // Проверка на админа (без учета регистра)
+                    if (currentUser.username.toLowerCase() === 'german') {
                         adminPanelBtn.style.display = 'block';
                     }
                    
@@ -2531,18 +2583,15 @@
                     loadChats();
                     setupRealtimeSubscriptions();
                     
-                    // Скрываем заголовок чата и поле ввода
                     chatHeader.style.display = 'none';
                     chatInputArea.style.display = 'none';
                     messageInput.disabled = true;
                     sendBtn.disabled = true;
                     
-                    // На мобильных показываем список чатов
                     if (isMobile()) {
                         showUsersPanel();
                     }
                     
-                    // Восстанавливаем сессию конференции
                     restoreConferenceSession();
                 } else {
                     authError.textContent = 'Неверный логин или пароль';
@@ -2646,7 +2695,6 @@
            
             cancelReply();
             
-            // Показываем заголовок чата и поле ввода
             chatHeader.style.display = 'flex';
             chatInputArea.style.display = 'block';
            
@@ -2738,7 +2786,6 @@
                     senderName = sender.display_name !== '---' ? sender.display_name : sender.username;
                     senderAvatar = sender.display_name !== '---' ? sender.display_name[0] : sender.username[0].toUpperCase();
                     
-                    // Проверяем, нужно ли показывать аватар (Telegram-style)
                     if (!isOwn && index > 0) {
                         const prevMsg = messages[index - 1];
                         if (prevMsg && prevMsg.user_id === msg.user_id) {
@@ -2799,7 +2846,7 @@
                     if (showAvatar) {
                         return `
                             <div class="message" id="message-${msg.id}" data-id="${msg.id}">
-                                <div class="message-avatar" onclick="showUserProfile('${senderId}')">${senderAvatar}</div>
+                                <div class="message-avatar" onclick="showUserProfile('${senderId}', false)">${senderAvatar}</div>
                                 <div class="message-content-wrapper">
                                     <div class="message-header">
                                         <span class="message-sender">${senderName}</span>
@@ -2934,6 +2981,7 @@
                         .eq('id', currentChat)
                         .single();
                    
+                    // ТОЛЬКО ПОСЛЕ отправки сообщения добавляем в контакты
                     if (receiver) {
                         await addToContactsIfNotExists(receiver);
                     }
@@ -2976,7 +3024,10 @@
                             .eq('id', payload.new.sender_id)
                             .single();
                        
-                        await addToContactsIfNotExists(sender);
+                        // Автоматически добавляем в контакты при получении сообщения
+                        if (sender) {
+                            await addToContactsIfNotExists(sender);
+                        }
                        
                         if (currentChat === payload.new.sender_id && currentChatType === 'private') {
                             loadPrivateMessages(currentChat);
@@ -3133,7 +3184,7 @@
         // АДМИН-ПАНЕЛЬ
         // ===============================================
         adminPanelBtn.addEventListener('click', async () => {
-            if (currentUser && currentUser.username === 'German') {
+            if (currentUser && currentUser.username.toLowerCase() === 'german') {
                 await loadAdminUsers();
                 adminPanel.style.display = 'block';
             }
@@ -3168,6 +3219,7 @@
                             <button class="admin-user-btn" onclick="impersonateUser('${user.id}')">👤 Войти</button>
                             <button class="admin-user-btn" onclick="editUser('${user.id}')">✎</button>
                             <button class="admin-user-btn" onclick="toggleBlockUser('${user.id}', '${user.status}')">${user.status === 'blocked' ? '🔓' : '🔒'}</button>
+                            <button class="admin-user-btn" onclick="showUserProfile('${user.id}', true)">👁️ Профиль</button>
                         </div>
                     </div>
                    
@@ -3279,7 +3331,6 @@
         // КОНФЕРЕНЦИЯ
         // ===============================================
         
-        // Функция получения удаленных участников
         function getRemoteParticipants() {
             if (!room) return [];
             
@@ -3310,7 +3361,6 @@
             return remoteParticipants;
         }
         
-        // Функция обновления UI участников с сортировкой
         function updateParticipantsUI() {
             if (!room) return;
             
@@ -3334,7 +3384,6 @@
                 });
             });
             
-            // Сортировка: сначала те у кого включен микрофон, потом остальные
             participants.sort((a, b) => {
                 if (a.micEnabled && !b.micEnabled) return -1;
                 if (!a.micEnabled && b.micEnabled) return 1;
@@ -3368,7 +3417,6 @@
             }
         }
         
-        // Функция показа/скрытия активного звонка
         function updateActiveCallBar(show) {
             if (show) {
                 activeCallBar.style.display = 'flex';
@@ -3381,7 +3429,6 @@
             }
         }
         
-        // Функция выхода из конференции с подтверждением
         function leaveConference() {
             confirmTitle.textContent = '⚠️ Подтверждение';
             confirmText.textContent = 'Вы уверены, что хотите выйти из конференции?';
@@ -3423,7 +3470,6 @@
                 hiddenVideoContainer.innerHTML = '';
                 videoModal.style.display = 'block';
                 
-                // Сохраняем сессию конференции
                 isInConference = true;
                 localStorage.setItem('activeConference', JSON.stringify({
                     token: token,
@@ -3434,7 +3480,6 @@
                 updateActiveCallBar(false);
                 audioDebug.textContent = '🔄 Подключение...';
                 
-                // Запускаем конференцию
                 await startConference(token);
                 
             } catch (error) {
@@ -3458,7 +3503,6 @@
                     dynacast: true
                 });
                 
-                // Сначала подключаемся к комнате
                 await room.connect(LIVEKIT_URL, token, {
                     roomName: ROOM_NAME,
                     autoSubscribe: true
@@ -3466,15 +3510,12 @@
                 
                 audioDebug.textContent = '✅ Подключено';
                 
-                // ТОЛЬКО ПОСЛЕ подключения включаем микрофон и камеру
                 try {
                     await room.localParticipant.setMicrophoneEnabled(true);
                     
                     try {
                         await room.localParticipant.setCameraEnabled(true);
-                    } catch (cameraErr) {
-                        // Игнорируем ошибки камеры
-                    }
+                    } catch (cameraErr) {}
                     
                     audioDebug.textContent = '🎤 Микрофон активен';
                 } catch (err) {
@@ -3486,7 +3527,6 @@
                     updateParticipantsUI();
                 }, 500);
                 
-                // Обработчики событий добавляем ПОСЛЕ подключения
                 room.on(LiveKit.RoomEvent.ParticipantConnected, () => {
                     updateParticipantsUI();
                 });
@@ -3563,13 +3603,44 @@
             updateActiveCallBar(true);
         });
         
-        // Шторка работает как кнопка возврата в конференцию
         activeCallBar.addEventListener('click', () => {
             if (room) {
                 videoModal.style.display = 'block';
                 updateActiveCallBar(false);
             }
         });
+        
+        // Добавляем кнопку очистки истории для группы
+        function addClearHistoryButton() {
+            if (currentChatType === 'group' && currentChat === 'group') {
+                // Проверяем, есть ли уже кнопка
+                if (!document.getElementById('clearHistoryBtn')) {
+                    const clearBtn = document.createElement('button');
+                    clearBtn.id = 'clearHistoryBtn';
+                    clearBtn.className = 'profile-btn danger';
+                    clearBtn.textContent = '🗑️ Очистить историю';
+                    clearBtn.style.margin = '10px 0';
+                    clearBtn.onclick = clearGroupHistory;
+                    
+                    // Добавляем после кнопки конференции или в удобное место
+                    const header = document.querySelector('.chat-header');
+                    if (header) {
+                        header.appendChild(clearBtn);
+                    }
+                }
+            } else {
+                // Удаляем кнопку, если не в группе
+                const clearBtn = document.getElementById('clearHistoryBtn');
+                if (clearBtn) clearBtn.remove();
+            }
+        }
+        
+        // Переопределяем selectChat для добавления кнопки очистки
+        const originalSelectChat = window.selectChat;
+        window.selectChat = function(chatId, type) {
+            originalSelectChat(chatId, type);
+            setTimeout(addClearHistoryButton, 500);
+        };
         
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
@@ -3584,6 +3655,7 @@
                 }
                 if (userProfileModal.style.display === 'flex') {
                     userProfileModal.style.display = 'none';
+                    adminViewingUser = false;
                 }
                 if (confirmModal.style.display === 'flex') {
                     confirmModal.style.display = 'none';
@@ -3607,7 +3679,7 @@
                     authContainer.style.display = 'none';
                     mainContainer.style.display = 'grid';
                    
-                    if (user.username === 'German') {
+                    if (currentUser.username.toLowerCase() === 'german') {
                         adminPanelBtn.style.display = 'block';
                     }
                    
@@ -3615,18 +3687,15 @@
                     loadChats();
                     setupRealtimeSubscriptions();
                     
-                    // Скрываем заголовок чата и поле ввода
                     chatHeader.style.display = 'none';
                     chatInputArea.style.display = 'none';
                     messageInput.disabled = true;
                     sendBtn.disabled = true;
                     
-                    // На мобильных показываем список чатов
                     if (isMobile()) {
                         showUsersPanel();
                     }
                     
-                    // Восстанавливаем сессию конференции
                     restoreConferenceSession();
                 }, 500);
             } 
