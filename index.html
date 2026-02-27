@@ -1957,14 +1957,13 @@
         let isInConference = false;
         let conferenceRoom = null;
         let conferenceToken = null;
-        let viewedUserProfile = null; // Для отслеживания просматриваемого профиля в админке
-        let adminViewingUser = false; // Флаг, что админ смотрит чужой профиль
+        let viewedUserProfile = null;
+        let adminViewingUser = false;
 
         // ===============================================
         // ГЕНЕРАЦИЯ ТОКЕНОВ ДЛЯ LIVEKIT
         // ===============================================
 
-        // Твои мастер-ключи
         const LIVEKIT_API_KEY = 'API9Fmof43XYeNL';
         const LIVEKIT_API_SECRET = 'nkCvyRLXowRKtjdKShQmXi0dVQgfX3eMDlFnkF50QOW';
 
@@ -2275,7 +2274,6 @@
                     `;
                    
                     div.addEventListener('click', async () => {
-                        // Просто открываем чат, но НЕ добавляем в контакты
                         selectChat(user.id, 'private');
                         searchBar.style.display = 'none';
                         searchResults.style.display = 'none';
@@ -2385,7 +2383,7 @@
         }
         
         // ===============================================
-        // ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ (для админа и обычных)
+        // ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
         // ===============================================
         async function showUserProfile(userId, fromAdmin = false) {
             try {
@@ -2409,10 +2407,8 @@
                     userProfileMessageBtn.style.display = 'block';
                 }
                
-                // Если админ смотрит профиль через админку, показываем крестик для возврата
                 if (fromAdmin) {
-                    // Добавляем крестик в модальное окно
-                    const closeBtn = document.querySelector('#userProfileModal .close-btn');
+                    const closeBtn = document.querySelector('#userProfileModal .admin-close-btn');
                     if (!closeBtn) {
                         const header = document.querySelector('#userProfileModal .user-profile-content');
                         const closeX = document.createElement('div');
@@ -2446,7 +2442,6 @@
             if (selectedUserForProfile) {
                 userProfileModal.style.display = 'none';
                 adminViewingUser = false;
-                // Открываем чат, но НЕ добавляем в контакты
                 selectChat(selectedUserForProfile.id, 'private');
             }
         });
@@ -2466,27 +2461,33 @@
         });
         
         // ===============================================
-        // ОЧИСТКА ИСТОРИИ ГРУППЫ
+        // ОЧИСТКА ИСТОРИИ ГРУППЫ (ТОЛЬКО ДЛЯ АДМИНА)
         // ===============================================
-        async function clearGroupHistory() {
-            if (!currentUser || currentChatType !== 'group') return;
+        window.adminClearGroupHistory = async function(userId, userName) {
+            if (!currentUser || currentUser.username.toLowerCase() !== 'german') {
+                alert('Только админ может очищать историю');
+                return;
+            }
             
-            confirmTitle.textContent = '⚠️ Очистка истории';
-            confirmText.textContent = 'Вы уверены, что хотите очистить историю группы? Это действие необратимо.';
+            confirmTitle.textContent = '⚠️ Очистка истории для пользователя';
+            confirmText.textContent = `Вы уверены, что хотите очистить историю группы для пользователя ${userName}? Это действие необратимо.`;
             
             confirmYesBtn.onclick = async () => {
                 try {
-                    // Удаляем все сообщения в группе
                     const { error } = await supabaseClient
-                        .from('group_messages')
-                        .delete()
-                        .gte('id', 0); // удаляем все
+                        .from('message_reads')
+                        .insert({
+                            user_id: userId,
+                            chat_type: 'group',
+                            read_at: new Date().toISOString(),
+                            cleared_all: true
+                        });
                     
                     if (error) throw error;
                     
-                    // Обновляем сообщения в чате
-                    loadGroupMessages();
+                    alert(`История группы для пользователя ${userName} очищена`);
                     confirmModal.style.display = 'none';
+                    
                 } catch (error) {
                     console.error('Ошибка очистки истории:', error);
                     alert('Не удалось очистить историю');
@@ -2498,8 +2499,8 @@
             };
             
             confirmModal.style.display = 'flex';
-        }
-        
+        };
+
         // ===============================================
         // АВТОРИЗАЦИЯ
         // ===============================================
@@ -2519,7 +2520,6 @@
                         authContainer.style.display = 'none';
                         mainContainer.style.display = 'grid';
                        
-                        // Проверка на админа (без учета регистра)
                         if (currentUser.username.toLowerCase() === 'german') {
                             adminPanelBtn.style.display = 'block';
                         }
@@ -2574,7 +2574,6 @@
                     authContainer.style.display = 'none';
                     mainContainer.style.display = 'grid';
                    
-                    // Проверка на админа (без учета регистра)
                     if (currentUser.username.toLowerCase() === 'german') {
                         adminPanelBtn.style.display = 'block';
                     }
@@ -2981,7 +2980,6 @@
                         .eq('id', currentChat)
                         .single();
                    
-                    // ТОЛЬКО ПОСЛЕ отправки сообщения добавляем в контакты
                     if (receiver) {
                         await addToContactsIfNotExists(receiver);
                     }
@@ -3024,7 +3022,6 @@
                             .eq('id', payload.new.sender_id)
                             .single();
                        
-                        // Автоматически добавляем в контакты при получении сообщения
                         if (sender) {
                             await addToContactsIfNotExists(sender);
                         }
@@ -3220,6 +3217,8 @@
                             <button class="admin-user-btn" onclick="editUser('${user.id}')">✎</button>
                             <button class="admin-user-btn" onclick="toggleBlockUser('${user.id}', '${user.status}')">${user.status === 'blocked' ? '🔓' : '🔒'}</button>
                             <button class="admin-user-btn" onclick="showUserProfile('${user.id}', true)">👁️ Профиль</button>
+                            <!-- КНОПКА ОЧИСТКИ ИСТОРИИ ТОЛЬКО ДЛЯ АДМИНА -->
+                            <button class="admin-user-btn" style="background:#ff4444; color:white; border-color:#ff4444;" onclick="adminClearGroupHistory('${user.id}', '${displayName}')">🗑️ Очистить историю</button>
                         </div>
                     </div>
                    
@@ -3609,38 +3608,6 @@
                 updateActiveCallBar(false);
             }
         });
-        
-        // Добавляем кнопку очистки истории для группы
-        function addClearHistoryButton() {
-            if (currentChatType === 'group' && currentChat === 'group') {
-                // Проверяем, есть ли уже кнопка
-                if (!document.getElementById('clearHistoryBtn')) {
-                    const clearBtn = document.createElement('button');
-                    clearBtn.id = 'clearHistoryBtn';
-                    clearBtn.className = 'profile-btn danger';
-                    clearBtn.textContent = '🗑️ Очистить историю';
-                    clearBtn.style.margin = '10px 0';
-                    clearBtn.onclick = clearGroupHistory;
-                    
-                    // Добавляем после кнопки конференции или в удобное место
-                    const header = document.querySelector('.chat-header');
-                    if (header) {
-                        header.appendChild(clearBtn);
-                    }
-                }
-            } else {
-                // Удаляем кнопку, если не в группе
-                const clearBtn = document.getElementById('clearHistoryBtn');
-                if (clearBtn) clearBtn.remove();
-            }
-        }
-        
-        // Переопределяем selectChat для добавления кнопки очистки
-        const originalSelectChat = window.selectChat;
-        window.selectChat = function(chatId, type) {
-            originalSelectChat(chatId, type);
-            setTimeout(addClearHistoryButton, 500);
-        };
         
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
