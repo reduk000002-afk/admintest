@@ -119,7 +119,7 @@
                 height: 100dvh;
                 position: relative;
             }
-            /* Список чатов — полноэкранный */
+            /* Список чатов — всегда виден на мобильных при входе */
             .users-panel {
                 position: fixed;
                 top: 0;
@@ -128,11 +128,11 @@
                 bottom: 0;
                 z-index: 200;
                 background: #0a0a0a;
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
+                transform: translateX(0) !important;
                 overflow-y: auto;
                 width: 100%;
                 padding-bottom: env(safe-area-inset-bottom, 0);
+                display: block !important;
             }
             .users-panel.active {
                 transform: translateX(0);
@@ -164,10 +164,6 @@
            
             .mobile-overlay.active {
                 display: block;
-            }
-            /* Когда список чатов открыт — прячем чат полностью */
-            .users-panel.active ~ .chat-panel {
-                display: none !important;
             }
             /* Новая шапка списка чатов */
             .panel-header {
@@ -1923,6 +1919,13 @@
     <script src="livekit.js"></script>
     <script>
         // ===============================================
+        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ ВОССТАНОВЛЕНИЯ СЕССИИ
+        // ===============================================
+        let isInConference = false;
+        let conferenceRoom = null;
+        let conferenceToken = null;
+
+        // ===============================================
         // ГЕНЕРАЦИЯ ТОКЕНОВ ДЛЯ LIVEKIT (ПРЯМО В БРАУЗЕРЕ)
         // ===============================================
 
@@ -2084,6 +2087,32 @@
         const userProfileMessageBtn = document.getElementById('userProfileMessageBtn');
         const userProfileCloseBtn = document.getElementById('userProfileCloseBtn');
         
+        // ===============================================
+        // ФУНКЦИЯ ДЛЯ ВОССТАНОВЛЕНИЯ СЕССИИ ПРИ ОБНОВЛЕНИИ
+        // ===============================================
+        function restoreConferenceSession() {
+            const savedConference = localStorage.getItem('activeConference');
+            if (savedConference && currentUser) {
+                try {
+                    const confData = JSON.parse(savedConference);
+                    // Проверяем, что сессия не устарела (меньше 1 часа)
+                    if (Date.now() - confData.timestamp < 3600000) {
+                        isInConference = true;
+                        conferenceRoom = confData.room;
+                        conferenceToken = confData.token;
+                        // Показываем конференцию
+                        videoModal.style.display = 'block';
+                        updateActiveCallBar(false); // Шторка не показывается при входе
+                        startConference(confData.token);
+                    } else {
+                        localStorage.removeItem('activeConference');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('activeConference');
+                }
+            }
+        }
+
         // ===============================================
         // МОБИЛЬНАЯ НАВИГАЦИЯ
         // ===============================================
@@ -2396,6 +2425,9 @@
                         chatInputArea.style.display = 'none';
                         messageInput.disabled = true;
                         sendBtn.disabled = true;
+                        
+                        // Восстанавливаем сессию конференции
+                        restoreConferenceSession();
                     } else {
                         localStorage.removeItem('currentUser');
                     }
@@ -2445,6 +2477,9 @@
                     chatInputArea.style.display = 'none';
                     messageInput.disabled = true;
                     sendBtn.disabled = true;
+                    
+                    // Восстанавливаем сессию конференции
+                    restoreConferenceSession();
                 } else {
                     authError.textContent = 'Неверный логин или пароль';
                 }
@@ -3016,6 +3051,7 @@
         
         logoutBtn.addEventListener('click', () => {
             localStorage.removeItem('currentUser');
+            localStorage.removeItem('activeConference');
             currentUser = null;
             authContainer.style.display = 'flex';
             mainContainer.style.display = 'none';
@@ -3291,6 +3327,8 @@
                     room = null;
                 }
                 videoModal.style.display = 'none';
+                isInConference = false;
+                localStorage.removeItem('activeConference');
                 updateActiveCallBar(false);
                 confirmModal.style.display = 'none';
             };
@@ -3320,7 +3358,16 @@
                 conferenceParticipants.innerHTML = '';
                 hiddenVideoContainer.innerHTML = '';
                 videoModal.style.display = 'block';
-                updateActiveCallBar(true);
+                
+                // Сохраняем сессию конференции
+                isInConference = true;
+                localStorage.setItem('activeConference', JSON.stringify({
+                    token: token,
+                    room: ROOM_NAME,
+                    timestamp: Date.now()
+                }));
+                
+                updateActiveCallBar(false); // Шторка не показывается при входе
                 audioDebug.textContent = '🔄 Подключение...';
                 
                 // Запускаем конференцию
@@ -3420,6 +3467,8 @@
                 room.on(LiveKit.RoomEvent.Disconnected, () => {
                     audioDebug.textContent = '📴 Отключено';
                     hiddenVideoContainer.innerHTML = '';
+                    isInConference = false;
+                    localStorage.removeItem('activeConference');
                     updateActiveCallBar(false);
                 });
                 
@@ -3507,6 +3556,9 @@
                     chatInputArea.style.display = 'none';
                     messageInput.disabled = true;
                     sendBtn.disabled = true;
+                    
+                    // Восстанавливаем сессию конференции
+                    restoreConferenceSession();
                 }, 500);
             } 
         })();
