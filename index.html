@@ -119,7 +119,7 @@
                 height: 100dvh;
                 position: relative;
             }
-            /* Список чатов — всегда виден на мобильных при входе */
+            /* Список чатов — полноэкранный */
             .users-panel {
                 position: fixed;
                 top: 0;
@@ -128,11 +128,11 @@
                 bottom: 0;
                 z-index: 200;
                 background: #0a0a0a;
-                transform: translateX(0) !important;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
                 overflow-y: auto;
                 width: 100%;
                 padding-bottom: env(safe-area-inset-bottom, 0);
-                display: block !important;
             }
             .users-panel.active {
                 transform: translateX(0);
@@ -1740,6 +1740,38 @@
             opacity: 0;
             pointer-events: none;
         }
+
+        /* ==================== СТРЕЛКА НАЗАД ТОЛЬКО ДЛЯ МОБИЛЬНЫХ ==================== */
+        @media (min-width: 769px) {
+            .mobile-only-back-btn {
+                display: none !important;
+            }
+        }
+
+        .mobile-only-back-btn {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-only-back-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 44px;
+                height: 44px;
+                font-size: 28px;
+                color: #f0b90b;
+                cursor: pointer;
+                margin-left: 8px;
+                background: transparent;
+                border-radius: 50%;
+                transition: background 0.2s;
+            }
+            .mobile-only-back-btn:hover,
+            .mobile-only-back-btn:active {
+                background: rgba(240, 185, 11, 0.1);
+            }
+        }
     </style>
 </head>
 <body>
@@ -1792,6 +1824,7 @@
                 <span class="back-btn" id="chatBackBtn">←</span>
                 <span class="chat-title" id="currentChatTitle"></span>
                 <button class="conference-btn" id="conferenceBtn" style="display: none;">📹</button>
+                <span class="mobile-only-back-btn" id="mobileBackBtn">←</span>
             </div>
             <div class="messages-container" id="messagesContainer">
                 <div class="empty-messages">Выберите чат чтобы начать общение</div>
@@ -2066,6 +2099,7 @@
         const chatBackBtn = document.getElementById('chatBackBtn');
         const profileBackBtn = document.getElementById('profileBackBtn');
         const mobileProfileBtn = document.getElementById('mobileProfileBtn');
+        const mobileBackBtn = document.getElementById('mobileBackBtn');
        
         // Элементы поиска
         const searchIcon = document.getElementById('searchIcon');
@@ -2102,7 +2136,7 @@
                         conferenceToken = confData.token;
                         // Показываем конференцию
                         videoModal.style.display = 'block';
-                        updateActiveCallBar(false); // Шторка не показывается при входе
+                        updateActiveCallBar(false);
                         startConference(confData.token);
                     } else {
                         localStorage.removeItem('activeConference');
@@ -2158,6 +2192,26 @@
         });
         
         chatBackBtn.addEventListener('click', goToChatList);
+        
+        // Стрелка назад на мобильных
+        if (mobileBackBtn) {
+            mobileBackBtn.addEventListener('click', () => {
+                if (isMobile()) {
+                    // Если мы в чате, возвращаемся в список чатов
+                    if (currentChat) {
+                        currentChat = null;
+                        chatHeader.style.display = 'none';
+                        chatInputArea.style.display = 'none';
+                        messageInput.disabled = true;
+                        sendBtn.disabled = true;
+                        showUsersPanel();
+                    } else {
+                        // Если мы на черном экране, просто показываем список чатов
+                        showUsersPanel();
+                    }
+                }
+            });
+        }
        
         if (mobileProfileBtn) {
             mobileProfileBtn.addEventListener('click', (e) => {
@@ -2426,6 +2480,11 @@
                         messageInput.disabled = true;
                         sendBtn.disabled = true;
                         
+                        // На мобильных показываем список чатов
+                        if (isMobile()) {
+                            showUsersPanel();
+                        }
+                        
                         // Восстанавливаем сессию конференции
                         restoreConferenceSession();
                     } else {
@@ -2477,6 +2536,11 @@
                     chatInputArea.style.display = 'none';
                     messageInput.disabled = true;
                     sendBtn.disabled = true;
+                    
+                    // На мобильных показываем список чатов
+                    if (isMobile()) {
+                        showUsersPanel();
+                    }
                     
                     // Восстанавливаем сессию конференции
                     restoreConferenceSession();
@@ -3367,7 +3431,7 @@
                     timestamp: Date.now()
                 }));
                 
-                updateActiveCallBar(false); // Шторка не показывается при входе
+                updateActiveCallBar(false);
                 audioDebug.textContent = '🔄 Подключение...';
                 
                 // Запускаем конференцию
@@ -3556,6 +3620,11 @@
                     chatInputArea.style.display = 'none';
                     messageInput.disabled = true;
                     sendBtn.disabled = true;
+                    
+                    // На мобильных показываем список чатов
+                    if (isMobile()) {
+                        showUsersPanel();
+                    }
                     
                     // Восстанавливаем сессию конференции
                     restoreConferenceSession();
