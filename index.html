@@ -2527,7 +2527,6 @@
                 return;
             }
             
-            // ... остальной код renderMessages без изменений ...
             messagesContainer.innerHTML = messages.map((msg, index) => {
                 let isOwn, senderName, sender, senderId, senderAvatar, showAvatar = true;
                
@@ -2631,7 +2630,7 @@
         }
         
         // ===============================================
-        // ОСТАЛЬНОЙ КОД БЕЗ ИЗМЕНЕНИЙ (ФУНКЦИИ ДЛЯ ОТВЕТОВ, ОТПРАВКИ И Т.Д.)
+        // ФУНКЦИИ ДЛЯ ОТВЕТОВ
         // ===============================================
         window.setReply = function(messageId, senderName, messageText, type) {
             replyingTo = {
@@ -2667,6 +2666,9 @@
             }
         };
         
+        // ===============================================
+        // ОТПРАВКА СООБЩЕНИЙ
+        // ===============================================
         sendBtn.addEventListener('click', sendMessage);
        
         messageInput.addEventListener('keydown', (e) => {
@@ -3419,7 +3421,53 @@
             } 
         })();
         
-        // Загружаем private messages (без изменений)
+        // ===============================================
+        // ПРОВЕРКА СОХРАНЕННОЙ СЕССИИ
+        // ===============================================
+        async function checkSavedSession() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                   
+                    const { data: user, error } = await supabaseClient
+                        .from('users')
+                        .select('*')
+                        .eq('id', currentUser.id)
+                        .single();
+                    if (!error && user && user.status === 'active') {
+                        currentUser = user;
+                        authContainer.style.display = 'none';
+                        mainContainer.style.display = 'grid';
+                       
+                        if (currentUser.username.toLowerCase() === 'german') {
+                            adminPanelBtn.style.display = 'block';
+                        }
+                       
+                        updateProfilePanel();
+                        loadChats();
+                        setupRealtimeSubscriptions();
+                        
+                        chatHeader.style.display = 'none';
+                        chatInputArea.style.display = 'none';
+                        messageInput.disabled = true;
+                        sendBtn.disabled = true;
+                        
+                        if (isMobile()) {
+                            showUsersPanel();
+                        }
+                        
+                        restoreConferenceSession();
+                    } else {
+                        localStorage.removeItem('currentUser');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('currentUser');
+                }
+            }
+        }
+        
+        // Загружаем private messages
         async function loadPrivateMessages(otherUserId) {
             try {
                 const { data: messages, error } = await supabaseClient
@@ -3449,7 +3497,7 @@
            
             if (type === 'group') {
                 currentChatTitle.textContent = GROUP_NAME;
-                loadGroupMessages(); // Используем новую функцию с учетом очистки
+                loadGroupMessages(); // Используем функцию с учетом очистки
                 unreadCounts['group'] = 0;
                 conferenceBtn.style.display = 'block';
             } else {
@@ -3484,6 +3532,7 @@
             loadChats();
         };
         
+        // Запускаем проверку сессии
         checkSavedSession();
     </script>
 </body>
