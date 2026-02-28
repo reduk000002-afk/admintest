@@ -849,7 +849,7 @@
 
         .active-call-bar {
             position: fixed;
-            top: 0;
+            top: 8px;
             left: 0;
             right: 0;
             height: var(--call-bar-height);
@@ -863,6 +863,9 @@
             z-index: 10000;
             cursor: pointer;
             text-align: center;
+            border-radius: 20px;
+            margin: 0 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         .active-call-bar:hover {
@@ -874,12 +877,12 @@
             .main-container.with-call-bar .users-panel,
             .main-container.with-call-bar .chat-panel,
             .main-container.with-call-bar .profile-panel {
-                padding-top: var(--call-bar-height);
+                padding-top: calc(var(--call-bar-height) + 8px);
             }
 
             .main-container.with-call-bar .chat-panel {
-                height: calc(100vh - var(--call-bar-height)) !important;
-                height: calc(100dvh - var(--call-bar-height)) !important;
+                height: calc(100vh - var(--call-bar-height) - 8px) !important;
+                height: calc(100dvh - var(--call-bar-height) - 8px) !important;
             }
         }
 
@@ -888,13 +891,18 @@
             .users-panel,
             .chat-panel,
             .profile-panel {
-                top: var(--call-bar-height) !important;
+                top: calc(var(--call-bar-height) + 8px) !important;
             }
 
             .chat-header,
             .panel-header,
             .profile-header-mobile {
-                padding-top: calc(env(safe-area-inset-top, 0px) + var(--call-bar-height));
+                padding-top: calc(env(safe-area-inset-top, 0px) + var(--call-bar-height) + 8px);
+            }
+            
+            /* Убираем стрелку назад на мобильных */
+            .mobile-only-back-btn {
+                display: none !important;
             }
         }
 
@@ -1349,7 +1357,7 @@
             background: #333;
             color: #fff;
         }
-        /* Модальное окно подтверждения */
+        /* Модальное окно подтверждения - спокойный стиль */
         .confirm-modal {
             display: none;
             position: fixed;
@@ -1357,7 +1365,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.95);
+            background: rgba(0,0,0,0.8);
             z-index: 4000;
             align-items: center;
             justify-content: center;
@@ -1365,45 +1373,52 @@
         }
         .confirm-content {
             background: #1a1a1a;
-            border: 2px solid #ff4444;
-            border-radius: 32px;
+            border: 2px solid #f0b90b;
+            border-radius: 24px;
             padding: 30px 20px;
             width: 100%;
-            max-width: 400px;
+            max-width: 360px;
             text-align: center;
         }
         .confirm-title {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #ff4444;
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            color: #f0b90b;
         }
         .confirm-text {
-            color: #fff;
+            color: #ccc;
             margin-bottom: 25px;
-            font-size: 16px;
+            font-size: 15px;
             line-height: 1.5;
         }
         .confirm-buttons {
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
         .confirm-btn {
             flex: 1;
-            padding: 15px;
+            padding: 12px;
             border: none;
-            border-radius: 12px;
-            font-weight: 600;
+            border-radius: 20px;
+            font-weight: 500;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 15px;
+            transition: all 0.2s;
         }
         .confirm-btn.yes {
-            background: #ff4444;
-            color: white;
+            background: #f0b90b;
+            color: #0a0a0a;
+        }
+        .confirm-btn.yes:hover {
+            background: #d4a017;
         }
         .confirm-btn.no {
             background: #333;
-            color: white;
+            color: #fff;
+        }
+        .confirm-btn.no:hover {
+            background: #444;
         }
         .modal {
             display: none;
@@ -1741,36 +1756,9 @@
             pointer-events: none;
         }
 
-        /* ==================== СТРЕЛКА НАЗАД ТОЛЬКО ДЛЯ МОБИЛЬНЫХ ==================== */
-        @media (min-width: 769px) {
-            .mobile-only-back-btn {
-                display: none !important;
-            }
-        }
-
+        /* ==================== СТРЕЛКА НАЗАД УБРАНА ПОЛНОСТЬЮ ==================== */
         .mobile-only-back-btn {
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .mobile-only-back-btn {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 44px;
-                height: 44px;
-                font-size: 28px;
-                color: #f0b90b;
-                cursor: pointer;
-                margin-left: 8px;
-                background: transparent;
-                border-radius: 50%;
-                transition: background 0.2s;
-            }
-            .mobile-only-back-btn:hover,
-            .mobile-only-back-btn:active {
-                background: rgba(240, 185, 11, 0.1);
-            }
+            display: none !important;
         }
     </style>
 </head>
@@ -1824,7 +1812,7 @@
                 <span class="back-btn" id="chatBackBtn">←</span>
                 <span class="chat-title" id="currentChatTitle"></span>
                 <button class="conference-btn" id="conferenceBtn" style="display: none;">📹</button>
-                <span class="mobile-only-back-btn" id="mobileBackBtn">←</span>
+                <!-- Стрелка полностью убрана -->
             </div>
             <div class="messages-container" id="messagesContainer">
                 <div class="empty-messages">Выберите чат чтобы начать общение</div>
@@ -1891,13 +1879,13 @@
             </div>
         </div>
     </div>
-    <!-- Модальное окно подтверждения -->
+    <!-- Модальное окно подтверждения (спокойное) -->
     <div class="confirm-modal" id="confirmModal">
         <div class="confirm-content">
-            <div class="confirm-title" id="confirmTitle">⚠️ Подтверждение</div>
-            <div class="confirm-text" id="confirmText">Вы уверены, что хотите выйти из конференции?</div>
+            <div class="confirm-title">Подтверждение</div>
+            <div class="confirm-text" id="confirmText">Вы уверены?</div>
             <div class="confirm-buttons">
-                <button class="confirm-btn yes" id="confirmYesBtn">Да, выйти</button>
+                <button class="confirm-btn yes" id="confirmYesBtn">Выйти</button>
                 <button class="confirm-btn no" id="confirmNoBtn">Отмена</button>
             </div>
         </div>
@@ -1959,6 +1947,7 @@
         let conferenceToken = null;
         let viewedUserProfile = null;
         let adminViewingUser = false;
+        let pendingClearUserId = null; // Для очистки истории
 
         // ===============================================
         // ГЕНЕРАЦИЯ ТОКЕНОВ ДЛЯ LIVEKIT
@@ -2024,7 +2013,6 @@
         let audioReconnectTimer = null;
         let replyingTo = null;
         let selectedUserForProfile = null;
-        let pendingClearUserId = null;
         let isConferenceActive = false;
         
         // DOM элементы
@@ -2083,7 +2071,7 @@
         
         // Элементы подтверждения
         const confirmModal = document.getElementById('confirmModal');
-        const confirmTitle = document.getElementById('confirmTitle');
+        const confirmTitle = document.querySelector('.confirm-title');
         const confirmText = document.getElementById('confirmText');
         const confirmYesBtn = document.getElementById('confirmYesBtn');
         const confirmNoBtn = document.getElementById('confirmNoBtn');
@@ -2095,7 +2083,6 @@
         const chatBackBtn = document.getElementById('chatBackBtn');
         const profileBackBtn = document.getElementById('profileBackBtn');
         const mobileProfileBtn = document.getElementById('mobileProfileBtn');
-        const mobileBackBtn = document.getElementById('mobileBackBtn');
        
         // Элементы поиска
         const searchIcon = document.getElementById('searchIcon');
@@ -2186,23 +2173,6 @@
         });
         
         chatBackBtn.addEventListener('click', goToChatList);
-        
-        if (mobileBackBtn) {
-            mobileBackBtn.addEventListener('click', () => {
-                if (isMobile()) {
-                    if (currentChat) {
-                        currentChat = null;
-                        chatHeader.style.display = 'none';
-                        chatInputArea.style.display = 'none';
-                        messageInput.disabled = true;
-                        sendBtn.disabled = true;
-                        showUsersPanel();
-                    } else {
-                        showUsersPanel();
-                    }
-                }
-            });
-        }
        
         if (mobileProfileBtn) {
             mobileProfileBtn.addEventListener('click', (e) => {
@@ -2461,45 +2431,54 @@
         });
         
         // ===============================================
-        // ОЧИСТКА ИСТОРИИ ГРУППЫ (ТОЛЬКО ДЛЯ АДМИНА)
+        // ОЧИСТКА ИСТОРИИ В ГРУППЕ ДЛЯ ПОЛЬЗОВАТЕЛЯ (ТОЛЬКО АДМИН)
         // ===============================================
-        window.adminClearGroupHistory = async function(userId, userName) {
+        window.confirmClearGroupHistory = function(userId, userName) {
             if (!currentUser || currentUser.username.toLowerCase() !== 'german') {
                 alert('Только админ может очищать историю');
                 return;
             }
-            
-            confirmTitle.textContent = '⚠️ Очистка истории для пользователя';
-            confirmText.textContent = `Вы уверены, что хотите очистить историю группы для пользователя ${userName}? Это действие необратимо.`;
-            
-            confirmYesBtn.onclick = async () => {
-                try {
-                    const { error } = await supabaseClient
-                        .from('message_reads')
-                        .insert({
-                            user_id: userId,
-                            chat_type: 'group',
-                            read_at: new Date().toISOString(),
-                            cleared_all: true
-                        });
-                    
-                    if (error) throw error;
-                    
-                    alert(`История группы для пользователя ${userName} очищена`);
-                    confirmModal.style.display = 'none';
-                    
-                } catch (error) {
-                    console.error('Ошибка очистки истории:', error);
-                    alert('Не удалось очистить историю');
-                }
-            };
-            
-            confirmNoBtn.onclick = () => {
-                confirmModal.style.display = 'none';
-            };
-            
+            pendingClearUserId = userId;
+            confirmTitle.textContent = 'Подтверждение';
+            confirmText.textContent = `Очистить историю сообщений от ${userName} в группе?`;
             confirmModal.style.display = 'flex';
         };
+
+        confirmYesBtn.addEventListener('click', async () => {
+            if (!pendingClearUserId) return;
+          
+            try {
+                const { error } = await supabaseClient
+                    .from('group_messages')
+                    .delete()
+                    .eq('user_id', pendingClearUserId);
+              
+                if (error) throw error;
+              
+                alert('История в группе очищена!');
+                loadAdminUsers();
+                if (currentChatType === 'group') loadGroupMessages();
+              
+            } catch (err) {
+                console.error('Ошибка очистки:', err);
+                alert('Не удалось очистить историю');
+            }
+          
+            confirmModal.style.display = 'none';
+            pendingClearUserId = null;
+        });
+
+        confirmNoBtn.addEventListener('click', () => {
+            confirmModal.style.display = 'none';
+            pendingClearUserId = null;
+        });
+
+        confirmModal.addEventListener('click', (e) => {
+            if (e.target === confirmModal) {
+                confirmModal.style.display = 'none';
+                pendingClearUserId = null;
+            }
+        });
 
         // ===============================================
         // АВТОРИЗАЦИЯ
@@ -3217,8 +3196,7 @@
                             <button class="admin-user-btn" onclick="editUser('${user.id}')">✎</button>
                             <button class="admin-user-btn" onclick="toggleBlockUser('${user.id}', '${user.status}')">${user.status === 'blocked' ? '🔓' : '🔒'}</button>
                             <button class="admin-user-btn" onclick="showUserProfile('${user.id}', true)">👁️ Профиль</button>
-                            <!-- КНОПКА ОЧИСТКИ ИСТОРИИ ТОЛЬКО ДЛЯ АДМИНА -->
-                            <button class="admin-user-btn" style="background:#ff4444; color:white; border-color:#ff4444;" onclick="adminClearGroupHistory('${user.id}', '${displayName}')">🗑️ Очистить историю</button>
+                            <button class="admin-user-btn" style="background:#ff4444; color:white; border-color:#ff4444;" onclick="confirmClearGroupHistory('${user.id}', '${displayName}')">🗑️ Очистить историю</button>
                         </div>
                     </div>
                    
@@ -3429,8 +3407,9 @@
         }
         
         function leaveConference() {
-            confirmTitle.textContent = '⚠️ Подтверждение';
-            confirmText.textContent = 'Вы уверены, что хотите выйти из конференции?';
+            confirmTitle.textContent = 'Подтверждение';
+            confirmText.textContent = 'Выйти из конференции?';
+            confirmYesBtn.textContent = 'Выйти';
             confirmYesBtn.onclick = () => {
                 if (room) {
                     room.disconnect();
@@ -3626,6 +3605,7 @@
                 }
                 if (confirmModal.style.display === 'flex') {
                     confirmModal.style.display = 'none';
+                    pendingClearUserId = null;
                 }
                 if (isMobile()) {
                     hideProfilePanel();
