@@ -849,7 +849,7 @@
 
         .active-call-bar {
             position: fixed;
-            top: 8px;
+            top: 0;
             left: 0;
             right: 0;
             height: var(--call-bar-height);
@@ -863,9 +863,6 @@
             z-index: 10000;
             cursor: pointer;
             text-align: center;
-            border-radius: 20px;
-            margin: 0 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         .active-call-bar:hover {
@@ -877,12 +874,12 @@
             .main-container.with-call-bar .users-panel,
             .main-container.with-call-bar .chat-panel,
             .main-container.with-call-bar .profile-panel {
-                padding-top: calc(var(--call-bar-height) + 8px);
+                padding-top: var(--call-bar-height);
             }
 
             .main-container.with-call-bar .chat-panel {
-                height: calc(100vh - var(--call-bar-height) - 8px) !important;
-                height: calc(100dvh - var(--call-bar-height) - 8px) !important;
+                height: calc(100vh - var(--call-bar-height)) !important;
+                height: calc(100dvh - var(--call-bar-height)) !important;
             }
         }
 
@@ -891,18 +888,13 @@
             .users-panel,
             .chat-panel,
             .profile-panel {
-                top: calc(var(--call-bar-height) + 8px) !important;
+                top: var(--call-bar-height) !important;
             }
 
             .chat-header,
             .panel-header,
             .profile-header-mobile {
-                padding-top: calc(env(safe-area-inset-top, 0px) + var(--call-bar-height) + 8px);
-            }
-            
-            /* Убираем стрелку назад на мобильных */
-            .mobile-only-back-btn {
-                display: none !important;
+                padding-top: calc(env(safe-area-inset-top, 0px) + var(--call-bar-height));
             }
         }
 
@@ -1357,7 +1349,7 @@
             background: #333;
             color: #fff;
         }
-        /* Модальное окно подтверждения - спокойный стиль */
+        /* Модальное окно подтверждения */
         .confirm-modal {
             display: none;
             position: fixed;
@@ -1365,7 +1357,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.95);
             z-index: 4000;
             align-items: center;
             justify-content: center;
@@ -1373,52 +1365,45 @@
         }
         .confirm-content {
             background: #1a1a1a;
-            border: 2px solid #f0b90b;
-            border-radius: 24px;
+            border: 2px solid #ff4444;
+            border-radius: 32px;
             padding: 30px 20px;
             width: 100%;
-            max-width: 360px;
+            max-width: 400px;
             text-align: center;
         }
         .confirm-title {
-            font-size: 20px;
-            font-weight: 500;
-            margin-bottom: 20px;
-            color: #f0b90b;
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #ff4444;
         }
         .confirm-text {
-            color: #ccc;
+            color: #fff;
             margin-bottom: 25px;
-            font-size: 15px;
+            font-size: 16px;
             line-height: 1.5;
         }
         .confirm-buttons {
             display: flex;
-            gap: 12px;
+            gap: 10px;
         }
         .confirm-btn {
             flex: 1;
-            padding: 12px;
+            padding: 15px;
             border: none;
-            border-radius: 20px;
-            font-weight: 500;
+            border-radius: 12px;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 15px;
-            transition: all 0.2s;
+            font-size: 16px;
         }
         .confirm-btn.yes {
-            background: #f0b90b;
-            color: #0a0a0a;
-        }
-        .confirm-btn.yes:hover {
-            background: #d4a017;
+            background: #ff4444;
+            color: white;
         }
         .confirm-btn.no {
             background: #333;
-            color: #fff;
-        }
-        .confirm-btn.no:hover {
-            background: #444;
+            color: white;
         }
         .modal {
             display: none;
@@ -1756,9 +1741,36 @@
             pointer-events: none;
         }
 
-        /* ==================== СТРЕЛКА НАЗАД УБРАНА ПОЛНОСТЬЮ ==================== */
+        /* ==================== СТРЕЛКА НАЗАД ТОЛЬКО ДЛЯ МОБИЛЬНЫХ ==================== */
+        @media (min-width: 769px) {
+            .mobile-only-back-btn {
+                display: none !important;
+            }
+        }
+
         .mobile-only-back-btn {
-            display: none !important;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-only-back-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 44px;
+                height: 44px;
+                font-size: 28px;
+                color: #f0b90b;
+                cursor: pointer;
+                margin-left: 8px;
+                background: transparent;
+                border-radius: 50%;
+                transition: background 0.2s;
+            }
+            .mobile-only-back-btn:hover,
+            .mobile-only-back-btn:active {
+                background: rgba(240, 185, 11, 0.1);
+            }
         }
     </style>
 </head>
@@ -1812,7 +1824,7 @@
                 <span class="back-btn" id="chatBackBtn">←</span>
                 <span class="chat-title" id="currentChatTitle"></span>
                 <button class="conference-btn" id="conferenceBtn" style="display: none;">📹</button>
-                <!-- Стрелка полностью убрана -->
+                <span class="mobile-only-back-btn" id="mobileBackBtn">←</span>
             </div>
             <div class="messages-container" id="messagesContainer">
                 <div class="empty-messages">Выберите чат чтобы начать общение</div>
@@ -1879,13 +1891,13 @@
             </div>
         </div>
     </div>
-    <!-- Модальное окно подтверждения (спокойное) -->
+    <!-- Модальное окно подтверждения -->
     <div class="confirm-modal" id="confirmModal">
         <div class="confirm-content">
-            <div class="confirm-title">Подтверждение</div>
-            <div class="confirm-text" id="confirmText">Вы уверены?</div>
+            <div class="confirm-title" id="confirmTitle">⚠️ Подтверждение</div>
+            <div class="confirm-text" id="confirmText">Вы уверены, что хотите выйти из конференции?</div>
             <div class="confirm-buttons">
-                <button class="confirm-btn yes" id="confirmYesBtn">Да</button>
+                <button class="confirm-btn yes" id="confirmYesBtn">Да, выйти</button>
                 <button class="confirm-btn no" id="confirmNoBtn">Отмена</button>
             </div>
         </div>
@@ -1947,7 +1959,6 @@
         let conferenceToken = null;
         let viewedUserProfile = null;
         let adminViewingUser = false;
-        let pendingClearUserId = null; // Для очистки истории
 
         // ===============================================
         // ГЕНЕРАЦИЯ ТОКЕНОВ ДЛЯ LIVEKIT
@@ -2013,6 +2024,7 @@
         let audioReconnectTimer = null;
         let replyingTo = null;
         let selectedUserForProfile = null;
+        let pendingClearUserId = null;
         let isConferenceActive = false;
         
         // DOM элементы
@@ -2071,7 +2083,7 @@
         
         // Элементы подтверждения
         const confirmModal = document.getElementById('confirmModal');
-        const confirmTitle = document.querySelector('.confirm-title');
+        const confirmTitle = document.getElementById('confirmTitle');
         const confirmText = document.getElementById('confirmText');
         const confirmYesBtn = document.getElementById('confirmYesBtn');
         const confirmNoBtn = document.getElementById('confirmNoBtn');
@@ -2083,6 +2095,7 @@
         const chatBackBtn = document.getElementById('chatBackBtn');
         const profileBackBtn = document.getElementById('profileBackBtn');
         const mobileProfileBtn = document.getElementById('mobileProfileBtn');
+        const mobileBackBtn = document.getElementById('mobileBackBtn');
        
         // Элементы поиска
         const searchIcon = document.getElementById('searchIcon');
@@ -2173,6 +2186,23 @@
         });
         
         chatBackBtn.addEventListener('click', goToChatList);
+        
+        if (mobileBackBtn) {
+            mobileBackBtn.addEventListener('click', () => {
+                if (isMobile()) {
+                    if (currentChat) {
+                        currentChat = null;
+                        chatHeader.style.display = 'none';
+                        chatInputArea.style.display = 'none';
+                        messageInput.disabled = true;
+                        sendBtn.disabled = true;
+                        showUsersPanel();
+                    } else {
+                        showUsersPanel();
+                    }
+                }
+            });
+        }
        
         if (mobileProfileBtn) {
             mobileProfileBtn.addEventListener('click', (e) => {
@@ -2431,99 +2461,317 @@
         });
         
         // ===============================================
-        // ОЧИСТКА ИСТОРИИ В ГРУППЕ ДЛЯ КОНКРЕТНОГО ПОЛЬЗОВАТЕЛЯ (ТОЛЬКО АДМИН)
+        // ОЧИСТКА ИСТОРИИ ГРУППЫ (ТОЛЬКО ДЛЯ АДМИНА)
         // ===============================================
-        window.confirmClearUserGroupHistory = function(userId, userName) {
+        window.adminClearGroupHistory = async function(userId, userName) {
             if (!currentUser || currentUser.username.toLowerCase() !== 'german') {
                 alert('Только админ может очищать историю');
                 return;
             }
-            pendingClearUserId = userId;
-            confirmTitle.textContent = 'Подтверждение';
-            confirmText.textContent = `Очистить историю группы для пользователя ${userName}? После этого он не будет видеть никакие сообщения в группе.`;
-            confirmYesBtn.textContent = 'Очистить';
+            
+            confirmTitle.textContent = '⚠️ Очистка истории для пользователя';
+            confirmText.textContent = `Вы уверены, что хотите очистить историю группы для пользователя ${userName}? Это действие необратимо.`;
+            
+            confirmYesBtn.onclick = async () => {
+                try {
+                    const { error } = await supabaseClient
+                        .from('message_reads')
+                        .insert({
+                            user_id: userId,
+                            chat_type: 'group',
+                            read_at: new Date().toISOString(),
+                            cleared_all: true
+                        });
+                    
+                    if (error) throw error;
+                    
+                    alert(`История группы для пользователя ${userName} очищена`);
+                    confirmModal.style.display = 'none';
+                    
+                } catch (error) {
+                    console.error('Ошибка очистки истории:', error);
+                    alert('Не удалось очистить историю');
+                }
+            };
+            
+            confirmNoBtn.onclick = () => {
+                confirmModal.style.display = 'none';
+            };
+            
             confirmModal.style.display = 'flex';
         };
 
-        confirmYesBtn.addEventListener('click', async () => {
-            if (!pendingClearUserId) return;
-          
-            try {
-                // Добавляем запись в таблицу user_group_history_cleared
-                // Это помечает, что пользователь очистил свою историю группы
-                const { error } = await supabaseClient
-                    .from('user_group_history_cleared')
-                    .upsert({
-                        user_id: pendingClearUserId,
-                        cleared_at: new Date().toISOString(),
-                        group_name: GROUP_NAME
-                    }, { onConflict: 'user_id' });
-              
-                if (error) throw error;
-              
-                alert(`История группы для пользователя очищена! Теперь он не видит сообщения.`);
-                loadAdminUsers();
-              
-            } catch (err) {
-                console.error('Ошибка очистки:', err);
-                alert('Не удалось очистить историю');
-            }
-          
-            confirmModal.style.display = 'none';
-            pendingClearUserId = null;
-        });
-
-        confirmNoBtn.addEventListener('click', () => {
-            confirmModal.style.display = 'none';
-            pendingClearUserId = null;
-        });
-
-        confirmModal.addEventListener('click', (e) => {
-            if (e.target === confirmModal) {
-                confirmModal.style.display = 'none';
-                pendingClearUserId = null;
-            }
-        });
-
         // ===============================================
-        // ЗАГРУЗКА СООБЩЕНИЙ С УЧЕТОМ ОЧИСТКИ ИСТОРИИ
+        // АВТОРИЗАЦИЯ
+        // ===============================================
+        async function checkSavedSession() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                   
+                    const { data: user, error } = await supabaseClient
+                        .from('users')
+                        .select('*')
+                        .eq('id', currentUser.id)
+                        .single();
+                    if (!error && user && user.status === 'active') {
+                        currentUser = user;
+                        authContainer.style.display = 'none';
+                        mainContainer.style.display = 'grid';
+                       
+                        if (currentUser.username.toLowerCase() === 'german') {
+                            adminPanelBtn.style.display = 'block';
+                        }
+                       
+                        updateProfilePanel();
+                        loadChats();
+                        setupRealtimeSubscriptions();
+                        
+                        chatHeader.style.display = 'none';
+                        chatInputArea.style.display = 'none';
+                        messageInput.disabled = true;
+                        sendBtn.disabled = true;
+                        
+                        if (isMobile()) {
+                            showUsersPanel();
+                        }
+                        
+                        restoreConferenceSession();
+                    } else {
+                        localStorage.removeItem('currentUser');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('currentUser');
+                }
+            }
+        }
+        
+        loginBtn.addEventListener('click', async () => {
+            const username = loginInput.value.trim();
+            const password = passwordInput.value.trim();
+            if (!username || !password) {
+                authError.textContent = 'Введите логин и пароль';
+                return;
+            }
+            try {
+                const { data: users, error } = await supabaseClient
+                    .from('users')
+                    .select('*')
+                    .eq('username', username)
+                    .eq('password', password);
+                if (error) throw error;
+                if (users && users.length > 0) {
+                    const user = users[0];
+                   
+                    if (user.status === 'blocked') {
+                        authError.textContent = 'Пользователь заблокирован';
+                        return;
+                    }
+                    currentUser = user;
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                   
+                    authContainer.style.display = 'none';
+                    mainContainer.style.display = 'grid';
+                   
+                    if (currentUser.username.toLowerCase() === 'german') {
+                        adminPanelBtn.style.display = 'block';
+                    }
+                   
+                    updateProfilePanel();
+                    loadChats();
+                    setupRealtimeSubscriptions();
+                    
+                    chatHeader.style.display = 'none';
+                    chatInputArea.style.display = 'none';
+                    messageInput.disabled = true;
+                    sendBtn.disabled = true;
+                    
+                    if (isMobile()) {
+                        showUsersPanel();
+                    }
+                    
+                    restoreConferenceSession();
+                } else {
+                    authError.textContent = 'Неверный логин или пароль';
+                }
+            } catch (error) {
+                console.error('Ошибка авторизации:', error);
+                authError.textContent = 'Ошибка подключения к базе';
+            }
+        });
+        
+        // ===============================================
+        // ЗАГРУЗКА ЧАТОВ
+        // ===============================================
+        async function loadChats() {
+            try {
+                const chats = [];
+               
+                const { data: lastGroupMsg } = await supabaseClient
+                    .from('group_messages')
+                    .select('*, users!inner(*)')
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                chats.push({
+                    id: 'group',
+                    name: GROUP_NAME,
+                    type: 'group',
+                    avatar: '👥',
+                    lastMessage: lastGroupMsg,
+                    unread: unreadCounts['group'] || 0
+                });
+                
+                const { data: contacts, error } = await supabaseClient
+                    .from('user_contacts')
+                    .select('contact_id, users!user_contacts_contact_id_fkey(*)')
+                    .eq('user_id', currentUser.id);
+                if (error) throw error;
+                
+                const contactUsers = contacts.map(c => c.users).filter(u => u);
+               
+                const contactsWithLastMessage = await Promise.all(
+                    contactUsers.map(async (contact) => {
+                        const { data: lastMsg } = await supabaseClient
+                            .from('private_messages')
+                            .select('*')
+                            .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${contact.id}),and(sender_id.eq.${contact.id},receiver_id.eq.${currentUser.id})`)
+                            .order('created_at', { ascending: false })
+                            .limit(1)
+                            .maybeSingle();
+                       
+                        return {
+                            id: contact.id,
+                            name: contact.display_name !== '---' ? contact.display_name : contact.username,
+                            type: 'private',
+                            avatar: contact.display_name !== '---' ? contact.display_name[0] : contact.username[0].toUpperCase(),
+                            userId: contact.user_id_string,
+                            lastMessage: lastMsg,
+                            unread: unreadCounts[`private_${contact.id}`] || 0
+                        };
+                    })
+                );
+                renderChatList([...chats, ...contactsWithLastMessage]);
+            } catch (error) {
+                console.error('Ошибка загрузки чатов:', error);
+            }
+        }
+        
+        function renderChatList(chats) {
+            chatList.innerHTML = chats.map(chat => {
+                const time = chat.lastMessage ? new Date(chat.lastMessage.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '';
+                let lastMessageText = 'Нет сообщений';
+               
+                if (chat.lastMessage) {
+                    if (chat.type === 'group') {
+                        const senderName = chat.lastMessage.users?.display_name !== '---' ?
+                            chat.lastMessage.users?.display_name :
+                            chat.lastMessage.users?.username;
+                        lastMessageText = `${senderName}: ${chat.lastMessage.message}`;
+                    } else {
+                        lastMessageText = (chat.lastMessage.sender_id === currentUser.id ? 'Вы: ' : '') + chat.lastMessage.message;
+                    }
+                }
+               
+                return `
+                    <div class="chat-item ${currentChat === chat.id ? 'active' : ''} ${chat.unread > 0 ? 'unread' : ''}" onclick="selectChat('${chat.id}', '${chat.type}')">
+                        <div class="chat-avatar ${chat.type === 'group' ? 'group' : ''}">${chat.avatar}</div>
+                        <div class="chat-info">
+                            <div class="chat-name">${chat.name}</div>
+                            ${chat.type === 'private' ? `<div class="chat-id">ID: ${chat.userId}</div>` : ''}
+                            <div class="last-message">${lastMessageText.substring(0, 30)}${lastMessageText.length > 30 ? '...' : ''} ${time ? '· ' + time : ''}</div>
+                        </div>
+                        ${chat.unread > 0 ? `<div class="unread-badge">${chat.unread}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        window.selectChat = function(chatId, type) {
+            currentChat = chatId;
+            currentChatType = type;
+           
+            cancelReply();
+            
+            chatHeader.style.display = 'flex';
+            chatInputArea.style.display = 'block';
+           
+            if (type === 'group') {
+                currentChatTitle.textContent = GROUP_NAME;
+                loadGroupMessages();
+                unreadCounts['group'] = 0;
+                conferenceBtn.style.display = 'block';
+            } else {
+                supabaseClient
+                    .from('users')
+                    .select('*')
+                    .eq('id', chatId)
+                    .single()
+                    .then(({ data: user }) => {
+                        if (user) {
+                            const displayName = user.display_name !== '---' ? user.display_name : user.username;
+                            currentChatTitle.textContent = displayName;
+                        }
+                    });
+               
+                loadPrivateMessages(chatId);
+                unreadCounts[`private_${chatId}`] = 0;
+                conferenceBtn.style.display = 'none';
+            }
+           
+            messageInput.disabled = false;
+            sendBtn.disabled = false;
+           
+            if (isMobile()) {
+                hideUsersPanel();
+                const chatPanel = document.querySelector('.chat-panel');
+                if (chatPanel) chatPanel.style.display = 'flex';
+            } else {
+                messageInput.focus();
+            }
+           
+            loadChats();
+        };
+        
+        // ===============================================
+        // ЗАГРУЗКА СООБЩЕНИЙ
         // ===============================================
         async function loadGroupMessages() {
             try {
-                // Сначала проверяем, очищал ли пользователь историю группы
-                const { data: clearedData } = await supabaseClient
-                    .from('user_group_history_cleared')
-                    .select('cleared_at')
-                    .eq('user_id', currentUser.id)
-                    .maybeSingle();
-                
-                let query = supabaseClient
+                const { data: messages, error } = await supabaseClient
                     .from('group_messages')
                     .select('*, users!inner(*)')
                     .order('created_at', { ascending: true });
-                
-                // Если пользователь очищал историю, показываем только сообщения после даты очистки
-                if (clearedData) {
-                    query = query.gt('created_at', clearedData.cleared_at);
-                }
-                
-                const { data: messages, error } = await query;
-                
                 if (error) throw error;
-                renderMessages(messages || [], 'group', clearedData);
+                renderMessages(messages || [], 'group');
                 setTimeout(initSwipeToReply, 100);
             } catch (error) {
                 console.error('Ошибка загрузки сообщений:', error);
             }
         }
         
-        function renderMessages(messages, type, clearedData = null) {
+        async function loadPrivateMessages(otherUserId) {
+            try {
+                const { data: messages, error } = await supabaseClient
+                    .from('private_messages')
+                    .select('*, sender:sender_id(*)')
+                    .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUser.id})`)
+                    .order('created_at', { ascending: true });
+                if (error) throw error;
+                renderMessages(messages || [], 'private');
+               
+                setTimeout(() => {
+                    initSwipeToReply();
+                }, 100);
+            } catch (error) {
+                console.error('Ошибка загрузки сообщений:', error);
+            }
+        }
+        
+        function renderMessages(messages, type) {
             if (!messages || messages.length === 0) {
-                if (clearedData) {
-                    messagesContainer.innerHTML = '<div class="empty-messages">История группы очищена. Новые сообщения будут появляться здесь.</div>';
-                } else {
-                    messagesContainer.innerHTML = '<div class="empty-messages">Нет сообщений. Напишите первое сообщение!</div>';
-                }
+                messagesContainer.innerHTML = '<div class="empty-messages">Нет сообщений. Напишите первое сообщение!</div>';
                 return;
             }
             
@@ -2969,7 +3217,8 @@
                             <button class="admin-user-btn" onclick="editUser('${user.id}')">✎</button>
                             <button class="admin-user-btn" onclick="toggleBlockUser('${user.id}', '${user.status}')">${user.status === 'blocked' ? '🔓' : '🔒'}</button>
                             <button class="admin-user-btn" onclick="showUserProfile('${user.id}', true)">👁️ Профиль</button>
-                            <button class="admin-user-btn" style="background:#ff4444; color:white; border-color:#ff4444;" onclick="confirmClearUserGroupHistory('${user.id}', '${displayName}')">🗑️ Очистить историю группы</button>
+                            <!-- КНОПКА ОЧИСТКИ ИСТОРИИ ТОЛЬКО ДЛЯ АДМИНА -->
+                            <button class="admin-user-btn" style="background:#ff4444; color:white; border-color:#ff4444;" onclick="adminClearGroupHistory('${user.id}', '${displayName}')">🗑️ Очистить историю</button>
                         </div>
                     </div>
                    
@@ -3180,9 +3429,8 @@
         }
         
         function leaveConference() {
-            confirmTitle.textContent = 'Подтверждение';
-            confirmText.textContent = 'Выйти из конференции?';
-            confirmYesBtn.textContent = 'Выйти';
+            confirmTitle.textContent = '⚠️ Подтверждение';
+            confirmText.textContent = 'Вы уверены, что хотите выйти из конференции?';
             confirmYesBtn.onclick = () => {
                 if (room) {
                     room.disconnect();
@@ -3378,7 +3626,6 @@
                 }
                 if (confirmModal.style.display === 'flex') {
                     confirmModal.style.display = 'none';
-                    pendingClearUserId = null;
                 }
                 if (isMobile()) {
                     hideProfilePanel();
@@ -3421,118 +3668,6 @@
             } 
         })();
         
-        // ===============================================
-        // ПРОВЕРКА СОХРАНЕННОЙ СЕССИИ
-        // ===============================================
-        async function checkSavedSession() {
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser) {
-                try {
-                    currentUser = JSON.parse(savedUser);
-                   
-                    const { data: user, error } = await supabaseClient
-                        .from('users')
-                        .select('*')
-                        .eq('id', currentUser.id)
-                        .single();
-                    if (!error && user && user.status === 'active') {
-                        currentUser = user;
-                        authContainer.style.display = 'none';
-                        mainContainer.style.display = 'grid';
-                       
-                        if (currentUser.username.toLowerCase() === 'german') {
-                            adminPanelBtn.style.display = 'block';
-                        }
-                       
-                        updateProfilePanel();
-                        loadChats();
-                        setupRealtimeSubscriptions();
-                        
-                        chatHeader.style.display = 'none';
-                        chatInputArea.style.display = 'none';
-                        messageInput.disabled = true;
-                        sendBtn.disabled = true;
-                        
-                        if (isMobile()) {
-                            showUsersPanel();
-                        }
-                        
-                        restoreConferenceSession();
-                    } else {
-                        localStorage.removeItem('currentUser');
-                    }
-                } catch (e) {
-                    localStorage.removeItem('currentUser');
-                }
-            }
-        }
-        
-        // Загружаем private messages
-        async function loadPrivateMessages(otherUserId) {
-            try {
-                const { data: messages, error } = await supabaseClient
-                    .from('private_messages')
-                    .select('*, sender:sender_id(*)')
-                    .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUser.id})`)
-                    .order('created_at', { ascending: true });
-                if (error) throw error;
-                renderMessages(messages || [], 'private');
-               
-                setTimeout(() => {
-                    initSwipeToReply();
-                }, 100);
-            } catch (error) {
-                console.error('Ошибка загрузки сообщений:', error);
-            }
-        }
-        
-        window.selectChat = function(chatId, type) {
-            currentChat = chatId;
-            currentChatType = type;
-           
-            cancelReply();
-            
-            chatHeader.style.display = 'flex';
-            chatInputArea.style.display = 'block';
-           
-            if (type === 'group') {
-                currentChatTitle.textContent = GROUP_NAME;
-                loadGroupMessages(); // Используем функцию с учетом очистки
-                unreadCounts['group'] = 0;
-                conferenceBtn.style.display = 'block';
-            } else {
-                supabaseClient
-                    .from('users')
-                    .select('*')
-                    .eq('id', chatId)
-                    .single()
-                    .then(({ data: user }) => {
-                        if (user) {
-                            const displayName = user.display_name !== '---' ? user.display_name : user.username;
-                            currentChatTitle.textContent = displayName;
-                        }
-                    });
-               
-                loadPrivateMessages(chatId);
-                unreadCounts[`private_${chatId}`] = 0;
-                conferenceBtn.style.display = 'none';
-            }
-           
-            messageInput.disabled = false;
-            sendBtn.disabled = false;
-           
-            if (isMobile()) {
-                hideUsersPanel();
-                const chatPanel = document.querySelector('.chat-panel');
-                if (chatPanel) chatPanel.style.display = 'flex';
-            } else {
-                messageInput.focus();
-            }
-           
-            loadChats();
-        };
-        
-        // Запускаем проверку сессии
         checkSavedSession();
     </script>
 </body>
