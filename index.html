@@ -2457,7 +2457,7 @@
         });
         
         // ===============================================
-        // ОЧИСТКА ИСТОРИИ В ГРУППЕ (ИЗ РАБОЧЕГО КОДА)
+        // ОЧИСТКА ИСТОРИИ (СКРЫТИЕ ДЛЯ ПОЛЬЗОВАТЕЛЯ)
         // ===============================================
         window.confirmClearGroupHistory = function(userId, displayName) {
             if (!currentUser || currentUser.username.toLowerCase() !== 'german') {
@@ -2465,33 +2465,43 @@
                 return;
             }
             pendingClearUserId = userId;
-            confirmTitle.textContent = '⚠️ Очистка истории';
-            confirmText.textContent = `Вы уверены, что хотите очистить историю для пользователя ${displayName}?`;
-            confirmYesBtn.textContent = 'Да, очистить';
+            confirmTitle.textContent = 'Очистка истории в группе';
+            confirmText.textContent = `Скрыть все сообщения в группе для пользователя ${displayName}? У других пользователей всё останется.`;
+            confirmYesBtn.textContent = 'Скрыть';
             confirmNoBtn.textContent = 'Отмена';
             confirmModal.style.display = 'flex';
         };
 
         confirmYesBtn.addEventListener('click', async () => {
             if (!pendingClearUserId) return;
-          
+
             try {
+                // Добавляем запись о том, что пользователь очистил историю
                 const { error } = await supabaseClient
-                    .from('group_messages')
-                    .delete()
-                    .eq('user_id', pendingClearUserId);
-              
+                    .from('user_cleared_histories')
+                    .upsert({
+                        user_id: pendingClearUserId,
+                        chat_type: 'group',
+                        cleared_at: new Date().toISOString()
+                    }, { onConflict: 'user_id, chat_type' });
+
                 if (error) throw error;
-              
-                alert('История в группе очищена!');
+
+                alert(`История в группе скрыта для пользователя!`);
+
+                // Обновляем админ-панель
                 loadAdminUsers();
-                if (currentChatType === 'group') loadGroupMessages();
-              
+
+                // Если текущий юзер — очищенный, и открыт групповой чат — обновляем сообщения
+                if (pendingClearUserId === currentUser.id && currentChatType === 'group') {
+                    loadGroupMessages();
+                }
+
             } catch (err) {
-                console.error('Ошибка очистки:', err);
-                alert('Не удалось очистить историю');
+                console.error('Ошибка при скрытии истории:', err);
+                alert('Не удалось скрыть историю. Ошибка: ' + (err.message || 'проверь консоль'));
             }
-          
+
             confirmModal.style.display = 'none';
             pendingClearUserId = null;
         });
@@ -2509,270 +2519,83 @@
         });
 
         // ===============================================
-        // АВТОРИЗАЦИЯ
-        // ===============================================
-        async function checkSavedSession() {
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser) {
-                try {
-                    currentUser = JSON.parse(savedUser);
-                   
-                    const { data: user, error } = await supabaseClient
-                        .from('users')
-                        .select('*')
-                        .eq('id', currentUser.id)
-                        .single();
-                    if (!error && user && user.status === 'active') {
-                        currentUser = user;
-                        authContainer.style.display = 'none';
-                        mainContainer.style.display = 'grid';
-                       
-                        if (currentUser.username.toLowerCase() === 'german') {
-                            adminPanelBtn.style.display = 'block';
-                        }
-                       
-                        updateProfilePanel();
-                        loadChats();
-                        setupRealtimeSubscriptions();
-                        
-                        chatHeader.style.display = 'none';
-                        chatInputArea.style.display = 'none';
-                        messageInput.disabled = true;
-                        sendBtn.disabled = true;
-                        
-                        if (isMobile()) {
-                            showUsersPanel();
-                        }
-                        
-                        restoreConferenceSession();
-                    } else {
-                        localStorage.removeItem('currentUser');
-                    }
-                } catch (e) {
-                    localStorage.removeItem('currentUser');
-                }
-            }
-        }
-        
-        loginBtn.addEventListener('click', async () => {
-            const username = loginInput.value.trim();
-            const password = passwordInput.value.trim();
-            if (!username || !password) {
-                authError.textContent = 'Введите логин и пароль';
-                return;
-            }
-            try {
-                const { data: users, error } = await supabaseClient
-                    .from('users')
-                    .select('*')
-                    .eq('username', username)
-                    .eq('password', password);
-                if (error) throw error;
-                if (users && users.length > 0) {
-                    const user = users[0];
-                   
-                    if (user.status === 'blocked') {
-                        authError.textContent = 'Пользователь заблокирован';
-                        return;
-                    }
-                    currentUser = user;
-                    localStorage.setItem('currentUser', JSON.stringify(user));
-                   
-                    authContainer.style.display = 'none';
-                    mainContainer.style.display = 'grid';
-                   
-                    if (currentUser.username.toLowerCase() === 'german') {
-                        adminPanelBtn.style.display = 'block';
-                    }
-                   
-                    updateProfilePanel();
-                    loadChats();
-                    setupRealtimeSubscriptions();
-                    
-                    chatHeader.style.display = 'none';
-                    chatInputArea.style.display = 'none';
-                    messageInput.disabled = true;
-                    sendBtn.disabled = true;
-                    
-                    if (isMobile()) {
-                        showUsersPanel();
-                    }
-                    
-                    restoreConferenceSession();
-                } else {
-                    authError.textContent = 'Неверный логин или пароль';
-                }
-            } catch (error) {
-                console.error('Ошибка авторизации:', error);
-                authError.textContent = 'Ошибка подключения к базе';
-            }
-        });
-        
-        // ===============================================
-        // ЗАГРУЗКА ЧАТОВ
-        // ===============================================
-        async function loadChats() {
-            try {
-                const chats = [];
-               
-                const { data: lastGroupMsg } = await supabaseClient
-                    .from('group_messages')
-                    .select('*, users!inner(*)')
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
-                chats.push({
-                    id: 'group',
-                    name: GROUP_NAME,
-                    type: 'group',
-                    avatar: '👥',
-                    lastMessage: lastGroupMsg,
-                    unread: unreadCounts['group'] || 0
-                });
-                
-                const { data: contacts, error } = await supabaseClient
-                    .from('user_contacts')
-                    .select('contact_id, users!user_contacts_contact_id_fkey(*)')
-                    .eq('user_id', currentUser.id);
-                if (error) throw error;
-                
-                const contactUsers = contacts.map(c => c.users).filter(u => u);
-               
-                const contactsWithLastMessage = await Promise.all(
-                    contactUsers.map(async (contact) => {
-                        const { data: lastMsg } = await supabaseClient
-                            .from('private_messages')
-                            .select('*')
-                            .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${contact.id}),and(sender_id.eq.${contact.id},receiver_id.eq.${currentUser.id})`)
-                            .order('created_at', { ascending: false })
-                            .limit(1)
-                            .maybeSingle();
-                       
-                        return {
-                            id: contact.id,
-                            name: contact.display_name !== '---' ? contact.display_name : contact.username,
-                            type: 'private',
-                            avatar: contact.display_name !== '---' ? contact.display_name[0] : contact.username[0].toUpperCase(),
-                            userId: contact.user_id_string,
-                            lastMessage: lastMsg,
-                            unread: unreadCounts[`private_${contact.id}`] || 0
-                        };
-                    })
-                );
-                renderChatList([...chats, ...contactsWithLastMessage]);
-            } catch (error) {
-                console.error('Ошибка загрузки чатов:', error);
-            }
-        }
-        
-        function renderChatList(chats) {
-            chatList.innerHTML = chats.map(chat => {
-                const time = chat.lastMessage ? new Date(chat.lastMessage.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '';
-                let lastMessageText = 'Нет сообщений';
-               
-                if (chat.lastMessage) {
-                    if (chat.type === 'group') {
-                        const senderName = chat.lastMessage.users?.display_name !== '---' ?
-                            chat.lastMessage.users?.display_name :
-                            chat.lastMessage.users?.username;
-                        lastMessageText = `${senderName}: ${chat.lastMessage.message}`;
-                    } else {
-                        lastMessageText = (chat.lastMessage.sender_id === currentUser.id ? 'Вы: ' : '') + chat.lastMessage.message;
-                    }
-                }
-               
-                return `
-                    <div class="chat-item ${currentChat === chat.id ? 'active' : ''} ${chat.unread > 0 ? 'unread' : ''}" onclick="selectChat('${chat.id}', '${chat.type}')">
-                        <div class="chat-avatar ${chat.type === 'group' ? 'group' : ''}">${chat.avatar}</div>
-                        <div class="chat-info">
-                            <div class="chat-name">${chat.name}</div>
-                            ${chat.type === 'private' ? `<div class="chat-id">ID: ${chat.userId}</div>` : ''}
-                            <div class="last-message">${lastMessageText.substring(0, 30)}${lastMessageText.length > 30 ? '...' : ''} ${time ? '· ' + time : ''}</div>
-                        </div>
-                        ${chat.unread > 0 ? `<div class="unread-badge">${chat.unread}</div>` : ''}
-                    </div>
-                `;
-            }).join('');
-        }
-        
-        window.selectChat = function(chatId, type) {
-            currentChat = chatId;
-            currentChatType = type;
-           
-            cancelReply();
-            
-            chatHeader.style.display = 'flex';
-            chatInputArea.style.display = 'block';
-           
-            if (type === 'group') {
-                currentChatTitle.textContent = GROUP_NAME;
-                loadGroupMessages();
-                unreadCounts['group'] = 0;
-                conferenceBtn.style.display = 'block';
-            } else {
-                supabaseClient
-                    .from('users')
-                    .select('*')
-                    .eq('id', chatId)
-                    .single()
-                    .then(({ data: user }) => {
-                        if (user) {
-                            const displayName = user.display_name !== '---' ? user.display_name : user.username;
-                            currentChatTitle.textContent = displayName;
-                        }
-                    });
-               
-                loadPrivateMessages(chatId);
-                unreadCounts[`private_${chatId}`] = 0;
-                conferenceBtn.style.display = 'none';
-            }
-           
-            messageInput.disabled = false;
-            sendBtn.disabled = false;
-           
-            if (isMobile()) {
-                hideUsersPanel();
-                const chatPanel = document.querySelector('.chat-panel');
-                if (chatPanel) chatPanel.style.display = 'flex';
-            } else {
-                messageInput.focus();
-            }
-           
-            loadChats();
-        };
-        
-        // ===============================================
-        // ЗАГРУЗКА СООБЩЕНИЙ
+        // ЗАГРУЗКА СООБЩЕНИЙ С УЧЕТОМ ОЧИСТКИ ИСТОРИИ
         // ===============================================
         async function loadGroupMessages() {
             try {
-                const { data: messages, error } = await supabaseClient
+                // Сначала проверяем, есть ли очистка для этого юзера в группе
+                const { data: clearRecord, error: clearError } = await supabaseClient
+                    .from('user_cleared_histories')
+                    .select('cleared_at')
+                    .eq('user_id', currentUser.id)
+                    .eq('chat_type', 'group')
+                    .maybeSingle();
+
+                if (clearError) throw clearError;
+
+                let clearedAt = clearRecord ? clearRecord.cleared_at : null;
+
+                // Загружаем сообщения
+                let query = supabaseClient
                     .from('group_messages')
                     .select('*, users!inner(*)')
                     .order('created_at', { ascending: true });
+
+                if (clearedAt) {
+                    // Фильтруем: только после даты очистки
+                    query = query.gt('created_at', clearedAt);
+                }
+
+                const { data: messages, error } = await query;
                 if (error) throw error;
+
                 renderMessages(messages || [], 'group');
                 setTimeout(initSwipeToReply, 100);
+
             } catch (error) {
-                console.error('Ошибка загрузки сообщений:', error);
+                console.error('Ошибка загрузки сообщений группы:', error);
             }
         }
-        
+
+        // ===============================================
+        // ЗАГРУЗКА ПРИВАТНЫХ СООБЩЕНИЙ (с учетом очистки)
+        // ===============================================
         async function loadPrivateMessages(otherUserId) {
             try {
-                const { data: messages, error } = await supabaseClient
+                // Проверяем очистку для приватного чата
+                const { data: clearRecord, error: clearError } = await supabaseClient
+                    .from('user_cleared_histories')
+                    .select('cleared_at')
+                    .eq('user_id', currentUser.id)
+                    .eq('chat_type', 'private')
+                    .eq('chat_id', otherUserId)
+                    .maybeSingle();
+
+                if (clearError) throw clearError;
+
+                let clearedAt = clearRecord ? clearRecord.cleared_at : null;
+
+                // Загружаем сообщения
+                let query = supabaseClient
                     .from('private_messages')
                     .select('*, sender:sender_id(*)')
                     .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUser.id})`)
                     .order('created_at', { ascending: true });
+
+                if (clearedAt) {
+                    query = query.gt('created_at', clearedAt);
+                }
+
+                const { data: messages, error } = await query;
                 if (error) throw error;
+
                 renderMessages(messages || [], 'private');
                
                 setTimeout(() => {
                     initSwipeToReply();
                 }, 100);
             } catch (error) {
-                console.error('Ошибка загрузки сообщений:', error);
+                console.error('Ошибка загрузки приватных сообщений:', error);
             }
         }
         
@@ -3224,9 +3047,9 @@
                             <button class="admin-user-btn" onclick="editUser('${user.id}')">✎</button>
                             <button class="admin-user-btn" onclick="toggleBlockUser('${user.id}', '${user.status}')">${user.status === 'blocked' ? '🔓' : '🔒'}</button>
                             <button class="admin-user-btn" onclick="showUserProfile('${user.id}', true)">👁️ Профиль</button>
-                            <!-- КНОПКА ОЧИСТКИ ИСТОРИИ (ИЗ РАБОЧЕГО КОДА) -->
+                            <!-- КНОПКА ОЧИСТКИ ИСТОРИИ (СКРЫТИЕ ДЛЯ ПОЛЬЗОВАТЕЛЯ) -->
                             <button class="admin-user-btn" style="background:#ff4444; color:white; border-color:#ff4444;" onclick="confirmClearGroupHistory('${user.id}', '${displayName.replace(/'/g, "\\'")}')">
-                                🗑️ Очистить историю
+                                🗑️ Скрыть историю в группе
                             </button>
                         </div>
                     </div>
@@ -3679,6 +3502,99 @@
             } 
         })();
         
+        // ===============================================
+        // ПРОВЕРКА СОХРАНЕННОЙ СЕССИИ
+        // ===============================================
+        async function checkSavedSession() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                   
+                    const { data: user, error } = await supabaseClient
+                        .from('users')
+                        .select('*')
+                        .eq('id', currentUser.id)
+                        .single();
+                    if (!error && user && user.status === 'active') {
+                        currentUser = user;
+                        authContainer.style.display = 'none';
+                        mainContainer.style.display = 'grid';
+                       
+                        if (currentUser.username.toLowerCase() === 'german') {
+                            adminPanelBtn.style.display = 'block';
+                        }
+                       
+                        updateProfilePanel();
+                        loadChats();
+                        setupRealtimeSubscriptions();
+                        
+                        chatHeader.style.display = 'none';
+                        chatInputArea.style.display = 'none';
+                        messageInput.disabled = true;
+                        sendBtn.disabled = true;
+                        
+                        if (isMobile()) {
+                            showUsersPanel();
+                        }
+                        
+                        restoreConferenceSession();
+                    } else {
+                        localStorage.removeItem('currentUser');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('currentUser');
+                }
+            }
+        }
+        
+        window.selectChat = function(chatId, type) {
+            currentChat = chatId;
+            currentChatType = type;
+           
+            cancelReply();
+            
+            chatHeader.style.display = 'flex';
+            chatInputArea.style.display = 'block';
+           
+            if (type === 'group') {
+                currentChatTitle.textContent = GROUP_NAME;
+                loadGroupMessages(); // Используем новую функцию с фильтром по очистке
+                unreadCounts['group'] = 0;
+                conferenceBtn.style.display = 'block';
+            } else {
+                supabaseClient
+                    .from('users')
+                    .select('*')
+                    .eq('id', chatId)
+                    .single()
+                    .then(({ data: user }) => {
+                        if (user) {
+                            const displayName = user.display_name !== '---' ? user.display_name : user.username;
+                            currentChatTitle.textContent = displayName;
+                        }
+                    });
+               
+                loadPrivateMessages(chatId);
+                unreadCounts[`private_${chatId}`] = 0;
+                conferenceBtn.style.display = 'none';
+            }
+           
+            messageInput.disabled = false;
+            sendBtn.disabled = false;
+           
+            if (isMobile()) {
+                hideUsersPanel();
+                const chatPanel = document.querySelector('.chat-panel');
+                if (chatPanel) chatPanel.style.display = 'flex';
+            } else {
+                messageInput.focus();
+            }
+           
+            loadChats();
+        };
+        
+        // Запускаем проверку сессии
         checkSavedSession();
     </script>
 </body>
