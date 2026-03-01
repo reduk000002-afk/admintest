@@ -165,6 +165,10 @@
             .mobile-overlay.active {
                 display: block;
             }
+            /* Когда список чатов открыт — прячем чат полностью */
+            .users-panel.active ~ .chat-panel {
+                display: none !important;
+            }
             /* Новая шапка списка чатов */
             .panel-header {
                 display: flex;
@@ -456,6 +460,22 @@
             .message-time {
                 color: #666;
             }
+            .read-status {
+                font-size: 14px;
+                color: #4caf50;
+                margin-left: 4px;
+            }
+            .reply-btn {
+                background: transparent;
+                border: none;
+                color: #f0b90b;
+                cursor: pointer;
+                font-size: 14px;
+                padding: 2px 6px;
+                border-radius: 4px;
+                margin-left: auto;
+                opacity: 0.5;
+            }
             .message-content {
                 padding: 10px 14px;
                 background: #1a1a1a;
@@ -593,6 +613,12 @@
             }
             .message-content-wrapper {
                 flex: 1;
+            }
+           
+            .read-status {
+                font-size: 14px;
+                color: #4caf50;
+                margin-left: 4px;
             }
         }
         /* Левая панель (десктоп) */
@@ -1885,7 +1911,7 @@
             <div class="confirm-title">Подтверждение</div>
             <div class="confirm-text" id="confirmText">Вы уверены?</div>
             <div class="confirm-buttons">
-                <button class="confirm-btn yes" id="confirmYesBtn">Выйти</button>
+                <button class="confirm-btn yes" id="confirmYesBtn">Да</button>
                 <button class="confirm-btn no" id="confirmNoBtn">Отмена</button>
             </div>
         </div>
@@ -2431,16 +2457,18 @@
         });
         
         // ===============================================
-        // ОЧИСТКА ИСТОРИИ В ГРУППЕ ДЛЯ ПОЛЬЗОВАТЕЛЯ (ТОЛЬКО АДМИН)
+        // ОЧИСТКА ИСТОРИИ В ГРУППЕ (ИЗ РАБОЧЕГО КОДА)
         // ===============================================
-        window.confirmClearGroupHistory = function(userId, userName) {
+        window.confirmClearGroupHistory = function(userId, displayName) {
             if (!currentUser || currentUser.username.toLowerCase() !== 'german') {
                 alert('Только админ может очищать историю');
                 return;
             }
             pendingClearUserId = userId;
-            confirmTitle.textContent = 'Подтверждение';
-            confirmText.textContent = `Очистить историю сообщений от ${userName} в группе?`;
+            confirmTitle.textContent = '⚠️ Очистка истории';
+            confirmText.textContent = `Вы уверены, что хотите очистить историю для пользователя ${displayName}?`;
+            confirmYesBtn.textContent = 'Да, очистить';
+            confirmNoBtn.textContent = 'Отмена';
             confirmModal.style.display = 'flex';
         };
 
@@ -3196,7 +3224,10 @@
                             <button class="admin-user-btn" onclick="editUser('${user.id}')">✎</button>
                             <button class="admin-user-btn" onclick="toggleBlockUser('${user.id}', '${user.status}')">${user.status === 'blocked' ? '🔓' : '🔒'}</button>
                             <button class="admin-user-btn" onclick="showUserProfile('${user.id}', true)">👁️ Профиль</button>
-                            <button class="admin-user-btn" style="background:#ff4444; color:white; border-color:#ff4444;" onclick="confirmClearGroupHistory('${user.id}', '${displayName}')">🗑️ Очистить историю</button>
+                            <!-- КНОПКА ОЧИСТКИ ИСТОРИИ (ИЗ РАБОЧЕГО КОДА) -->
+                            <button class="admin-user-btn" style="background:#ff4444; color:white; border-color:#ff4444;" onclick="confirmClearGroupHistory('${user.id}', '${displayName.replace(/'/g, "\\'")}')">
+                                🗑️ Очистить историю
+                            </button>
                         </div>
                     </div>
                    
@@ -3652,6 +3683,3 @@
     </script>
 </body>
 </html>
-
-
-
