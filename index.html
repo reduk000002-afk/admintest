@@ -2,3656 +2,1330 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Voxy Messenger</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель теста</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
-        /* ==================== СКРОЛЛБАРЫ В СТИЛЕ САЙТА ==================== */
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: #444 #1a1a1a;
-        }
-
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #0f0f0f;
-            border-radius: 10px;
-            margin: 2px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #444;
-            border-radius: 10px;
-            border: 1px solid #333;
-            transition: background 0.2s ease;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #f0b90b;
-        }
-
-        ::-webkit-scrollbar-thumb:active {
-            background: #d4a017;
-        }
-
-        .messages-container::-webkit-scrollbar-thumb {
-            background: #555;
-        }
-
-        .messages-container::-webkit-scrollbar-thumb:hover {
-            background: #f0b90b;
-        }
-
+        
         body {
-            background: #0a0a0a;
-            color: #f0b90b;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #0b0e11;
+            color: #eaecef;
             min-height: 100vh;
-            min-height: 100dvh;
+        }
+        
+        .admin-container {
+            display: flex;
+            height: 100vh;
             overflow: hidden;
         }
-        /* Авторизация */
-        .auth-container {
-            min-height: 100vh;
-            min-height: 100dvh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .auth-box {
-            background: #1a1a1a;
-            border: 2px solid #f0b90b;
-            border-radius: 32px;
-            padding: 40px 20px;
-            width: 100%;
-            max-width: 400px;
-        }
-        .auth-title {
-            font-size: 24px;
-            font-weight: 600;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .auth-input {
-            width: 100%;
-            padding: 15px 20px;
-            background: #0a0a0a;
-            border: 1px solid #333;
-            border-radius: 16px;
-            color: #f0b90b;
-            font-size: 16px;
-            margin-bottom: 15px;
-        }
-        .auth-btn {
-            width: 100%;
-            padding: 15px;
-            background: #f0b90b;
-            border: none;
-            border-radius: 16px;
-            color: #0a0a0a;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        /* Основной интерфейс */
-        .main-container {
-            display: none;
-            height: 100vh;
-            height: 100dvh;
-            grid-template-columns: 400px 1fr 320px;
-            background: #0a0a0a;
-            position: relative;
-        }
-        /* ==================== МОБИЛЬНАЯ НАВИГАЦИЯ ==================== */
-        @media (max-width: 768px) {
-            .main-container {
-                grid-template-columns: 1fr;
-                height: 100dvh;
-                position: relative;
-            }
-            /* Список чатов — полноэкранный */
-            .users-panel {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                z-index: 200;
-                background: #0a0a0a;
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-                overflow-y: auto;
-                width: 100%;
-                padding-bottom: env(safe-area-inset-bottom, 0);
-            }
-            .users-panel.active {
-                transform: translateX(0);
-            }
-            /* Чат-панель */
-            .chat-panel {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                z-index: 100;
-                display: flex;
-                flex-direction: column;
-                background: #0a0a0a;
-            }
-            /* Оверлей для профиля справа */
-            .mobile-overlay {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0,0,0,0.6);
-                z-index: 150;
-                pointer-events: auto;
-            }
-           
-            .mobile-overlay.active {
-                display: block;
-            }
-            /* Новая шапка списка чатов */
-            .panel-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 16px 20px;
-                background: #111;
-                border-bottom: 1px solid #333;
-            }
-            .left-header {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                cursor: pointer;
-            }
-            .left-header .profile-icon {
-                width: 36px;
-                height: 36px;
-                background: #222;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #f0b90b;
-                font-weight: 600;
-                border: 2px solid #f0b90b;
-                font-size: 18px;
-            }
-            .header-text {
-                font-size: 17px;
-                font-weight: 600;
-                color: #f0b90b;
-            }
-            .panel-title {
-                display: none;
-            }
-            .search-icon {
-                font-size: 26px;
-                color: #f0b90b;
-                cursor: pointer;
-                padding: 6px;
-            }
-            /* Поисковая панель */
-            .search-bar {
-                padding: 12px 20px;
-                background: #111;
-                border-bottom: 1px solid #333;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-           
-            .search-bar input {
-                flex: 1;
-                padding: 12px 16px;
-                background: #1a1a1a;
-                border: 1px solid #f0b90b;
-                border-radius: 12px;
-                color: #f0b90b;
-                font-size: 15px;
-            }
-           
-            .search-close-btn {
-                background: none;
-                border: none;
-                color: #ff4444;
-                font-size: 24px;
-                cursor: pointer;
-                padding: 8px;
-            }
-            /* Результаты поиска */
-            .search-results {
-                background: #111;
-                border-bottom: 1px solid #333;
-                max-height: 320px;
-                overflow-y: auto;
-            }
-            .search-result-item {
-                padding: 14px 20px;
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                cursor: pointer;
-                border-bottom: 1px solid #222;
-            }
-            .search-result-item:hover,
-            .search-result-item:active {
-                background: #1a1a1a;
-            }
-            .search-result-avatar {
-                width: 42px;
-                height: 42px;
-                background: #222;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #f0b90b;
-                font-weight: 600;
-                border: 2px solid #f0b90b;
-                font-size: 18px;
-                flex-shrink: 0;
-            }
-            .search-result-info {
-                flex: 1;
-            }
-            .search-result-info .name {
-                font-weight: 600;
-                color: #fff;
-                font-size: 16px;
-                margin-bottom: 2px;
-            }
-            .search-result-info .id {
-                font-size: 13px;
-                color: #888;
-            }
-            /* Шапка профиля на мобильных */
-            .profile-header-mobile {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 16px 20px;
-                background: #111;
-                border-bottom: 1px solid #333;
-                position: sticky;
-                top: 0;
-                z-index: 10;
-            }
-           
-            .profile-back-btn {
-                font-size: 28px;
-                color: #f0b90b;
-                cursor: pointer;
-                width: 40px;
-                text-align: center;
-                padding: 4px;
-            }
-           
-            .profile-header-title {
-                font-size: 20px;
-                font-weight: 700;
-                color: #f0b90b;
-            }
-            /* Правая панель профиля на мобильных */
-            .profile-panel {
-                position: fixed;
-                top: 0;
-                right: 0;
-                bottom: 0;
-                width: 90%;
-                max-width: 360px;
-                z-index: 250;
-                background: #111;
-                border-left: 1px solid #333;
-                transform: translateX(100%);
-                transition: transform 0.3s ease;
-                overflow-y: auto;
-                padding: 0;
-                padding-bottom: env(safe-area-inset-bottom, 0);
-            }
-            .profile-panel.active {
-                transform: translateX(0);
-                box-shadow: -4px 0 20px rgba(0,0,0,0.6);
-            }
-            .profile-panel .profile-header {
-                padding: 20px;
-                margin-top: 10px;
-            }
-            .chat-header {
-                flex: 0 0 60px;
-                background: #111;
-                border-bottom: 1px solid #333;
-                padding: 0 12px;
-                padding-top: env(safe-area-inset-top, 0);
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                min-height: 60px;
-            }
-            .chat-header .back-btn {
-                display: flex;
-                width: 40px;
-                height: 40px;
-                align-items: center;
-                justify-content: center;
-                font-size: 24px;
-                cursor: pointer;
-                color: #f0b90b;
-                border-radius: 50%;
-                flex-shrink: 0;
-            }
-            .chat-header .back-btn:active {
-                background: #1a1a1a;
-            }
-            .chat-header .chat-title {
-                flex: 1;
-                font-size: 16px;
-                font-weight: 600;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                margin: 0 4px;
-            }
-            .chat-header .conference-btn {
-                font-size: 20px;
-                padding: 8px 16px;
-                white-space: nowrap;
-                background: transparent;
-                border: 2px solid #f0b90b;
-                color: #f0b90b;
-                border-radius: 24px;
-                flex-shrink: 0;
-                height: 40px;
-                display: flex;
-                align-items: center;
-            }
-            .messages-container {
-                flex: 1 1 auto;
-                overflow-y: auto;
-                padding: 12px;
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-                -webkit-overflow-scrolling: touch;
-                scroll-behavior: smooth;
-            }
-            .message {
-                display: flex;
-                gap: 8px;
-                max-width: 85%;
-                position: relative;
-                transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-            .message.swiping {
-                transform: translateX(70px) !important;
-            }
-            .message::after {
-                content: "↩️ Ответить";
-                position: absolute;
-                left: -80px;
-                top: 50%;
-                transform: translateY(-50%);
-                font-size: 20px;
-                color: #f0b90b;
-                opacity: 0;
-                white-space: nowrap;
-                transition: opacity 0.2s;
-                pointer-events: none;
-            }
-            .message.swiping::after {
-                opacity: 0.85;
-            }
-            .message.own {
-                margin-left: auto;
-                flex-direction: row-reverse;
-            }
-            .message-avatar {
-                width: 36px;
-                height: 36px;
-                background: #222;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #f0b90b;
-                font-weight: 600;
-                border: 2px solid #f0b90b;
-                flex-shrink: 0;
-                cursor: pointer;
-                margin-top: 4px;
-            }
-            .message.own .message-avatar {
-                display: none;
-            }
-            .message-content-wrapper {
-                flex: 1;
-            }
-            .message-header {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                margin-bottom: 2px;
-                font-size: 12px;
-            }
-            .message-sender {
-                color: #f0b90b;
-                font-weight: 500;
-            }
-            .message-time {
-                color: #666;
-            }
-            .message-content {
-                padding: 10px 14px;
-                background: #1a1a1a;
-                border-radius: 16px 16px 16px 4px;
-                color: #fff;
-                word-break: break-word;
-                white-space: pre-wrap;
-                font-size: 15px;
-                line-height: 1.4;
-            }
-            .message.own .message-content {
-                background: #f0b90b;
-                color: #0a0a0a;
-                border-radius: 16px 16px 4px 16px;
-            }
-            .empty-messages {
-                text-align: center;
-                color: #666;
-                margin-top: 30px;
-                font-size: 15px;
-                padding: 20px;
-            }
-            .chat-input-area {
-                flex: 0 0 auto;
-                background: #111;
-                border-top: 1px solid #333;
-                padding: 12px;
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                min-height: auto;
-                padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
-            }
-            .reply-preview {
-                background: #1a1a1a;
-                border-left: 3px solid #f0b90b;
-                padding: 8px 12px;
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                font-size: 13px;
-                margin-bottom: 4px;
-            }
-            .reply-preview .close-btn {
-                margin-left: auto;
-                cursor: pointer;
-                color: #ff4444;
-                font-size: 18px;
-                padding: 0 4px;
-            }
-            .input-wrapper {
-                display: flex;
-                gap: 8px;
-                align-items: flex-end;
-                width: 100%;
-            }
-            .chat-input {
-                flex: 1;
-                padding: 12px 16px;
-                background: #1a1a1a;
-                border: 1px solid #333;
-                border-radius: 24px;
-                color: #f0b90b;
-                font-size: 16px;
-                line-height: 1.4;
-                max-height: 120px;
-                resize: none;
-                font-family: inherit;
-            }
-            .chat-input:focus {
-                outline: none;
-                border-color: #f0b90b;
-            }
-            .send-btn {
-                width: 48px;
-                height: 48px;
-                border-radius: 50%;
-                background: #f0b90b;
-                border: none;
-                color: #0a0a0a;
-                font-size: 20px;
-                font-weight: 600;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-                padding: 0;
-            }
-            .send-btn:disabled {
-                opacity: 0.5;
-                background: #333;
-                cursor: not-allowed;
-            }
-        }
-        /* Десктоп версия */
-        @media (min-width: 769px) {
-            .mobile-header, .mobile-overlay, .profile-header-mobile {
-                display: none;
-            }
-           
-            .back-btn {
-                display: flex;
-            }
-            .message {
-                display: flex;
-                gap: 10px;
-                max-width: 70%;
-            }
-            .message.own {
-                margin-left: auto;
-                flex-direction: row-reverse;
-            }
-            .message-avatar {
-                width: 40px;
-                height: 40px;
-                background: #222;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #f0b90b;
-                font-weight: 600;
-                border: 2px solid #f0b90b;
-                flex-shrink: 0;
-                cursor: pointer;
-                margin-top: 4px;
-            }
-            .message.own .message-avatar {
-                display: none;
-            }
-            .message-avatar:hover {
-                opacity: 0.8;
-            }
-            .message-content-wrapper {
-                flex: 1;
-            }
-        }
-        /* Левая панель (десктоп) */
-        .users-panel {
-            background: #111;
-            border-right: 1px solid #333;
-            padding: 0;
-            overflow-y: auto;
-            width: 100%;
+        
+        /* Боковая панель с пользователями */
+        .sidebar {
+            width: 350px;
+            background: rgba(18, 22, 28, 0.95);
+            border-right: 1px solid #2b3139;
             display: flex;
             flex-direction: column;
+            position: relative;
+            overflow: hidden;
         }
-        .panel-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid #333;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #111;
-            position: sticky;
+        
+        .sidebar::before {
+            content: '';
+            position: absolute;
             top: 0;
-            z-index: 10;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f0b90b, #f8d12f, #f0b90b);
         }
-        .left-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
+        
+        .sidebar-header {
+            padding: 25px;
+            border-bottom: 1px solid #2b3139;
         }
-        .left-header .profile-icon {
-            width: 36px;
-            height: 36px;
-            background: #222;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        
+        .sidebar-header h2 {
             color: #f0b90b;
-            font-weight: 600;
-            border: 2px solid #f0b90b;
-            font-size: 18px;
-        }
-        .header-text {
-            font-size: 17px;
-            font-weight: 600;
-            color: #f0b90b;
-        }
-        .panel-title {
-            display: none;
-        }
-        .search-icon {
             font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #f0b90b 0%, #f8d12f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .sidebar-header p {
+            color: #b7bdc6;
+            font-size: 14px;
+        }
+        
+        /* Статистика в сайдбаре */
+        .sidebar-stats {
+            padding: 20px 25px;
+            border-bottom: 1px solid #2b3139;
+            background: rgba(43, 49, 57, 0.3);
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .stat-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .stat-label {
+            color: #b7bdc6;
+        }
+        
+        .stat-value {
             color: #f0b90b;
-            cursor: pointer;
-            padding: 6px;
-            background: #222;
-            border-radius: 8px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-weight: 600;
         }
-        .search-icon:hover {
-            background: #333;
-        }
-        .search-bar {
-            padding: 12px 20px;
-            background: #111;
-            border-bottom: 1px solid #333;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .search-bar input {
+        
+        /* Список пользователей */
+        .users-list {
             flex: 1;
-            padding: 10px 15px;
-            background: #1a1a1a;
-            border: 1px solid #f0b90b;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        
+        .user-card {
+            background: rgba(43, 49, 57, 0.5);
+            border: 1px solid #2b3139;
             border-radius: 12px;
-            color: #f0b90b;
-            font-size: 14px;
-        }
-        .search-close-btn {
-            background: none;
-            border: none;
-            color: #ff4444;
-            font-size: 20px;
+            padding: 18px;
+            margin-bottom: 12px;
             cursor: pointer;
-            padding: 5px 10px;
+            transition: all 0.3s;
         }
-        .search-results {
-            background: #111;
-            border-bottom: 1px solid #333;
-            max-height: 300px;
-            overflow-y: auto;
+        
+        .user-card:hover {
+            background: rgba(59, 66, 76, 0.7);
+            border-color: #f0b90b;
+            transform: translateY(-2px);
         }
-        .search-result-item {
-            padding: 12px 20px;
+        
+        .user-card.active {
+            background: rgba(240, 185, 11, 0.15);
+            border-color: #f0b90b;
+            box-shadow: 0 0 0 1px #f0b90b, 0 8px 20px rgba(240, 185, 11, 0.1);
+        }
+        
+        .user-header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            border-bottom: 1px solid #222;
+            margin-bottom: 12px;
         }
-        .search-result-item:hover {
-            background: #1a1a1a;
-        }
-        .search-result-avatar {
-            width: 36px;
-            height: 36px;
-            background: #222;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #f0b90b;
-            font-weight: 600;
-            border: 2px solid #f0b90b;
+        
+        .user-nickname {
+            font-weight: 700;
+            color: #eaecef;
             font-size: 16px;
-            flex-shrink: 0;
-        }
-        .search-result-info {
-            flex: 1;
-        }
-        .search-result-info .name {
-            font-weight: 600;
-            color: #fff;
-            font-size: 14px;
-        }
-        .search-result-info .id {
-            font-size: 12px;
-            color: #888;
-        }
-        .chat-list {
-            padding: 10px 0;
-            flex: 1;
-            overflow-y: auto;
-        }
-        .chat-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 20px;
-            cursor: pointer;
-            border-left: 3px solid transparent;
-            position: relative;
-            pointer-events: auto;
-        }
-        .chat-item:hover {
-            background: #1a1a1a;
-        }
-        .chat-item.active {
-            background: #1a1a1a;
-            border-left-color: #f0b90b;
-        }
-        .chat-avatar {
-            width: 40px;
-            height: 40px;
-            background: #222;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #f0b90b;
-            font-weight: 600;
-            border: 2px solid #f0b90b;
-        }
-        .chat-avatar.group {
-            background: #f0b90b;
-            color: #0a0a0a;
-        }
-        .chat-info {
-            flex: 1;
-        }
-        .chat-name {
-            color: #fff;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .chat-id {
-            color: #888;
-            font-size: 12px;
-        }
-        .last-message {
-            color: #666;
-            font-size: 11px;
-            margin-top: 2px;
-            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 250px;
+            white-space: nowrap;
+            max-width: 200px;
         }
-        /* Центральная панель */
-        .chat-panel {
+        
+        .user-score {
+            font-weight: 700;
+            font-size: 18px;
+            color: #f0b90b;
+        }
+        
+        .user-score.correct {
+            color: #27ae60;
+        }
+        
+        .user-score.incorrect {
+            color: #e74c3c;
+        }
+        
+        .user-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #b7bdc6;
+        }
+        
+        .user-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-completed {
+            background: rgba(39, 174, 96, 0.15);
+            color: #27ae60;
+            border: 1px solid rgba(39, 174, 96, 0.3);
+        }
+        
+        .status-in_progress {
+            background: rgba(52, 152, 219, 0.15);
+            color: #3498db;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+        
+        .status-waiting {
+            background: rgba(155, 89, 182, 0.15);
+            color: #9b59b6;
+            border: 1px solid rgba(155, 89, 182, 0.3);
+        }
+        
+        .status-timeout {
+            background: rgba(243, 156, 18, 0.15);
+            color: #f39c12;
+            border: 1px solid rgba(243, 156, 18, 0.3);
+        }
+        
+        /* Основная область с детальной информацией */
+        .main-content {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            background: #0a0a0a;
-            height: 100vh;
-            height: 100dvh;
+            overflow: hidden;
         }
-        .chat-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid #333;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background: #111;
-            flex-shrink: 0;
+        
+        .main-header {
+            padding: 25px 30px;
+            border-bottom: 1px solid #2b3139;
+            background: rgba(18, 22, 28, 0.95);
             position: relative;
         }
-        .chat-header .back-btn {
-            display: flex;
-            width: 40px;
-            height: 40px;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            cursor: pointer;
+        
+        .main-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f0b90b, #f8d12f, #f0b90b);
+        }
+        
+        .main-header h1 {
             color: #f0b90b;
-            border-radius: 50%;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #f0b90b 0%, #f8d12f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        .chat-header .back-btn:hover {
-            background: #1a1a1a;
+        
+        .user-details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
         }
-        .chat-title {
-            flex: 1;
-            font-size: 18px;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        
+        .user-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
         }
-        .conference-btn {
-            background: #f0b90b;
-            color: #0a0a0a;
-            border: none;
+        
+        .user-detail {
+            background: rgba(43, 49, 57, 0.5);
             padding: 8px 16px;
             border-radius: 20px;
-            font-weight: 600;
-            cursor: pointer;
+            border: 1px solid #2b3139;
             font-size: 14px;
-            flex-shrink: 0;
         }
-        .conference-btn.join {
-            background: transparent;
-            border: 2px solid #f0b90b;
+        
+        .user-detail strong {
             color: #f0b90b;
+            margin-right: 5px;
         }
-        /* ==================== АКТИВНАЯ ШТОРКА ==================== */
-        :root {
-            --call-bar-height: 0px;
-        }
-
-        .active-call-bar {
-            position: fixed;
-            top: 8px;
-            left: 0;
-            right: 0;
-            height: var(--call-bar-height);
-            background: #2ecc71;
-            color: #000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: 500;
-            z-index: 10000;
-            cursor: pointer;
-            text-align: center;
-            border-radius: 20px;
-            margin: 0 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-
-        .active-call-bar:hover {
-            background: #27ae60;
-        }
-
-        /* Десктоп: сдвигаем контент padding'ом и уменьшаем высоту панелей */
-        @media (min-width: 769px) {
-            .main-container.with-call-bar .users-panel,
-            .main-container.with-call-bar .chat-panel,
-            .main-container.with-call-bar .profile-panel {
-                padding-top: calc(var(--call-bar-height) + 8px);
-            }
-
-            .main-container.with-call-bar .chat-panel {
-                height: calc(100vh - var(--call-bar-height) - 8px) !important;
-                height: calc(100dvh - var(--call-bar-height) - 8px) !important;
-            }
-        }
-
-        /* Мобильные: сдвигаем fixed-панели */
-        @media (max-width: 768px) {
-            .users-panel,
-            .chat-panel,
-            .profile-panel {
-                top: calc(var(--call-bar-height) + 8px) !important;
-            }
-
-            .chat-header,
-            .panel-header,
-            .profile-header-mobile {
-                padding-top: calc(env(safe-area-inset-top, 0px) + var(--call-bar-height) + 8px);
-            }
-            
-            /* Убираем стрелку назад на мобильных */
-            .mobile-only-back-btn {
-                display: none !important;
-            }
-        }
-
-        .main-container.with-call-bar {
-            margin-top: 0 !important;
-        }
-        .messages-container {
+        
+        /* Область с ответами */
+        .answers-container {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            padding: 30px;
+            background: rgba(11, 14, 17, 0.7);
         }
-        .empty-messages {
-            text-align: center;
-            color: #666;
-            margin-top: 30px;
-            font-size: 14px;
-        }
-        .message {
-            display: flex;
-            gap: 10px;
-            max-width: 70%;
-        }
-        .message.own {
-            align-self: flex-end;
-            flex-direction: row-reverse;
-        }
-        .message.own .message-avatar {
-            display: none;
-        }
-        .message-avatar {
-            width: 40px;
-            height: 40px;
-            background: #222;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #f0b90b;
-            font-weight: 600;
-            border: 2px solid #f0b90b;
-            flex-shrink: 0;
-            cursor: pointer;
-            margin-top: 4px;
-        }
-        .message-avatar:hover {
-            opacity: 0.8;
-        }
-        .message-content-wrapper {
-            flex: 1;
-        }
-        .message-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 4px;
-            font-size: 12px;
-        }
-        .message-sender {
-            color: #f0b90b;
-            font-weight: 500;
-        }
-        .message-time {
-            color: #666;
-        }
-        .reply-btn {
-            background: transparent;
-            border: none;
-            color: #f0b90b;
-            cursor: pointer;
-            font-size: 14px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-left: auto;
-            opacity: 0.5;
-            transition: opacity 0.2s;
-        }
-        .reply-btn:hover {
-            opacity: 1;
-            background: #1a1a1a;
-        }
-        .message-content {
-            padding: 12px 16px;
-            background: #1a1a1a;
-            border-radius: 16px 16px 16px 4px;
-            color: #fff;
-            word-break: break-word;
-            white-space: pre-wrap;
-        }
-        .message.own .message-content {
-            background: #f0b90b;
-            color: #0a0a0a;
-            border-radius: 16px 16px 4px 16px;
-        }
-        .replied-to {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 4px;
-            padding: 4px 8px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            border-left: 2px solid #f0b90b;
-        }
-        .replied-to:hover {
-            background: rgba(0,0,0,0.5);
-        }
-        .replied-sender {
-            color: #f0b90b;
-            font-weight: 500;
-        }
-        .replied-text {
-            color: #aaa;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 200px;
-        }
-        .reply-preview {
-            background: #1a1a1a;
-            border-left: 3px solid #f0b90b;
-            padding: 8px 12px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-        }
-        .reply-preview .close-btn {
-            margin-left: auto;
-            cursor: pointer;
-            color: #ff4444;
-            font-size: 18px;
-            padding: 0 4px;
-        }
-        .reply-preview .close-btn:hover {
-            background: rgba(255,68,68,0.2);
-            border-radius: 4px;
-        }
-        .reply-preview-text {
-            color: #888;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 200px;
-        }
-        .chat-input-area {
-            padding: 16px 20px;
-            border-top: 1px solid #333;
-            display: flex;
-            gap: 10px;
-            background: #111;
-            flex-shrink: 0;
-            margin-top: auto;
-            flex-direction: column;
-        }
-        .input-wrapper {
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-        }
-        .chat-input {
-            flex: 1;
-            padding: 12px 16px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 24px;
-            color: #f0b90b;
-            font-size: 14px;
-            line-height: 1.4;
-            max-height: 120px;
-            resize: none;
-            font-family: inherit;
-        }
-        .chat-input:focus {
-            outline: none;
-            border-color: #f0b90b;
-        }
-        .send-btn {
-            padding: 12px 24px;
-            background: #f0b90b;
-            border: none;
-            border-radius: 24px;
-            color: #0a0a0a;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 16px;
-            flex-shrink: 0;
-        }
-        .send-btn:disabled {
-            opacity: 0.5;
-            background: #333;
-            cursor: not-allowed;
-        }
-        /* Правая панель */
-        .profile-panel {
-            background: #111;
-            border-left: 1px solid #333;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        .profile-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .profile-avatar {
-            width: 80px;
-            height: 80px;
-            background: #222;
-            border-radius: 50%;
-            border: 3px solid #f0b90b;
-            margin: 0 auto 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            font-weight: 600;
-            color: #f0b90b;
-        }
-        .profile-name {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-        .profile-id {
-            color: #888;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-        .profile-info {
-            background: #1a1a1a;
-            border-radius: 16px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #333;
-        }
-        .info-label {
-            color: #888;
-        }
-        .info-value {
-            color: #f0b90b;
-            font-weight: 500;
-        }
-        .profile-btn {
-            width: 100%;
-            padding: 12px;
-            background: transparent;
-            border: 1px solid #f0b90b;
-            border-radius: 12px;
-            color: #f0b90b;
-            font-weight: 500;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-        .profile-btn.danger {
-            border-color: #ff4444;
-            color: #ff4444;
-        }
-        .admin-panel {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.95);
-            z-index: 1000;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        .admin-header {
+        
+        .answers-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
         }
-        .admin-title {
-            font-size: 24px;
-            font-weight: 600;
-        }
-        .admin-close {
-            font-size: 32px;
-            cursor: pointer;
+        
+        .answers-header h2 {
             color: #f0b90b;
-        }
-        .admin-users-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-        .admin-user-card {
-            background: #1a1a1a;
-            border-radius: 16px;
-            padding: 20px;
-            border: 2px solid #333;
-        }
-        .admin-user-card.marked-red {
-            background: rgba(255, 68, 68, 0.2);
-            border-color: #ff4444;
-        }
-        .admin-user-card.marked-green {
-            background: rgba(76, 175, 80, 0.2);
-            border-color: #4caf50;
-        }
-        .admin-user-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .admin-user-name {
-            font-size: 18px;
-            font-weight: 600;
-            color: #f0b90b;
-        }
-        .admin-user-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .admin-user-btn {
-            padding: 6px 12px;
-            background: #333;
-            border: 1px solid #f0b90b;
-            border-radius: 8px;
-            color: #f0b90b;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .admin-user-btn:hover {
-            background: #444;
-        }
-        .color-buttons {
-            display: flex;
-            gap: 8px;
-            margin: 10px 0;
-        }
-        .color-btn {
-            flex: 1;
-            padding: 6px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .color-btn.red {
-            background: #ff4444;
-            color: white;
-        }
-        .color-btn.green {
-            background: #4caf50;
-            color: white;
-        }
-        .color-btn.clear {
-            background: #333;
-            color: white;
-        }
-        .token-input {
-            width: 100%;
-            padding: 8px;
-            background: #222;
-            border: 1px solid #444;
-            border-radius: 6px;
-            color: #f0b90b;
-            margin-bottom: 5px;
-        }
-        /* Модальное окно профиля пользователя */
-        .user-profile-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.95);
-            z-index: 3000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .user-profile-content {
-            background: #1a1a1a;
-            border: 2px solid #f0b90b;
-            border-radius: 32px;
-            padding: 30px 20px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-        .user-profile-avatar {
-            width: 100px;
-            height: 100px;
-            background: #222;
-            border-radius: 50%;
-            border: 4px solid #f0b90b;
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 48px;
-            font-weight: 600;
-            color: #f0b90b;
-        }
-        .user-profile-name {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: #fff;
-        }
-        .user-profile-username {
-            color: #f0b90b;
-            font-size: 16px;
-            margin-bottom: 5px;
-        }
-        .user-profile-id {
-            color: #888;
-            font-size: 14px;
-            margin-bottom: 25px;
-            font-family: monospace;
-        }
-        .user-profile-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        .user-profile-btn {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .user-profile-btn.message {
-            background: #f0b90b;
-            color: #0a0a0a;
-        }
-        .user-profile-btn.close {
-            background: #333;
-            color: #fff;
-        }
-        /* Модальное окно подтверждения - спокойный стиль */
-        .confirm-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.8);
-            z-index: 4000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .confirm-content {
-            background: #1a1a1a;
-            border: 2px solid #f0b90b;
-            border-radius: 24px;
-            padding: 30px 20px;
-            width: 100%;
-            max-width: 360px;
-            text-align: center;
-        }
-        .confirm-title {
-            font-size: 20px;
-            font-weight: 500;
-            margin-bottom: 20px;
-            color: #f0b90b;
-        }
-        .confirm-text {
-            color: #ccc;
-            margin-bottom: 25px;
-            font-size: 15px;
-            line-height: 1.5;
-        }
-        .confirm-buttons {
-            display: flex;
-            gap: 12px;
-        }
-        .confirm-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 20px;
-            font-weight: 500;
-            cursor: pointer;
-            font-size: 15px;
-            transition: all 0.2s;
-        }
-        .confirm-btn.yes {
-            background: #f0b90b;
-            color: #0a0a0a;
-        }
-        .confirm-btn.yes:hover {
-            background: #d4a017;
-        }
-        .confirm-btn.no {
-            background: #333;
-            color: #fff;
-        }
-        .confirm-btn.no:hover {
-            background: #444;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.9);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal-content {
-            background: #1a1a1a;
-            border: 2px solid #f0b90b;
-            border-radius: 32px;
-            padding: 30px 20px;
-            width: 100%;
-            max-width: 500px;
-        }
-        .modal-title {
             font-size: 22px;
             font-weight: 600;
-            margin-bottom: 20px;
+        }
+        
+        .answers-summary {
+            background: rgba(43, 49, 57, 0.5);
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 1px solid #2b3139;
+        }
+        
+        .answers-summary .score {
+            font-size: 24px;
+            font-weight: 700;
+            color: #f0b90b;
             text-align: center;
         }
-        .modal-input {
+        
+        .answers-summary .score-label {
+            font-size: 14px;
+            color: #b7bdc6;
+            text-align: center;
+        }
+        
+        /* Таблица ответов */
+        .answers-table {
+            background: rgba(18, 22, 28, 0.95);
+            border-radius: 16px;
+            border: 1px solid #2b3139;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .answers-table table {
             width: 100%;
-            padding: 15px;
-            background: #0a0a0a;
-            border: 1px solid #333;
-            border-radius: 12px;
+            border-collapse: collapse;
+        }
+        
+        .answers-table thead {
+            background: rgba(240, 185, 11, 0.1);
+        }
+        
+        .answers-table th {
+            padding: 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 15px;
             color: #f0b90b;
+            border-bottom: 1px solid #2b3139;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .answers-table td {
+            padding: 20px;
+            border-bottom: 1px solid #2b3139;
+            font-size: 15px;
+            color: #eaecef;
+            vertical-align: top;
+        }
+        
+        .answers-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .answers-table tbody tr:hover {
+            background: rgba(240, 185, 11, 0.05);
+        }
+        
+        /* Стили для ответов */
+        .question-number {
+            width: 60px;
+            font-weight: 700;
+            color: #f0b90b;
+            font-size: 18px;
+        }
+        
+        .question-text {
+            color: #eaecef;
+            font-weight: 500;
+            line-height: 1.5;
             margin-bottom: 15px;
         }
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        .modal-btn {
-            flex: 1;
+        
+        .user-answer {
+            background: rgba(43, 49, 57, 0.5);
             padding: 15px;
-            border: none;
-            border-radius: 12px;
+            border-radius: 10px;
+            border: 2px solid;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .user-answer.correct {
+            border-color: #27ae60;
+            background: rgba(39, 174, 96, 0.1);
+        }
+        
+        .user-answer.incorrect {
+            border-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+        
+        .user-answer.timeout {
+            border-color: #f39c12;
+            background: rgba(243, 156, 18, 0.1);
+            font-style: italic;
+            color: #f39c12;
+        }
+        
+        .answer-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #b7bdc6;
+            margin-top: 8px;
+        }
+        
+        .answer-time {
+            color: #f0b90b;
             font-weight: 600;
+        }
+        
+        .answer-status {
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 13px;
+        }
+        
+        .correct-status {
+            color: #27ae60;
+        }
+        
+        .incorrect-status {
+            color: #e74c3c;
+        }
+        
+        .timeout-status {
+            color: #f39c12;
+        }
+        
+        .no-answer {
+            color: #95a5a6;
+            font-style: italic;
+            font-size: 15px;
+        }
+        
+        /* Панель управления */
+        .control-panel {
+            background: rgba(18, 22, 28, 0.95);
+            padding: 20px 25px;
+            border-top: 1px solid #2b3139;
+        }
+        
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
             cursor: pointer;
-        }
-        .modal-btn.save {
-            background: #f0b90b;
-            color: #0a0a0a;
-        }
-        .modal-btn.cancel {
-            background: #333;
-            color: white;
-        }
-        /* ==================== КОНФЕРЕНЦИЯ ==================== */
-        .video-modal {
-            display: none;
-            position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: #0a0a0a;
-            z-index: 2000;
-            overflow: hidden;
+            background-color: #2b3139;
+            transition: .4s;
+            border-radius: 26px;
         }
-        .video-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            padding-top: env(safe-area-inset-top, 15px);
-            background: #111;
-            border-bottom: 1px solid #333;
-        }
-        .video-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #f0b90b;
-        }
-        .participants-count {
-            background: #1a1a1a;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            color: #f0b90b;
-            border: 1px solid #333;
-        }
-        .minimize-btn {
-            background: #333;
-            color: #f0b90b;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 16px;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .minimize-btn:hover {
-            background: #444;
-        }
-        .video-grid-container {
-            display: grid;
-            grid-template-columns: 1fr 280px;
-            gap: 20px;
-            height: calc(100vh - 120px);
-            height: calc(100dvh - 120px);
-            padding: 20px;
-            padding-bottom: env(safe-area-inset-bottom, 20px);
-        }
-        @media (max-width: 768px) {
-            .video-grid-container {
-                grid-template-columns: 1fr;
-                height: calc(100vh - 160px);
-                height: calc(100dvh - 160px);
-                padding: 10px;
-                padding-bottom: env(safe-area-inset-bottom, 10px);
-            }
-           
-            .participants-sidebar {
-                display: none;
-            }
-           
-            .participants-sidebar.active {
-                display: block;
-                position: fixed;
-                top: 60px;
-                left: 0;
-                right: 0;
-                bottom: 80px;
-                z-index: 100;
-                background: #111;
-            }
-        }
-        .video-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-content: flex-start;
-            overflow-y: auto;
-            justify-content: center;
-        }
-        .video-wrapper {
-            width: 100%;
-            max-width: 280px;
-            height: 160px;
-            background: #1a1a1a;
-            border: 2px solid #333;
-            border-radius: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-        .video-wrapper.local {
-            border-color: #f0b90b;
-        }
-        .video-wrapper video {
-            display: none !important;
-        }
-        .participant-avatar-big {
-            width: 68px;
-            height: 68px;
-            background: #222;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            color: #f0b90b;
-            border: 3px solid #f0b90b;
-            margin-bottom: 8px;
-        }
-        .participant-name-big {
-            color: #fff;
-            font-weight: 600;
-            font-size: 15px;
-        }
-        .mic-status {
+        
+        .slider:before {
             position: absolute;
-            bottom: 10px;
-            right: 10px;
-            font-size: 20px;
-        }
-        .mic-status.mic-on { color: #4caf50; }
-        .mic-status.mic-off { color: #ff4444; }
-
-        /* ==================== КРАСИВЫЙ СПИСОК УЧАСТНИКОВ ==================== */
-        .participants-sidebar {
-            background: #111;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            padding: 16px;
-            overflow-y: auto;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid #333;
-        }
-
-        .participants-sidebar .sidebar-title {
-            font-size: 17px;
-            font-weight: 700;
-            color: #f0b90b;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #444;
-            letter-spacing: 0.3px;
-        }
-
-        .participants-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .participant-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 12px;
-            background: #1a1a1a;
-            border-radius: 12px;
-            border: 1px solid #333;
-            transition: all 0.18s ease;
-        }
-
-        .participant-item:hover {
-            background: #222;
-            border-color: #555;
-            transform: translateX(2px);
-        }
-
-        .participant-item.local {
-            border-left: 4px solid #f0b90b;
-            background: rgba(240, 185, 11, 0.08);
-        }
-
-        .participant-avatar {
-            width: 38px;
-            height: 38px;
-            background: #222;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: #b7bdc6;
+            transition: .4s;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #f0b90b;
-            font-weight: 700;
-            font-size: 16px;
-            border: 2px solid #444;
-            flex-shrink: 0;
         }
-
-        .participant-name {
-            color: #e0e0e0;
-            font-size: 14px;
-            font-weight: 500;
-            flex: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        
+        input:checked + .slider {
+            background-color: #f0b90b;
         }
-
-        .mic-status {
-            font-size: 18px;
-            min-width: 24px;
-            text-align: center;
+        
+        input:checked + .slider:before {
+            transform: translateX(24px);
+            background-color: #0b0e11;
         }
-
-        .conference-controls {
-            position: fixed;
-            bottom: max(20px, env(safe-area-inset-bottom, 20px));
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 15px;
-            background: #111;
-            padding: 12px 20px;
-            border-radius: 50px;
-            border: 1px solid #333;
-            z-index: 2100;
+        
+        .toggle-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #eaecef;
         }
-        .conf-control-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: #1a1a1a;
-            border: 2px solid #333;
-            color: #f0b90b;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            transition: all 0.2s;
-        }
-        .conf-control-btn.mic-off {
-            background: #ff4444;
-            border-color: #ff4444;
-            color: white;
-        }
-        .conf-control-btn.leave {
-            background: #ff4444;
-            border-color: #ff4444;
-            color: white;
-        }
-        .audio-debug {
-            position: fixed;
-            bottom: 90px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1a1a1a;
-            color: #f0b90b;
+        
+        .toggle-status {
             padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            border: 1px solid #333;
-            z-index: 2100;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .hidden-video-container {
-            position: fixed;
-            top: -9999px;
-            left: -9999px;
-            width: 1px;
-            height: 1px;
-            overflow: hidden;
-            opacity: 0;
-            pointer-events: none;
+        
+        .status-active {
+            background: rgba(240, 185, 11, 0.15);
+            color: #f0b90b;
+            border: 1px solid rgba(240, 185, 11, 0.3);
         }
-
-        /* ==================== СТРЕЛКА НАЗАД УБРАНА ПОЛНОСТЬЮ ==================== */
-        .mobile-only-back-btn {
-            display: none !important;
+        
+        .status-inactive {
+            background: rgba(255, 107, 107, 0.15);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+        
+        .control-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #f0b90b 0%, #f8d12f 100%);
+            color: #0b0e11;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(240, 185, 11, 0.25);
+        }
+        
+        .btn:disabled {
+            background: #2b3139;
+            color: #5e6673;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #ff7979 100%);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        }
+        
+        .btn-secondary {
+            background: #2b3139;
+            color: #eaecef;
+        }
+        
+        .btn-secondary:hover {
+            background: #3a424b;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        
+        /* Загрузка */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #b7bdc6;
+            font-size: 16px;
+        }
+        
+        .loader {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(240, 185, 11, 0.3);
+            border-radius: 50%;
+            border-top-color: #f0b90b;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .no-user-selected {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #b7bdc6;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .no-user-selected .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #f0b90b;
+            opacity: 0.5;
+        }
+        
+        .no-user-selected h3 {
+            color: #f0b90b;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+        
+        /* Вопросы для отображения */
+        .questions-data {
+            display: none;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 300px;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .admin-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: 300px;
+                border-right: none;
+                border-bottom: 1px solid #2b3139;
+            }
+            
+            .users-list {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+            }
+            
+            .user-card {
+                margin-bottom: 0;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .sidebar-header,
+            .main-header,
+            .answers-container {
+                padding: 20px;
+            }
+            
+            .answers-table th,
+            .answers-table td {
+                padding: 15px;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Глобальная шторка активного звонка -->
-    <div class="active-call-bar" id="activeCallBar">
-        Активный звонок
+    <div class="admin-container">
+        <!-- Левая панель: список пользователей -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>📊 Админ-панель</h2>
+                <p>Список пользователей • 15 вопросов</p>
+            </div>
+            
+            <div class="sidebar-stats">
+                <div class="stat-row">
+                    <span class="stat-label">Всего прошли:</span>
+                    <span class="stat-value" id="total-users">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Средний результат:</span>
+                    <span class="stat-value" id="avg-score">0%</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Активный тест:</span>
+                    <span class="stat-value" id="test-status-sidebar">Нет</span>
+                </div>
+            </div>
+            
+            <div class="users-list" id="users-list">
+                <!-- Список пользователей будет здесь -->
+                <div class="loading">
+                    <div class="loader"></div>
+                    Загрузка пользователей...
+                </div>
+            </div>
+            
+            <div class="control-panel">
+                <div class="toggle-switch">
+                    <label class="switch">
+                        <input type="checkbox" id="test-toggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="toggle-label">Включить тест</span>
+                    <span id="test-status" class="toggle-status status-inactive">ВЫКЛ</span>
+                </div>
+                
+                <div class="control-buttons">
+                    <button class="btn btn-success" onclick="exportToCSV()" id="export-btn" disabled>
+                        📥 Экспорт CSV
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadData()">
+                        🔄 Обновить
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Основная область: детальная информация -->
+        <div class="main-content">
+            <div class="main-header">
+                <h1 id="selected-user-name">Выберите пользователя</h1>
+                <div class="user-details-header" id="user-details-header" style="display: none;">
+                    <div class="user-info">
+                        <div class="user-detail">
+                            <strong>Результат:</strong> <span id="user-result-score">0/15</span>
+                        </div>
+                        <div class="user-detail">
+                            <strong>Время:</strong> <span id="user-total-time">0 сек</span>
+                        </div>
+                        <div class="user-detail">
+                            <strong>Процент:</strong> <span id="user-percentage">0%</span>
+                        </div>
+                    </div>
+                    <div class="user-detail">
+                        <strong>Завершено:</strong> <span id="user-completed-at">—</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="answers-container" id="answers-container">
+                <div class="no-user-selected" id="no-user-selected">
+                    <div class="icon">👈</div>
+                    <h3>Выберите пользователя</h3>
+                    <p>Выберите пользователя из списка слева, чтобы просмотреть его ответы</p>
+                </div>
+                
+                <!-- Детальная информация о пользователе -->
+                <div id="user-details" style="display: none;">
+                    <div class="answers-header">
+                        <h2>Ответы пользователя</h2>
+                        <div class="answers-summary">
+                            <div class="score" id="user-score-display">0/15</div>
+                            <div class="score-label">правильных ответов</div>
+                        </div>
+                    </div>
+                    
+                    <div class="answers-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px;">№</th>
+                                    <th>Вопрос</th>
+                                    <th>Ответ пользователя</th>
+                                    <th style="width: 100px;">Время</th>
+                                    <th style="width: 120px;">Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody id="answers-body">
+                                <!-- Ответы будут здесь -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Оверлей для мобильного меню -->
-    <div class="mobile-overlay" id="mobileOverlay"></div>
-    <!-- Авторизация -->
-    <div class="auth-container" id="authContainer">
-        <div class="auth-box">
-            <div class="auth-title">Вход в Voxy Messenger</div>
-            <input type="text" class="auth-input" id="loginInput" placeholder="Логин">
-            <input type="password" class="auth-input" id="passwordInput" placeholder="Пароль">
-            <button class="auth-btn" id="loginBtn">Войти</button>
-            <div style="color: #ff4444; margin-top: 15px; text-align: center; font-size: 14px;" id="authError"></div>
-        </div>
+    <!-- Скрытые данные вопросов -->
+    <div class="questions-data" id="questions-data">
+        <!-- Вопросы будут храниться здесь -->
     </div>
-    <!-- Основной интерфейс -->
-    <div class="main-container" id="mainContainer">
-        <!-- Левая панель - пользователи -->
-        <div class="users-panel" id="usersPanel">
-            <div class="panel-header">
-                <!-- Слева — Профиль -->
-                <div class="left-header" id="mobileProfileBtn">
-                    <div class="profile-icon">👤</div>
-                    <span class="header-text">Профиль</span>
-                </div>
-               
-                <!-- Справа — Поиск -->
-                <span class="search-icon" id="searchIcon">🔍</span>
-            </div>
-           
-            <!-- Строка поиска (появляется по клику) -->
-            <div class="search-bar" id="searchBar" style="display: none;">
-                <input type="text" class="search-input" id="userSearch" placeholder="Поиск по имени или ID...">
-                <button class="search-close-btn" id="searchCloseBtn">✕</button>
-            </div>
-           
-            <!-- Результаты поиска -->
-            <div class="search-results" id="searchResults" style="display: none;"></div>
-           
-            <div class="chat-list" id="chatList"></div>
-        </div>
-        <!-- Центральная панель - чат -->
-        <div class="chat-panel">
-            <div class="chat-header" style="display: none;">
-                <span class="back-btn" id="chatBackBtn">←</span>
-                <span class="chat-title" id="currentChatTitle"></span>
-                <button class="conference-btn" id="conferenceBtn" style="display: none;">📹</button>
-                <!-- Стрелка полностью убрана -->
-            </div>
-            <div class="messages-container" id="messagesContainer">
-                <div class="empty-messages">Выберите чат чтобы начать общение</div>
-            </div>
-            <div class="chat-input-area" style="display: none;">
-                <div class="reply-preview" id="replyPreview" style="display: none;">
-                    <span>↩️ Ответ на сообщение от <span id="replySender"></span></span>
-                    <span class="reply-preview-text" id="replyText"></span>
-                    <span class="close-btn" id="cancelReplyBtn">✕</span>
-                </div>
-                <div class="input-wrapper">
-                    <textarea class="chat-input" id="messageInput" placeholder="Сообщение..." disabled rows="1"></textarea>
-                    <button class="send-btn" id="sendBtn" disabled>→</button>
-                </div>
-            </div>
-        </div>
-        <!-- Правая панель - профиль -->
-        <div class="profile-panel" id="profilePanel">
-            <div class="profile-header-mobile" id="profileHeaderMobile">
-                <span class="profile-back-btn" id="profileBackBtn">←</span>
-                <span class="profile-header-title">Профиль</span>
-                <div style="width: 40px;"></div>
-            </div>
-           
-            <div class="profile-header">
-                <div class="profile-avatar" id="profileAvatar">?</div>
-                <div class="profile-name" id="profileName">---</div>
-                <div class="profile-id" id="profileId">ID: ---</div>
-            </div>
-            <div class="profile-info">
-                <div class="info-row">
-                    <span class="info-label">Логин</span>
-                    <span class="info-value" id="profileLogin">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Статус</span>
-                    <span class="info-value" id="profileStatus">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Мой ID</span>
-                    <span class="info-value" id="profileMyId">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">LiveKit Токен</span>
-                    <span class="info-value" id="profileToken">-</span>
-                </div>
-            </div>
-            <button class="profile-btn" id="editProfileBtn">Редактировать профиль</button>
-            <button class="profile-btn" id="changePasswordBtn">Изменить пароль</button>
-            <button class="profile-btn danger" id="logoutBtn">Выйти</button>
-            <button class="profile-btn" id="adminPanelBtn" style="display: none; margin-top: 20px; border-color: #ff4444; color: #ff4444;">👑 Админ-панель</button>
-        </div>
-    </div>
-    <!-- Модальное окно профиля пользователя -->
-    <div class="user-profile-modal" id="userProfileModal">
-        <div class="user-profile-content">
-            <div class="user-profile-avatar" id="userProfileAvatar">?</div>
-            <div class="user-profile-name" id="userProfileName">Загрузка...</div>
-            <div class="user-profile-username" id="userProfileUsername">@...</div>
-            <div class="user-profile-id" id="userProfileId">ID: ...</div>
-            <div class="user-profile-buttons">
-                <button class="user-profile-btn message" id="userProfileMessageBtn">💬 Написать</button>
-                <button class="user-profile-btn close" id="userProfileCloseBtn">✕ Закрыть</button>
-            </div>
-        </div>
-    </div>
-    <!-- Модальное окно подтверждения (спокойное) -->
-    <div class="confirm-modal" id="confirmModal">
-        <div class="confirm-content">
-            <div class="confirm-title">Подтверждение</div>
-            <div class="confirm-text" id="confirmText">Вы уверены?</div>
-            <div class="confirm-buttons">
-                <button class="confirm-btn yes" id="confirmYesBtn">Выйти</button>
-                <button class="confirm-btn no" id="confirmNoBtn">Отмена</button>
-            </div>
-        </div>
-    </div>
-    <!-- Админ-панель -->
-    <div class="admin-panel" id="adminPanel">
-        <div class="admin-header">
-            <div class="admin-title">👑 Панель администратора</div>
-            <div class="admin-close" id="closeAdminBtn">×</div>
-        </div>
-        <div class="admin-users-grid" id="adminUsersGrid"></div>
-    </div>
-    <!-- Модальное окно редактирования -->
-    <div class="modal" id="editModal">
-        <div class="modal-content">
-            <div class="modal-title" id="modalTitle">Редактирование</div>
-            <input type="text" class="modal-input" id="modalInput1" placeholder="">
-            <input type="text" class="modal-input" id="modalInput2" placeholder="">
-            <input type="password" class="modal-input" id="modalInput3" placeholder="Новый пароль">
-            <div class="modal-buttons">
-                <button class="modal-btn save" id="modalSaveBtn">Сохранить</button>
-                <button class="modal-btn cancel" id="modalCancelBtn">Отмена</button>
-            </div>
-        </div>
-    </div>
-    <!-- Конференция -->
-    <div class="video-modal" id="videoModal">
-        <div class="video-header">
-            <div class="video-title">Voxy Messenger</div>
-            <div class="participants-count" id="participantsCount">👥 1</div>
-            <button class="minimize-btn" id="minimizeConferenceBtn">⤵ Свернуть</button>
-        </div>
-       
-        <div class="video-grid-container">
-            <div class="video-grid" id="videoGrid"></div>
-            <div class="participants-sidebar" id="participantsSidebar">
-                <div class="sidebar-title">👥 Участники</div>
-                <div class="participants-list" id="conferenceParticipants"></div>
-            </div>
-        </div>
-       
-        <div class="conference-controls">
-            <button class="conf-control-btn" id="videoMicBtn" title="Микрофон">🎤</button>
-            <button class="conf-control-btn leave" id="videoLeaveBtn" title="Выйти из конференции">✕</button>
-        </div>
-       
-        <div class="audio-debug" id="audioDebug"></div>
-    </div>
-    <div class="hidden-video-container" id="hiddenVideoContainer"></div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="livekit.js"></script>
+
     <script>
-        // ===============================================
-        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
-        // ===============================================
-        let isInConference = false;
-        let conferenceRoom = null;
-        let conferenceToken = null;
-        let viewedUserProfile = null;
-        let adminViewingUser = false;
-        let pendingClearUserId = null; // Для очистки истории
-
-        // ===============================================
-        // ГЕНЕРАЦИЯ ТОКЕНОВ ДЛЯ LIVEKIT
-        // ===============================================
-
-        const LIVEKIT_API_KEY = 'API9Fmof43XYeNL';
-        const LIVEKIT_API_SECRET = 'nkCvyRLXowRKtjdKShQmXi0dVQgfX3eMDlFnkF50QOW';
-
-        async function generateToken(identity, name, roomName) {
-            console.log('Генерация токена для:', identity);
-            if (typeof window.KJUR === 'undefined') {
-                await loadJavascript('https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.5.27/jsrsasign-all-min.js');
-            }
-            
-            const header = { alg: 'HS256', typ: 'JWT' };
-            const now = Math.floor(Date.now() / 1000);
-            const payload = {
-                iss: LIVEKIT_API_KEY,
-                sub: identity,
-                name: name,
-                video: {
-                    room: roomName,
-                    roomJoin: true,
-                    canPublish: true,
-                    canSubscribe: true
+        // Конфигурация Supabase
+        const SUPABASE_URL = 'https://wkukgnkfbxgpvlraczeu.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_11WBFNEcbspv1yDyfxq7sQ_Nl51ew5i';
+        
+        // Создаем клиент
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Данные ВСЕХ 15 вопросов
+        const QUESTIONS = [
+            {
+                number: 1,
+                text: "Аналитик - это:",
+                options: {
+                    option1: "Друг девушки, который хорошо разбирается в крипте и ведет закрытый канал с сигналами",
+                    option2: "Финансовый аналитик, работающий в крупной компании, который не дает сигналы никому, кроме девушки и ее отца"
                 },
-                exp: now + 3600,
-                nbf: now
-            };
-            
-            const token = KJUR.jws.JWS.sign('HS256', JSON.stringify(header), JSON.stringify(payload), LIVEKIT_API_SECRET);
-            return token;
-        }
-
-        function loadJavascript(url) {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = url;
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-        }
-
-        // Конфигурация
-        const SUPABASE_URL = 'https://mqqlcfcwufdqwslukziy.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_pj766xnnI6WD4kiw7_kSSg_oaIiSYIr';
-        const LIVEKIT_URL = 'wss://livekit.voxy.work';
-        const ROOM_NAME = 'secure-stack-1k5b95';
-        const GROUP_NAME = 'Spam команда Германа';
-        
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        // Глобальные переменные
-        let currentUser = null;
-        let currentChat = null;
-        let currentChatType = 'group';
-        let messagesSubscription = null;
-        let contactsSubscription = null;
-        let unreadCounts = {};
-        let room = null;
-        let audioContext = null;
-        let audioReconnectTimer = null;
-        let replyingTo = null;
-        let selectedUserForProfile = null;
-        let isConferenceActive = false;
-        
-        // DOM элементы
-        const authContainer = document.getElementById('authContainer');
-        const mainContainer = document.getElementById('mainContainer');
-        const loginBtn = document.getElementById('loginBtn');
-        const loginInput = document.getElementById('loginInput');
-        const passwordInput = document.getElementById('passwordInput');
-        const authError = document.getElementById('authError');
-        const chatList = document.getElementById('chatList');
-        const userSearch = document.getElementById('userSearch');
-        const searchBtn = document.getElementById('searchBtn');
-        const messagesContainer = document.getElementById('messagesContainer');
-        const messageInput = document.getElementById('messageInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const currentChatTitle = document.getElementById('currentChatTitle');
-        const conferenceBtn = document.getElementById('conferenceBtn');
-        const chatHeader = document.querySelector('.chat-header');
-        const chatInputArea = document.querySelector('.chat-input-area');
-        const profileName = document.getElementById('profileName');
-        const profileId = document.getElementById('profileId');
-        const profileLogin = document.getElementById('profileLogin');
-        const profileStatus = document.getElementById('profileStatus');
-        const profileMyId = document.getElementById('profileMyId');
-        const profileToken = document.getElementById('profileToken');
-        const profileAvatar = document.getElementById('profileAvatar');
-        const editProfileBtn = document.getElementById('editProfileBtn');
-        const changePasswordBtn = document.getElementById('changePasswordBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const adminPanelBtn = document.getElementById('adminPanelBtn');
-        const adminPanel = document.getElementById('adminPanel');
-        const closeAdminBtn = document.getElementById('closeAdminBtn');
-        const adminUsersGrid = document.getElementById('adminUsersGrid');
-        const editModal = document.getElementById('editModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalInput1 = document.getElementById('modalInput1');
-        const modalInput2 = document.getElementById('modalInput2');
-        const modalInput3 = document.getElementById('modalInput3');
-        const modalSaveBtn = document.getElementById('modalSaveBtn');
-        const modalCancelBtn = document.getElementById('modalCancelBtn');
-       
-        // Элементы конференции
-        const videoModal = document.getElementById('videoModal');
-        const videoGrid = document.getElementById('videoGrid');
-        const videoMicBtn = document.getElementById('videoMicBtn');
-        const videoLeaveBtn = document.getElementById('videoLeaveBtn');
-        const participantsCount = document.getElementById('participantsCount');
-        const conferenceParticipants = document.getElementById('conferenceParticipants');
-        const participantsSidebar = document.getElementById('participantsSidebar');
-        const audioDebug = document.getElementById('audioDebug');
-        const hiddenVideoContainer = document.getElementById('hiddenVideoContainer');
-        const minimizeConferenceBtn = document.getElementById('minimizeConferenceBtn');
-        
-        // Элементы активного звонка
-        const activeCallBar = document.getElementById('activeCallBar');
-        
-        // Элементы подтверждения
-        const confirmModal = document.getElementById('confirmModal');
-        const confirmTitle = document.querySelector('.confirm-title');
-        const confirmText = document.getElementById('confirmText');
-        const confirmYesBtn = document.getElementById('confirmYesBtn');
-        const confirmNoBtn = document.getElementById('confirmNoBtn');
-        
-        // Мобильные элементы
-        const mobileOverlay = document.getElementById('mobileOverlay');
-        const usersPanel = document.getElementById('usersPanel');
-        const profilePanel = document.getElementById('profilePanel');
-        const chatBackBtn = document.getElementById('chatBackBtn');
-        const profileBackBtn = document.getElementById('profileBackBtn');
-        const mobileProfileBtn = document.getElementById('mobileProfileBtn');
-       
-        // Элементы поиска
-        const searchIcon = document.getElementById('searchIcon');
-        const searchBar = document.getElementById('searchBar');
-        const userSearchInput = document.getElementById('userSearch');
-        const searchCloseBtn = document.getElementById('searchCloseBtn');
-        const searchResults = document.getElementById('searchResults');
-        
-        // Элементы ответов и профиля пользователя
-        const replyPreview = document.getElementById('replyPreview');
-        const replySender = document.getElementById('replySender');
-        const replyText = document.getElementById('replyText');
-        const cancelReplyBtn = document.getElementById('cancelReplyBtn');
-        const userProfileModal = document.getElementById('userProfileModal');
-        const userProfileAvatar = document.getElementById('userProfileAvatar');
-        const userProfileName = document.getElementById('userProfileName');
-        const userProfileUsername = document.getElementById('userProfileUsername');
-        const userProfileId = document.getElementById('userProfileId');
-        const userProfileMessageBtn = document.getElementById('userProfileMessageBtn');
-        const userProfileCloseBtn = document.getElementById('userProfileCloseBtn');
-        
-        // ===============================================
-        // ВОССТАНОВЛЕНИЕ СЕССИИ КОНФЕРЕНЦИИ
-        // ===============================================
-        function restoreConferenceSession() {
-            const savedConference = localStorage.getItem('activeConference');
-            if (savedConference && currentUser) {
-                try {
-                    const confData = JSON.parse(savedConference);
-                    if (Date.now() - confData.timestamp < 3600000) {
-                        isInConference = true;
-                        conferenceRoom = confData.room;
-                        conferenceToken = confData.token;
-                        videoModal.style.display = 'block';
-                        updateActiveCallBar(false);
-                        startConference(confData.token);
-                    } else {
-                        localStorage.removeItem('activeConference');
-                    }
-                } catch (e) {
-                    localStorage.removeItem('activeConference');
-                }
+                correct: "option2"
+            },
+            {
+                number: 2,
+                text: "Кого вы возьмёте в работу?",
+                options: {
+                    option1: "Александр, 31 год, гражданство РФ, родился в Санкт-Петербурге, работает курьером в Ozon",
+                    option2: "Наиль, 29 лет, гражданство РФ, родился в Казахстане, опытный специалист в сфере продаж, хорошо зарабатывает",
+                    option3: "Никого"
+                },
+                correct: "option1"
+            },
+            {
+                number: 3,
+                text: "Индикаторный вброс делается с целью:",
+                options: {
+                    option1: "Увидеть реакцию клиента на тот факт, что девушка зарабатывает на инвестициях",
+                    option2: "Рассказать клиенту, как девушка работает с аналитиком, чтобы у клиента было понимание сферы на момент предложения"
+                },
+                correct: "option1"
+            },
+            {
+                number: 4,
+                text: "Сколько вбросов должно быть за весь диалог?",
+                options: {
+                    option1: "2-3 вброса",
+                    option2: "1 вброс",
+                    option3: "4-6 вбросов"
+                },
+                correct: "option1"
+            },
+            {
+                number: 5,
+                text: "Оптимальное количество 'прогревов' до момента предложения:",
+                options: {
+                    option1: "3 раза",
+                    option2: "1-2 раза",
+                    option3: "5 и более раз"
+                },
+                correct: "option1"
+            },
+            {
+                number: 6,
+                text: "Возьмете ли вы клиента, который сидит на сайте знакомств больше месяца, но инвестиции ему еще не предлагали?",
+                options: {
+                    option1: "Да",
+                    option2: "Нет"
+                },
+                correct: "option2"
+            },
+            {
+                number: 7,
+                text: "Когда делается индикаторный вброс?",
+                options: {
+                    option1: "На второй день общения",
+                    option2: "В первый день общения, в первые 2 часа ведения диалога",
+                    option3: "После предложения"
+                },
+                correct: "option2"
+            },
+            {
+                number: 8,
+                text: "Можно ли передать клиента с хорошей официальной зарплатой, но с просрочками по кредитам?",
+                options: {
+                    option1: "Да",
+                    option2: "Нет"
+                },
+                correct: "option2"
+            },
+            {
+                number: 9,
+                text: "Клиенту будет 23 года через две недели, возьмёте ли вы его в работу?",
+                options: {
+                    option1: "Да",
+                    option2: "Нет"
+                },
+                correct: "option2"
+            },
+            {
+                number: 10,
+                text: "Когда вы узнавали у клиента что ему предлагали, он сказал что ему писало много фейков с предложениями поработать и купить интимные фотографии. Возьмёте ли вы такого клиента в работу?",
+                options: {
+                    option1: "Да",
+                    option2: "Нет"
+                },
+                correct: "option1"
+            },
+            {
+                number: 11,
+                text: "Клиент раньше занимался инвестициями, но год назад все потерял. Что вы сделаете с таким клиентом?",
+                options: {
+                    option1: "Возьмете в работу поскольку это хороший клиент уже с интересом к сфере",
+                    option2: "Проконсультируетесь с тимлидером",
+                    option3: "Архив, поскольку у клиента негативный опыт с инвестициями"
+                },
+                correct: "option2"
+            },
+            {
+                number: 12,
+                text: "Какая цель прогрева?",
+                options: {
+                    option1: "Создать у клиента интерес к развитию и увеличению дохода",
+                    option2: "Рассказать плюсы сферы инвестиций",
+                    option3: "Рассказать как девочка работает с аналитиком"
+                },
+                correct: "option1"
+            },
+            {
+                number: 13,
+                text: "Клиент в самом начале общения 5-м сообщением просит скинуть фотки. Ваши действия?",
+                options: {
+                    option1: "Скинете фотографии",
+                    option2: "Скажите клиенту что он перегибает палку и вы не собираетесь кидать фотографии не знакомому человеку",
+                    option3: "Мягко откажете, после чего в течении 30-60 мин сами скинете клиенту кружочек без его просьбы"
+                },
+                correct: "option3"
+            },
+            {
+                number: 14,
+                text: "В самом начале общения клиент просит скинуть кружек что бы убедиться что девочка не фейк. Ваши действия?",
+                options: {
+                    option1: "Скинете кружечек, тем самым отсеете у него все сомнения и продолжите общение",
+                    option2: "Выкинете в архив"
+                },
+                correct: "option2"
+            },
+            {
+                number: 15,
+                text: "Выберете правильное утверждение",
+                options: {
+                    option1: "Аналитик набирает команду партнеров и возьмет клиента если у него будет желание сотрудничать и хороший капитал",
+                    option2: "Аналитик работает частным специалистом в большой компании и возьмет клиента в партнеры ради исключения только потому что за него попросила девочка"
+                },
+                correct: "option2"
             }
-        }
-
-        // ===============================================
-        // МОБИЛЬНАЯ НАВИГАЦИЯ
-        // ===============================================
-        function isMobile() {
-            return window.innerWidth <= 768;
-        }
+        ];
         
-        function showUsersPanel() {
-            if (!isMobile()) return;
-            usersPanel.classList.add('active');
-            mobileOverlay.classList.remove('active');
-        }
+        // Переменные состояния
+        let allUsers = [];
+        let selectedUser = null;
+        let realtimeSubscription = null;
         
-        function hideUsersPanel() {
-            if (!isMobile()) return;
-            usersPanel.classList.remove('active');
-            const chatPanel = document.querySelector('.chat-panel');
-            if (chatPanel) chatPanel.style.display = 'flex';
-        }
-        
-        function showProfilePanel() {
-            if (!isMobile()) return;
-            profilePanel.classList.add('active');
-            mobileOverlay.classList.add('active');
-        }
-        
-        function hideProfilePanel() {
-            profilePanel.classList.remove('active');
-            mobileOverlay.classList.remove('active');
-        }
-        
-        function goToChatList() {
-            if (!isMobile()) return;
-            const chatPanel = document.querySelector('.chat-panel');
-            if (chatPanel) chatPanel.style.display = 'none';
-            showUsersPanel();
-        }
-        
-        mobileOverlay.addEventListener('click', (e) => {
-            if (e.target === mobileOverlay) {
-                hideProfilePanel();
-            }
+        // Загрузка при старте
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Админ-панель инициализирована');
+            await loadData();
+            await loadSettings();
+            setupRealtime();
         });
         
-        chatBackBtn.addEventListener('click', goToChatList);
-       
-        if (mobileProfileBtn) {
-            mobileProfileBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                showProfilePanel();
-            });
-        }
-        
-        if (profileBackBtn) {
-            profileBackBtn.addEventListener('click', () => {
-                hideProfilePanel();
-            });
-        }
-        
-        // ===============================================
-        // ПОИСК
-        // ===============================================
-        let searchTimeout = null;
-        
-        if (searchIcon) {
-            searchIcon.addEventListener('click', () => {
-                searchBar.style.display = 'flex';
-                userSearchInput.focus();
-            });
-        }
-        
-        if (searchCloseBtn) {
-            searchCloseBtn.addEventListener('click', () => {
-                searchBar.style.display = 'none';
-                searchResults.style.display = 'none';
-                userSearchInput.value = '';
-            });
-        }
-        
-        async function performSearch() {
-            const term = userSearchInput.value.trim();
-            if (term.length < 2) {
-                searchResults.style.display = 'none';
-                return;
-            }
-           
+        // Загрузка данных
+        async function loadData() {
+            console.log('Загрузка данных...');
+            showLoading(true);
+            
             try {
+                // Загружаем всех пользователей
                 const { data: users, error } = await supabaseClient
-                    .from('users')
-                    .select('id, username, display_name, user_id_string')
-                    .or(`username.ilike.%${term}%,display_name.ilike.%${term}%,user_id_string.ilike.%${term}%`)
-                    .neq('id', currentUser.id)
-                    .limit(15);
-                if (error) throw error;
-                
-                searchResults.innerHTML = '';
-                if (!users || users.length === 0) {
-                    searchResults.innerHTML = `<div style="padding:20px;color:#666;text-align:center;">Ничего не найдено</div>`;
-                    searchResults.style.display = 'block';
-                    return;
-                }
-                
-                users.forEach(user => {
-                    const displayName = user.display_name !== '---' ? user.display_name : user.username;
-                   
-                    const div = document.createElement('div');
-                    div.className = 'search-result-item';
-                    div.innerHTML = `
-                        <div class="search-result-avatar">${displayName[0].toUpperCase()}</div>
-                        <div class="search-result-info">
-                            <div class="name">${displayName}</div>
-                            <div class="id">ID: ${user.user_id_string}</div>
-                        </div>
-                    `;
-                   
-                    div.addEventListener('click', async () => {
-                        selectChat(user.id, 'private');
-                        searchBar.style.display = 'none';
-                        searchResults.style.display = 'none';
-                        userSearchInput.value = '';
-                    });
-                   
-                    searchResults.appendChild(div);
-                });
-                searchResults.style.display = 'block';
-            } catch (err) {
-                console.error('Ошибка поиска:', err);
-            }
-        }
-        
-        if (userSearchInput) {
-            userSearchInput.addEventListener('input', () => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(performSearch, 300);
-            });
-        }
-        
-        document.addEventListener('click', (e) => {
-            if (searchBar && searchResults) {
-                if (!searchBar.contains(e.target) && !searchResults.contains(e.target) && e.target !== searchIcon) {
-                    searchResults.style.display = 'none';
-                }
-            }
-        });
-        
-        // ===============================================
-        // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-        // ===============================================
-        async function addToContactsIfNotExists(user) {
-            if (!user) return;
-            const { data: existingContact } = await supabaseClient
-                .from('user_contacts')
-                .select('*')
-                .eq('user_id', currentUser.id)
-                .eq('contact_id', user.id)
-                .maybeSingle();
-            if (!existingContact) {
-                await supabaseClient
-                    .from('user_contacts')
-                    .insert([{
-                        user_id: currentUser.id,
-                        contact_id: user.id
-                    }]);
-               
-                loadChats();
-                return true;
-            }
-            return false;
-        }
-        
-        // ===============================================
-        // SWIPE-TO-REPLY
-        // ===============================================
-        function initSwipeToReply() {
-            if (!isMobile()) return;
-            let startX = 0;
-            let currentMessage = null;
-            let isSwiping = false;
-            
-            messagesContainer.addEventListener('touchstart', e => {
-                const msg = e.target.closest('.message');
-                if (!msg || msg.classList.contains('own')) return;
-               
-                startX = e.touches[0].clientX;
-                currentMessage = msg;
-                isSwiping = false;
-            }, { passive: true });
-            
-            messagesContainer.addEventListener('touchmove', e => {
-                if (!currentMessage) return;
-               
-                const delta = e.touches[0].clientX - startX;
-               
-                if (delta > 10) {
-                    isSwiping = true;
-                    e.preventDefault();
-                   
-                    if (delta < 140) {
-                        currentMessage.style.transform = `translateX(${delta}px)`;
-                        currentMessage.classList.add('swiping');
-                    }
-                }
-            }, { passive: false });
-            
-            messagesContainer.addEventListener('touchend', e => {
-                if (!currentMessage || !isSwiping) {
-                    currentMessage = null;
-                    return;
-                }
-                const delta = e.changedTouches[0].clientX - startX;
-                currentMessage.style.transform = '';
-                currentMessage.classList.remove('swiping');
-                if (delta > 65) {
-                    const msgId = currentMessage.id.replace('message-', '');
-                    const sender = currentMessage.querySelector('.message-sender').textContent;
-                    const text = currentMessage.querySelector('.message-content').textContent.trim();
-                   
-                    setReply(msgId, sender, text, currentChatType);
-                }
-                currentMessage = null;
-                isSwiping = false;
-            }, { passive: true });
-        }
-        
-        // ===============================================
-        // ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
-        // ===============================================
-        async function showUserProfile(userId, fromAdmin = false) {
-            try {
-                const { data: user, error } = await supabaseClient
-                    .from('users')
+                    .from('test_sessions')
                     .select('*')
-                    .eq('id', userId)
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    console.error('Ошибка загрузки данных:', error);
+                    throw error;
+                }
+                
+                console.log('Данные загружены:', users?.length || 0, 'пользователей');
+                
+                allUsers = users || [];
+                updateStats();
+                renderUsersList();
+                
+                showLoading(false);
+                
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                showError('Ошибка загрузки данных: ' + error.message);
+            }
+        }
+        
+        // Загрузка настроек теста
+        async function loadSettings() {
+            try {
+                const { data: settings, error } = await supabaseClient
+                    .from('test_settings')
+                    .select('*')
                     .single();
+                
                 if (error) throw error;
-                selectedUserForProfile = user;
-               
-                const displayName = user.display_name !== '---' ? user.display_name : user.username;
-                userProfileAvatar.textContent = displayName[0].toUpperCase();
-                userProfileName.textContent = displayName;
-                userProfileUsername.textContent = `@${user.username}`;
-                userProfileId.textContent = `ID: ${user.user_id_string}`;
-               
-                if (user.id === currentUser.id) {
-                    userProfileMessageBtn.style.display = 'none';
+                
+                const toggle = document.getElementById('test-toggle');
+                const statusSpan = document.getElementById('test-status');
+                const sidebarStatus = document.getElementById('test-status-sidebar');
+                
+                toggle.checked = settings.is_active;
+                if (settings.is_active) {
+                    statusSpan.textContent = 'ВКЛ';
+                    statusSpan.className = 'toggle-status status-active';
+                    sidebarStatus.textContent = 'Да';
                 } else {
-                    userProfileMessageBtn.style.display = 'block';
+                    statusSpan.textContent = 'ВЫКЛ';
+                    statusSpan.className = 'toggle-status status-inactive';
+                    sidebarStatus.textContent = 'Нет';
                 }
-               
-                if (fromAdmin) {
-                    const closeBtn = document.querySelector('#userProfileModal .admin-close-btn');
-                    if (!closeBtn) {
-                        const header = document.querySelector('#userProfileModal .user-profile-content');
-                        const closeX = document.createElement('div');
-                        closeX.className = 'admin-close-btn';
-                        closeX.innerHTML = '×';
-                        closeX.style.position = 'absolute';
-                        closeX.style.top = '10px';
-                        closeX.style.right = '20px';
-                        closeX.style.fontSize = '32px';
-                        closeX.style.cursor = 'pointer';
-                        closeX.style.color = '#ff4444';
-                        closeX.onclick = function() {
-                            userProfileModal.style.display = 'none';
-                            adminViewingUser = false;
-                        };
-                        header.style.position = 'relative';
-                        header.appendChild(closeX);
-                    }
-                }
-               
-                userProfileModal.style.display = 'flex';
-            } catch (error) {
-                console.error('Ошибка загрузки профиля:', error);
-                alert('Не удалось загрузить профиль пользователя');
-            }
-        }
-        
-        window.showUserProfile = showUserProfile;
-        
-        userProfileMessageBtn.addEventListener('click', () => {
-            if (selectedUserForProfile) {
-                userProfileModal.style.display = 'none';
-                adminViewingUser = false;
-                selectChat(selectedUserForProfile.id, 'private');
-            }
-        });
-        
-        userProfileCloseBtn.addEventListener('click', () => {
-            userProfileModal.style.display = 'none';
-            selectedUserForProfile = null;
-            adminViewingUser = false;
-        });
-        
-        userProfileModal.addEventListener('click', (e) => {
-            if (e.target === userProfileModal) {
-                userProfileModal.style.display = 'none';
-                selectedUserForProfile = null;
-                adminViewingUser = false;
-            }
-        });
-        
-        // ===============================================
-        // ОЧИСТКА ИСТОРИИ В ГРУППЕ ДЛЯ ПОЛЬЗОВАТЕЛЯ (ТОЛЬКО АДМИН)
-        // ===============================================
-        window.confirmClearGroupHistory = function(userId, userName) {
-            if (!currentUser || currentUser.username.toLowerCase() !== 'german') {
-                alert('Только админ может очищать историю');
-                return;
-            }
-            pendingClearUserId = userId;
-            confirmTitle.textContent = 'Подтверждение';
-            confirmText.textContent = `Очистить историю сообщений от ${userName} в группе?`;
-            confirmModal.style.display = 'flex';
-        };
-
-        confirmYesBtn.addEventListener('click', async () => {
-            if (!pendingClearUserId) return;
-          
-            try {
-                const { error } = await supabaseClient
-                    .from('group_messages')
-                    .delete()
-                    .eq('user_id', pendingClearUserId);
-              
-                if (error) throw error;
-              
-                alert('История в группе очищена!');
-                loadAdminUsers();
-                if (currentChatType === 'group') loadGroupMessages();
-              
-            } catch (err) {
-                console.error('Ошибка очистки:', err);
-                alert('Не удалось очистить историю');
-            }
-          
-            confirmModal.style.display = 'none';
-            pendingClearUserId = null;
-        });
-
-        confirmNoBtn.addEventListener('click', () => {
-            confirmModal.style.display = 'none';
-            pendingClearUserId = null;
-        });
-
-        confirmModal.addEventListener('click', (e) => {
-            if (e.target === confirmModal) {
-                confirmModal.style.display = 'none';
-                pendingClearUserId = null;
-            }
-        });
-
-        // ===============================================
-        // АВТОРИЗАЦИЯ
-        // ===============================================
-        async function checkSavedSession() {
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser) {
-                try {
-                    currentUser = JSON.parse(savedUser);
-                   
-                    const { data: user, error } = await supabaseClient
-                        .from('users')
-                        .select('*')
-                        .eq('id', currentUser.id)
-                        .single();
-                    if (!error && user && user.status === 'active') {
-                        currentUser = user;
-                        authContainer.style.display = 'none';
-                        mainContainer.style.display = 'grid';
-                       
-                        if (currentUser.username.toLowerCase() === 'german') {
-                            adminPanelBtn.style.display = 'block';
-                        }
-                       
-                        updateProfilePanel();
-                        loadChats();
-                        setupRealtimeSubscriptions();
-                        
-                        chatHeader.style.display = 'none';
-                        chatInputArea.style.display = 'none';
-                        messageInput.disabled = true;
-                        sendBtn.disabled = true;
-                        
-                        if (isMobile()) {
-                            showUsersPanel();
-                        }
-                        
-                        restoreConferenceSession();
+                
+                // Событие переключения
+                toggle.addEventListener('change', async () => {
+                    const newStatus = toggle.checked;
+                    
+                    const { error } = await supabaseClient
+                        .from('test_settings')
+                        .update({ is_active: newStatus })
+                        .eq('id', 1);
+                    
+                    if (error) {
+                        console.error('Ошибка обновления настроек:', error);
+                        alert('Ошибка: ' + error.message);
+                        toggle.checked = !newStatus;
                     } else {
-                        localStorage.removeItem('currentUser');
+                        statusSpan.textContent = newStatus ? 'ВКЛ' : 'ВЫКЛ';
+                        statusSpan.className = newStatus ? 
+                            'toggle-status status-active' : 
+                            'toggle-status status-inactive';
+                        sidebarStatus.textContent = newStatus ? 'Да' : 'Нет';
                     }
-                } catch (e) {
-                    localStorage.removeItem('currentUser');
-                }
-            }
-        }
-        
-        loginBtn.addEventListener('click', async () => {
-            const username = loginInput.value.trim();
-            const password = passwordInput.value.trim();
-            if (!username || !password) {
-                authError.textContent = 'Введите логин и пароль';
-                return;
-            }
-            try {
-                const { data: users, error } = await supabaseClient
-                    .from('users')
-                    .select('*')
-                    .eq('username', username)
-                    .eq('password', password);
-                if (error) throw error;
-                if (users && users.length > 0) {
-                    const user = users[0];
-                   
-                    if (user.status === 'blocked') {
-                        authError.textContent = 'Пользователь заблокирован';
-                        return;
-                    }
-                    currentUser = user;
-                    localStorage.setItem('currentUser', JSON.stringify(user));
-                   
-                    authContainer.style.display = 'none';
-                    mainContainer.style.display = 'grid';
-                   
-                    if (currentUser.username.toLowerCase() === 'german') {
-                        adminPanelBtn.style.display = 'block';
-                    }
-                   
-                    updateProfilePanel();
-                    loadChats();
-                    setupRealtimeSubscriptions();
-                    
-                    chatHeader.style.display = 'none';
-                    chatInputArea.style.display = 'none';
-                    messageInput.disabled = true;
-                    sendBtn.disabled = true;
-                    
-                    if (isMobile()) {
-                        showUsersPanel();
-                    }
-                    
-                    restoreConferenceSession();
-                } else {
-                    authError.textContent = 'Неверный логин или пароль';
-                }
-            } catch (error) {
-                console.error('Ошибка авторизации:', error);
-                authError.textContent = 'Ошибка подключения к базе';
-            }
-        });
-        
-        // ===============================================
-        // ЗАГРУЗКА ЧАТОВ
-        // ===============================================
-        async function loadChats() {
-            try {
-                const chats = [];
-               
-                const { data: lastGroupMsg } = await supabaseClient
-                    .from('group_messages')
-                    .select('*, users!inner(*)')
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
-                chats.push({
-                    id: 'group',
-                    name: GROUP_NAME,
-                    type: 'group',
-                    avatar: '👥',
-                    lastMessage: lastGroupMsg,
-                    unread: unreadCounts['group'] || 0
                 });
                 
-                const { data: contacts, error } = await supabaseClient
-                    .from('user_contacts')
-                    .select('contact_id, users!user_contacts_contact_id_fkey(*)')
-                    .eq('user_id', currentUser.id);
-                if (error) throw error;
-                
-                const contactUsers = contacts.map(c => c.users).filter(u => u);
-               
-                const contactsWithLastMessage = await Promise.all(
-                    contactUsers.map(async (contact) => {
-                        const { data: lastMsg } = await supabaseClient
-                            .from('private_messages')
-                            .select('*')
-                            .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${contact.id}),and(sender_id.eq.${contact.id},receiver_id.eq.${currentUser.id})`)
-                            .order('created_at', { ascending: false })
-                            .limit(1)
-                            .maybeSingle();
-                       
-                        return {
-                            id: contact.id,
-                            name: contact.display_name !== '---' ? contact.display_name : contact.username,
-                            type: 'private',
-                            avatar: contact.display_name !== '---' ? contact.display_name[0] : contact.username[0].toUpperCase(),
-                            userId: contact.user_id_string,
-                            lastMessage: lastMsg,
-                            unread: unreadCounts[`private_${contact.id}`] || 0
-                        };
-                    })
-                );
-                renderChatList([...chats, ...contactsWithLastMessage]);
             } catch (error) {
-                console.error('Ошибка загрузки чатов:', error);
+                console.error('Ошибка загрузки настроек:', error);
             }
         }
         
-        function renderChatList(chats) {
-            chatList.innerHTML = chats.map(chat => {
-                const time = chat.lastMessage ? new Date(chat.lastMessage.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '';
-                let lastMessageText = 'Нет сообщений';
-               
-                if (chat.lastMessage) {
-                    if (chat.type === 'group') {
-                        const senderName = chat.lastMessage.users?.display_name !== '---' ?
-                            chat.lastMessage.users?.display_name :
-                            chat.lastMessage.users?.username;
-                        lastMessageText = `${senderName}: ${chat.lastMessage.message}`;
-                    } else {
-                        lastMessageText = (chat.lastMessage.sender_id === currentUser.id ? 'Вы: ' : '') + chat.lastMessage.message;
+        // Настройка realtime подписки
+        function setupRealtime() {
+            if (realtimeSubscription) {
+                supabaseClient.removeChannel(realtimeSubscription);
+            }
+            
+            realtimeSubscription = supabaseClient
+                .channel('test_results_changes')
+                .on('postgres_changes', 
+                    { 
+                        event: '*', 
+                        schema: 'public', 
+                        table: 'test_sessions' 
+                    }, 
+                    (payload) => {
+                        console.log('Realtime: изменение в результатах');
+                        loadData();
                     }
-                }
-               
-                return `
-                    <div class="chat-item ${currentChat === chat.id ? 'active' : ''} ${chat.unread > 0 ? 'unread' : ''}" onclick="selectChat('${chat.id}', '${chat.type}')">
-                        <div class="chat-avatar ${chat.type === 'group' ? 'group' : ''}">${chat.avatar}</div>
-                        <div class="chat-info">
-                            <div class="chat-name">${chat.name}</div>
-                            ${chat.type === 'private' ? `<div class="chat-id">ID: ${chat.userId}</div>` : ''}
-                            <div class="last-message">${lastMessageText.substring(0, 30)}${lastMessageText.length > 30 ? '...' : ''} ${time ? '· ' + time : ''}</div>
-                        </div>
-                        ${chat.unread > 0 ? `<div class="unread-badge">${chat.unread}</div>` : ''}
+                )
+                .on('postgres_changes',
+                    { 
+                        event: '*', 
+                        schema: 'public', 
+                        table: 'test_settings' 
+                    },
+                    (payload) => {
+                        console.log('Realtime: изменение настроек');
+                        loadSettings();
+                    }
+                )
+                .subscribe();
+        }
+        
+        // Обновление статистики
+        function updateStats() {
+            // Всего пользователей
+            document.getElementById('total-users').textContent = allUsers.length;
+            
+            // Средний результат (15 вопросов)
+            const completedUsers = allUsers.filter(u => u.status === 'completed');
+            if (completedUsers.length > 0) {
+                const avgCorrect = completedUsers.reduce((sum, u) => sum + (u.total_correct || 0), 0) / completedUsers.length;
+                const avgPercent = Math.round((avgCorrect / 15) * 100);
+                document.getElementById('avg-score').textContent = avgPercent + '%';
+            } else {
+                document.getElementById('avg-score').textContent = '0%';
+            }
+            
+            // Активируем кнопку экспорта если есть данные
+            document.getElementById('export-btn').disabled = allUsers.length === 0;
+        }
+        
+        // Рендеринг списка пользователей
+        function renderUsersList() {
+            const usersList = document.getElementById('users-list');
+            
+            if (allUsers.length === 0) {
+                usersList.innerHTML = `
+                    <div class="no-user-selected" style="height: auto; padding: 40px 20px;">
+                        <div class="icon">📭</div>
+                        <h3>Нет данных</h3>
+                        <p>Пользователи еще не прошли тест</p>
                     </div>
                 `;
-            }).join('');
-        }
-        
-        window.selectChat = function(chatId, type) {
-            currentChat = chatId;
-            currentChatType = type;
-           
-            cancelReply();
-            
-            chatHeader.style.display = 'flex';
-            chatInputArea.style.display = 'block';
-           
-            if (type === 'group') {
-                currentChatTitle.textContent = GROUP_NAME;
-                loadGroupMessages();
-                unreadCounts['group'] = 0;
-                conferenceBtn.style.display = 'block';
-            } else {
-                supabaseClient
-                    .from('users')
-                    .select('*')
-                    .eq('id', chatId)
-                    .single()
-                    .then(({ data: user }) => {
-                        if (user) {
-                            const displayName = user.display_name !== '---' ? user.display_name : user.username;
-                            currentChatTitle.textContent = displayName;
-                        }
-                    });
-               
-                loadPrivateMessages(chatId);
-                unreadCounts[`private_${chatId}`] = 0;
-                conferenceBtn.style.display = 'none';
-            }
-           
-            messageInput.disabled = false;
-            sendBtn.disabled = false;
-           
-            if (isMobile()) {
-                hideUsersPanel();
-                const chatPanel = document.querySelector('.chat-panel');
-                if (chatPanel) chatPanel.style.display = 'flex';
-            } else {
-                messageInput.focus();
-            }
-           
-            loadChats();
-        };
-        
-        // ===============================================
-        // ЗАГРУЗКА СООБЩЕНИЙ
-        // ===============================================
-        async function loadGroupMessages() {
-            try {
-                const { data: messages, error } = await supabaseClient
-                    .from('group_messages')
-                    .select('*, users!inner(*)')
-                    .order('created_at', { ascending: true });
-                if (error) throw error;
-                renderMessages(messages || [], 'group');
-                setTimeout(initSwipeToReply, 100);
-            } catch (error) {
-                console.error('Ошибка загрузки сообщений:', error);
-            }
-        }
-        
-        async function loadPrivateMessages(otherUserId) {
-            try {
-                const { data: messages, error } = await supabaseClient
-                    .from('private_messages')
-                    .select('*, sender:sender_id(*)')
-                    .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUser.id})`)
-                    .order('created_at', { ascending: true });
-                if (error) throw error;
-                renderMessages(messages || [], 'private');
-               
-                setTimeout(() => {
-                    initSwipeToReply();
-                }, 100);
-            } catch (error) {
-                console.error('Ошибка загрузки сообщений:', error);
-            }
-        }
-        
-        function renderMessages(messages, type) {
-            if (!messages || messages.length === 0) {
-                messagesContainer.innerHTML = '<div class="empty-messages">Нет сообщений. Напишите первое сообщение!</div>';
                 return;
             }
             
-            messagesContainer.innerHTML = messages.map((msg, index) => {
-                let isOwn, senderName, sender, senderId, senderAvatar, showAvatar = true;
-               
-                if (type === 'group') {
-                    isOwn = msg.user_id === currentUser.id;
-                    sender = msg.users || {};
-                    senderId = msg.user_id;
-                    senderName = sender.display_name !== '---' ? sender.display_name : sender.username;
-                    senderAvatar = sender.display_name !== '---' ? sender.display_name[0] : sender.username[0].toUpperCase();
-                    
-                    if (!isOwn && index > 0) {
-                        const prevMsg = messages[index - 1];
-                        if (prevMsg && prevMsg.user_id === msg.user_id) {
-                            showAvatar = false;
-                        }
-                    }
-                } else {
-                    isOwn = msg.sender_id === currentUser.id;
-                    sender = msg.sender || {};
-                    senderId = msg.sender_id;
-                    senderName = isOwn ? 'Вы' : (sender.display_name !== '---' ? sender.display_name : sender.username);
-                    senderAvatar = isOwn ? currentUser.display_name[0] :
-                        (sender.display_name !== '---' ? sender.display_name[0] : sender.username[0].toUpperCase());
-                }
-               
-                const time = new Date(msg.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-               
-                let replyHtml = '';
-                if (msg.reply_to_id) {
-                    const repliedMsg = messages.find(m => m.id === msg.reply_to_id);
-                    if (repliedMsg) {
-                        let repliedSenderName;
-                        if (type === 'group') {
-                            repliedSenderName = repliedMsg.users?.display_name !== '---' ?
-                                repliedMsg.users?.display_name :
-                                repliedMsg.users?.username;
-                        } else {
-                            repliedSenderName = repliedMsg.sender_id === currentUser.id ? 'Вы' :
-                                (repliedMsg.sender?.display_name !== '---' ?
-                                    repliedMsg.sender?.display_name :
-                                    repliedMsg.sender?.username);
-                        }
-                       
-                        replyHtml = `
-                            <div class="replied-to" onclick="scrollToMessage('${msg.reply_to_id}')">
-                                <span>↩️</span>
-                                <span class="replied-sender">${repliedSenderName}</span>
-                                <span class="replied-text">${repliedMsg.message.substring(0, 30)}${repliedMsg.message.length > 30 ? '...' : ''}</span>
+            let html = '';
+            
+            allUsers.forEach((user, index) => {
+                const totalCorrect = user.total_correct || 0;
+                const percentage = Math.round((totalCorrect / 15) * 100);
+                const isActive = selectedUser && selectedUser.id === user.id;
+                
+                // Определяем цвет оценки
+                let scoreClass = '';
+                if (percentage >= 75) scoreClass = 'correct';
+                else if (percentage >= 50) scoreClass = '';
+                else scoreClass = 'incorrect';
+                
+                // Форматируем дату
+                const date = new Date(user.created_at);
+                const dateString = date.toLocaleDateString('ru-RU');
+                const timeString = date.toLocaleTimeString('ru-RU').slice(0, 5);
+                
+                html += `
+                    <div class="user-card ${isActive ? 'active' : ''}" 
+                         onclick="selectUser('${user.id}')"
+                         id="user-card-${user.id}">
+                        <div class="user-header">
+                            <div class="user-nickname" title="${user.telegram_nickname || 'Без имени'}">
+                                ${user.telegram_nickname || 'Без имени'}
                             </div>
-                        `;
-                    }
-                }
-               
-                if (isOwn) {
-                    return `
-                        <div class="message own" id="message-${msg.id}" data-id="${msg.id}">
-                            <div class="message-content-wrapper">
-                                <div class="message-header">
-                                    <span class="message-sender">${senderName}</span>
-                                    <span class="message-time">${time}</span>
-                                </div>
-                                ${replyHtml}
-                                <div class="message-content">${msg.message}</div>
+                            <div class="user-score ${scoreClass}">
+                                ${totalCorrect}/15
                             </div>
                         </div>
-                    `;
-                } else {
-                    if (showAvatar) {
-                        return `
-                            <div class="message" id="message-${msg.id}" data-id="${msg.id}">
-                                <div class="message-avatar" onclick="showUserProfile('${senderId}', false)">${senderAvatar}</div>
-                                <div class="message-content-wrapper">
-                                    <div class="message-header">
-                                        <span class="message-sender">${senderName}</span>
-                                        <span class="message-time">${time}</span>
-                                        <button class="reply-btn" onclick="setReply('${msg.id}', '${senderName.replace(/'/g, "\\'")}', '${msg.message.replace(/'/g, "\\'").replace(/\n/g, '\\n')}', '${type}')">↩️</button>
-                                    </div>
-                                    ${replyHtml}
-                                    <div class="message-content">${msg.message}</div>
-                                </div>
+                        <div class="user-meta">
+                            <div>${dateString} ${timeString}</div>
+                            <div class="user-status status-${user.status || 'completed'}">
+                                ${getStatusText(user.status)}
                             </div>
-                        `;
-                    } else {
-                        return `
-                            <div class="message" id="message-${msg.id}" data-id="${msg.id}" style="margin-left: 52px;">
-                                <div class="message-content-wrapper">
-                                    <div class="message-header" style="margin-left: 0;">
-                                        <span class="message-time">${time}</span>
-                                        <button class="reply-btn" onclick="setReply('${msg.id}', '${senderName.replace(/'/g, "\\'")}', '${msg.message.replace(/'/g, "\\'").replace(/\n/g, '\\n')}', '${type}')">↩️</button>
-                                    </div>
-                                    ${replyHtml}
-                                    <div class="message-content">${msg.message}</div>
-                                </div>
-                            </div>
-                        `;
-                    }
-                }
-            }).join('');
-           
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        </div>
+                    </div>
+                `;
+            });
+            
+            usersList.innerHTML = html;
         }
         
-        // ===============================================
-        // ФУНКЦИИ ДЛЯ ОТВЕТОВ
-        // ===============================================
-        window.setReply = function(messageId, senderName, messageText, type) {
-            replyingTo = {
-                id: messageId,
-                sender: senderName,
-                text: messageText,
-                type: type
+        // Выбор пользователя
+        function selectUser(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+            
+            selectedUser = user;
+            
+            // Обновляем активную карточку
+            document.querySelectorAll('.user-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.getElementById(`user-card-${userId}`).classList.add('active');
+            
+            // Показываем детальную информацию
+            showUserDetails(user);
+        }
+        
+        // Показать детальную информацию о пользователе
+        function showUserDetails(user) {
+            // Обновляем заголовок
+            document.getElementById('selected-user-name').textContent = 
+                `Ответы пользователя: ${user.telegram_nickname || 'Без имени'}`;
+            
+            // Показываем блок с деталями
+            document.getElementById('user-details-header').style.display = 'flex';
+            document.getElementById('no-user-selected').style.display = 'none';
+            document.getElementById('user-details').style.display = 'block';
+            
+            // Обновляем статистику (15 вопросов)
+            const totalCorrect = user.total_correct || 0;
+            const percentage = Math.round((totalCorrect / 15) * 100);
+            const totalTime = user.total_time_spent || 0;
+            
+            document.getElementById('user-result-score').textContent = `${totalCorrect}/15`;
+            document.getElementById('user-total-time').textContent = `${totalTime} сек`;
+            document.getElementById('user-percentage').textContent = `${percentage}%`;
+            document.getElementById('user-score-display').textContent = `${totalCorrect}/15`;
+            
+            // Форматируем дату завершения
+            let completedAt = '—';
+            if (user.completed_at) {
+                const date = new Date(user.completed_at);
+                completedAt = date.toLocaleDateString('ru-RU') + ' ' + 
+                             date.toLocaleTimeString('ru-RU').slice(0, 5);
+            }
+            document.getElementById('user-completed-at').textContent = completedAt;
+            
+            // Рендерим ответы на все 15 вопросов
+            renderUserAnswers(user);
+        }
+        
+        // Рендеринг ответов пользователя (15 вопросов)
+        function renderUserAnswers(user) {
+            const answersBody = document.getElementById('answers-body');
+            let html = '';
+            
+            for (let i = 1; i <= 15; i++) {
+                const question = QUESTIONS[i - 1];
+                const answerKey = user[`q${i}_answer`];
+                const isCorrect = user[`q${i}_is_correct`];
+                const timeSpent = user[`q${i}_time_spent`];
+                
+                // Определяем текст ответа
+                let answerText = 'Нет ответа';
+                let answerClass = 'timeout';
+                let statusText = 'Таймаут';
+                let statusClass = 'timeout-status';
+                
+                if (answerKey && answerKey !== 'null') {
+                    answerText = question.options[answerKey] || answerKey;
+                    answerClass = isCorrect ? 'correct' : 'incorrect';
+                    statusText = isCorrect ? 'Правильно' : 'Неправильно';
+                    statusClass = isCorrect ? 'correct-status' : 'incorrect-status';
+                }
+                
+                html += `
+                    <tr>
+                        <td class="question-number">${question.number}</td>
+                        <td>
+                            <div class="question-text">${question.text}</div>
+                            <div class="user-answer ${answerClass}">
+                                ${answerText}
+                                <div class="answer-info">
+                                    <span class="answer-time">${timeSpent || 0} сек</span>
+                                    <span class="answer-status ${statusClass}">${statusText}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${answerText}</td>
+                        <td><span class="answer-time">${timeSpent || 0} сек</span></td>
+                        <td><span class="answer-status ${statusClass}">${statusText}</span></td>
+                    </tr>
+                `;
+            }
+            
+            answersBody.innerHTML = html;
+        }
+        
+        // Текст статуса
+        function getStatusText(status) {
+            const statusMap = {
+                'completed': 'Завершен',
+                'in_progress': 'В процессе',
+                'waiting': 'Ожидание',
+                'timeout': 'Таймаут'
             };
-           
-            replySender.textContent = senderName;
-            replyText.textContent = messageText.length > 50 ? messageText.substring(0, 50) + '...' : messageText;
-            replyPreview.style.display = 'flex';
-           
-            messageInput.focus();
-        };
-        
-        function cancelReply() {
-            replyingTo = null;
-            replyPreview.style.display = 'none';
+            return statusMap[status] || 'Завершен';
         }
         
-        cancelReplyBtn.addEventListener('click', cancelReply);
-        
-        window.scrollToMessage = function(messageId) {
-            const messageElement = document.getElementById(`message-${messageId}`);
-            if (messageElement) {
-                messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                messageElement.style.transition = 'background-color 0.5s';
-                messageElement.style.backgroundColor = 'rgba(240, 185, 11, 0.1)';
-                setTimeout(() => {
-                    messageElement.style.backgroundColor = '';
-                }, 1000);
-            }
-        };
-        
-        // ===============================================
-        // ОТПРАВКА СООБЩЕНИЙ
-        // ===============================================
-        sendBtn.addEventListener('click', sendMessage);
-       
-        messageInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                if (isMobile()) {
-                    // На мобильных Enter просто переводит строку
-                } else {
-                    if (!e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                    }
-                }
-            }
-        });
-        
-        async function sendMessage() {
-            const text = messageInput.value.trim();
-            if (!text || !currentChat) {
-                if (!currentChat) alert('Выберите чат');
+        // Экспорт в CSV (15 вопросов)
+        function exportToCSV() {
+            if (allUsers.length === 0) {
+                alert('Нет данных для экспорта');
                 return;
             }
-            try {
-                const messageData = {
-                    message: text,
-                    created_at: new Date()
-                };
-                if (replyingTo && replyingTo.type === currentChatType) {
-                    messageData.reply_to_id = parseInt(replyingTo.id);
-                }
-                if (currentChatType === 'group') {
-                    const { error } = await supabaseClient
-                        .from('group_messages')
-                        .insert([{
-                            ...messageData,
-                            user_id: currentUser.id
-                        }]);
-                   
-                    if (error) {
-                        console.error('Ошибка отправки в группу:', error);
-                        alert('Ошибка при отправке сообщения');
-                        return;
-                    }
-                } else {
-                    const { error } = await supabaseClient
-                        .from('private_messages')
-                        .insert([{
-                            ...messageData,
-                            sender_id: currentUser.id,
-                            receiver_id: currentChat
-                        }]);
-                   
-                    if (error) {
-                        console.error('Ошибка отправки личного сообщения:', error);
-                        alert('Ошибка при отправке сообщения');
-                        return;
-                    }
-                   
-                    const { data: receiver } = await supabaseClient
-                        .from('users')
-                        .select('*')
-                        .eq('id', currentChat)
-                        .single();
-                   
-                    if (receiver) {
-                        await addToContactsIfNotExists(receiver);
-                    }
-                }
-                messageInput.value = '';
-                messageInput.style.height = 'auto';
-                cancelReply();
-               
-                setTimeout(() => {
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                }, 100);
-            } catch (error) {
-                console.error('Ошибка отправки:', error);
-                alert('Ошибка при отправке сообщения');
-            }
-        }
-        
-        messageInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-        
-        // ===============================================
-        // ПОДПИСКИ
-        // ===============================================
-        function setupRealtimeSubscriptions() {
-            supabaseClient
-                .channel('messages-channel')
-                .on('postgres_changes',
-                    {
-                        event: 'INSERT',
-                        schema: 'public',
-                        table: 'private_messages',
-                        filter: `receiver_id=eq.${currentUser.id}`
-                    },
-                    async (payload) => {
-                        const { data: sender } = await supabaseClient
-                            .from('users')
-                            .select('*')
-                            .eq('id', payload.new.sender_id)
-                            .single();
-                       
-                        if (sender) {
-                            await addToContactsIfNotExists(sender);
-                        }
-                       
-                        if (currentChat === payload.new.sender_id && currentChatType === 'private') {
-                            loadPrivateMessages(currentChat);
-                        } else {
-                            unreadCounts[`private_${payload.new.sender_id}`] = (unreadCounts[`private_${payload.new.sender_id}`] || 0) + 1;
-                        }
-                        loadChats();
-                    }
-                )
-                .on('postgres_changes',
-                    {
-                        event: 'INSERT',
-                        schema: 'public',
-                        table: 'private_messages',
-                        filter: `sender_id=eq.${currentUser.id}`
-                    },
-                    (payload) => {
-                        if (currentChat === payload.new.receiver_id && currentChatType === 'private') {
-                            loadPrivateMessages(currentChat);
-                        }
-                    }
-                )
-                .subscribe();
             
-            supabaseClient
-                .channel('group-channel')
-                .on('postgres_changes',
-                    {
-                        event: 'INSERT',
-                        schema: 'public',
-                        table: 'group_messages'
-                    },
-                    (payload) => {
-                        if (currentChatType === 'group') {
-                            loadGroupMessages();
-                        } else {
-                            unreadCounts['group'] = (unreadCounts['group'] || 0) + 1;
-                            loadChats();
-                        }
-                    }
-                )
-                .subscribe();
+            const headers = ['ID', 'Telegram ник', 'Время начала', 'Всего правильных', 'Процент', 'Общее время', 'Статус'];
             
-            supabaseClient
-                .channel('contacts-channel')
-                .on('postgres_changes',
-                    {
-                        event: '*',
-                        schema: 'public',
-                        table: 'user_contacts',
-                        filter: `user_id=eq.${currentUser.id}`
-                    },
-                    () => {
-                        loadChats();
-                    }
-                )
-                .subscribe();
-        }
-        
-        // ===============================================
-        // ПРОФИЛЬ
-        // ===============================================
-        function updateProfilePanel() {
-            if (!currentUser) return;
-            profileName.textContent = currentUser.display_name !== '---' ? currentUser.display_name : currentUser.username;
-            profileId.textContent = `ID: ${currentUser.user_id_string}`;
-            profileLogin.textContent = currentUser.username;
-            profileStatus.textContent = currentUser.status === 'active' ? 'Активен' : 'Заблокирован';
-            profileMyId.textContent = currentUser.user_id_string;
-            profileToken.textContent = currentUser.livekit_token ? '✓ Есть' : '✗ Нет';
-            profileAvatar.textContent = currentUser.display_name !== '---' ? currentUser.display_name[0] : currentUser.username[0].toUpperCase();
-        }
-        
-        editProfileBtn.addEventListener('click', () => {
-            modalTitle.textContent = 'Редактировать профиль';
-            modalInput1.style.display = 'block';
-            modalInput2.style.display = 'block';
-            modalInput3.style.display = 'block';
-            modalInput1.placeholder = 'Новое имя';
-            modalInput2.placeholder = 'Новый логин';
-            modalInput3.placeholder = 'Новый пароль (оставьте пустым)';
-            modalInput1.value = '';
-            modalInput2.value = '';
-            modalInput3.value = '';
-           
-            editModal.style.display = 'flex';
-           
-            modalSaveBtn.onclick = async () => {
-                const updates = {};
-                if (modalInput1.value) updates.display_name = modalInput1.value;
-                if (modalInput2.value) updates.username = modalInput2.value;
-                if (modalInput3.value) updates.password = modalInput3.value;
-               
-                if (Object.keys(updates).length > 0) {
-                    await supabaseClient
-                        .from('users')
-                        .update(updates)
-                        .eq('id', currentUser.id);
-                   
-                    currentUser = { ...currentUser, ...updates };
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    updateProfilePanel();
-                }
-               
-                editModal.style.display = 'none';
-            };
-        });
-        
-        changePasswordBtn.addEventListener('click', () => {
-            modalTitle.textContent = 'Изменить пароль';
-            modalInput1.style.display = 'none';
-            modalInput2.style.display = 'none';
-            modalInput3.style.display = 'block';
-            modalInput3.placeholder = 'Новый пароль';
-            modalInput3.value = '';
-           
-            editModal.style.display = 'flex';
-           
-            modalSaveBtn.onclick = async () => {
-                if (modalInput3.value) {
-                    await supabaseClient
-                        .from('users')
-                        .update({ password: modalInput3.value })
-                        .eq('id', currentUser.id);
-                   
-                    currentUser.password = modalInput3.value;
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                }
-                editModal.style.display = 'none';
-            };
-        });
-        
-        modalCancelBtn.addEventListener('click', () => {
-            editModal.style.display = 'none';
-        });
-        
-        logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('activeConference');
-            currentUser = null;
-            authContainer.style.display = 'flex';
-            mainContainer.style.display = 'none';
-            loginInput.value = '';
-            passwordInput.value = '';
-            authError.textContent = '';
-            chatList.innerHTML = '';
-            messagesContainer.innerHTML = '';
-            messageInput.disabled = true;
-            sendBtn.disabled = true;
-            conferenceBtn.style.display = 'none';
-        });
-        
-        // ===============================================
-        // АДМИН-ПАНЕЛЬ
-        // ===============================================
-        adminPanelBtn.addEventListener('click', async () => {
-            if (currentUser && currentUser.username.toLowerCase() === 'german') {
-                await loadAdminUsers();
-                adminPanel.style.display = 'block';
-            }
-        });
-        
-        closeAdminBtn.addEventListener('click', () => {
-            adminPanel.style.display = 'none';
-        });
-        
-        async function loadAdminUsers() {
-            try {
-                const { data: users, error } = await supabaseClient
-                    .from('users')
-                    .select('*')
-                    .order('username');
-                if (error) throw error;
-                renderAdminUsers(users);
-            } catch (error) {
-                console.error('Ошибка загрузки пользователей:', error);
-            }
-        }
-        
-        function renderAdminUsers(users) {
-            adminUsersGrid.innerHTML = users.map(user => {
-                const displayName = user.display_name !== '---' ? user.display_name : user.username;
-               
-                return `
-                <div class="admin-user-card ${user.color_mark === 'red' ? 'marked-red' : user.color_mark === 'green' ? 'marked-green' : ''}">
-                    <div class="admin-user-header">
-                        <div class="admin-user-name">${displayName}</div>
-                        <div class="admin-user-actions">
-                            <button class="admin-user-btn" onclick="impersonateUser('${user.id}')">👤 Войти</button>
-                            <button class="admin-user-btn" onclick="editUser('${user.id}')">✎</button>
-                            <button class="admin-user-btn" onclick="toggleBlockUser('${user.id}', '${user.status}')">${user.status === 'blocked' ? '🔓' : '🔒'}</button>
-                            <button class="admin-user-btn" onclick="showUserProfile('${user.id}', true)">👁️ Профиль</button>
-                            <button class="admin-user-btn" style="background:#ff4444; color:white; border-color:#ff4444;" onclick="confirmClearGroupHistory('${user.id}', '${displayName}')">🗑️ Очистить историю</button>
-                        </div>
-                    </div>
-                   
-                    <div class="color-buttons">
-                        <button class="color-btn red" onclick="markUser('${user.id}', 'red')">Красный</button>
-                        <button class="color-btn green" onclick="markUser('${user.id}', 'green')">Зеленый</button>
-                        <button class="color-btn clear" onclick="markUser('${user.id}', null)">Очистить</button>
-                    </div>
-                    <div style="margin: 10px 0; font-size: 14px;">
-                        <div><strong>Логин:</strong> ${user.username}</div>
-                        <div><strong>ID:</strong> ${user.user_id_string}</div>
-                        <div><strong>Статус:</strong> ${user.status}</div>
-                    </div>
-                    <div style="margin: 10px 0;">
-                        <input type="text" class="token-input" id="token-${user.id}" placeholder="LiveKit URL" value="${user.livekit_url || LIVEKIT_URL}">
-                        <input type="text" class="token-input" id="token-value-${user.id}" placeholder="LiveKit Токен" value="${user.livekit_token || ''}">
-                        <button class="admin-user-btn" style="width: 100%; margin-top: 5px;" onclick="saveLiveKitToken('${user.id}')">💾 Сохранить токен</button>
-                    </div>
-                </div>
-            `}).join('');
-        }
-        
-        window.markUser = async function(userId, color) {
-            await supabaseClient
-                .from('users')
-                .update({ color_mark: color })
-                .eq('id', userId);
-           
-            loadAdminUsers();
-        };
-        
-        window.toggleBlockUser = async function(userId, currentStatus) {
-            const newStatus = currentStatus === 'blocked' ? 'active' : 'blocked';
-            await supabaseClient
-                .from('users')
-                .update({ status: newStatus })
-                .eq('id', userId);
-           
-            loadAdminUsers();
-        };
-        
-        window.editUser = async function(userId) {
-            const { data: user } = await supabaseClient
-                .from('users')
-                .select('*')
-                .eq('id', userId)
-                .single();
-            modalTitle.textContent = `Редактировать ${user.username}`;
-            modalInput1.style.display = 'block';
-            modalInput2.style.display = 'block';
-            modalInput3.style.display = 'block';
-            modalInput1.placeholder = 'Новое имя';
-            modalInput2.placeholder = 'Новый логин';
-            modalInput3.placeholder = 'Новый пароль';
-            modalInput1.value = '';
-            modalInput2.value = '';
-            modalInput3.value = '';
-           
-            editModal.style.display = 'flex';
-           
-            modalSaveBtn.onclick = async () => {
-                const updates = {};
-                if (modalInput1.value) updates.display_name = modalInput1.value;
-                if (modalInput2.value) updates.username = modalInput2.value;
-                if (modalInput3.value) updates.password = modalInput3.value;
-               
-                if (Object.keys(updates).length > 0) {
-                    await supabaseClient
-                        .from('users')
-                        .update(updates)
-                        .eq('id', userId);
-                   
-                    loadAdminUsers();
-                }
-               
-                editModal.style.display = 'none';
-            };
-        };
-        
-        window.saveLiveKitToken = async function(userId) {
-            const url = document.getElementById(`token-${userId}`).value;
-            const token = document.getElementById(`token-value-${userId}`).value;
-           
-            await supabaseClient
-                .from('users')
-                .update({
-                    livekit_url: url,
-                    livekit_token: token
+            const csvRows = [
+                headers.join(','),
+                ...allUsers.map(user => {
+                    const totalCorrect = user.total_correct || 0;
+                    const percentage = Math.round((totalCorrect / 15) * 100);
+                    const row = [
+                        user.id,
+                        `"${user.telegram_nickname || ''}"`,
+                        user.created_at,
+                        totalCorrect,
+                        percentage + '%',
+                        user.total_time_spent || 0,
+                        user.status
+                    ];
+                    return row.join(',');
                 })
-                .eq('id', userId);
-           
-            alert('Токен сохранен!');
-            loadAdminUsers();
-        };
-        
-        window.impersonateUser = async function(userId) {
-            const { data: user, error } = await supabaseClient
-                .from('users')
-                .select('*')
-                .eq('id', userId)
-                .single();
-            if (!error && user) {
-                localStorage.setItem('impersonateUser', JSON.stringify(user));
-                window.location.reload();
-            }
-        };
-        
-        // ===============================================
-        // КОНФЕРЕНЦИЯ
-        // ===============================================
-        
-        function getRemoteParticipants() {
-            if (!room) return [];
+            ];
             
-            const remoteParticipants = [];
+            const csvString = csvRows.join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
             
-            if (room.remoteParticipants) {
-                if (room.remoteParticipants instanceof Map) {
-                    room.remoteParticipants.forEach(p => remoteParticipants.push(p));
-                } else if (typeof room.remoteParticipants.forEach === 'function') {
-                    room.remoteParticipants.forEach(p => remoteParticipants.push(p));
-                } else if (typeof room.remoteParticipants === 'object') {
-                    Object.values(room.remoteParticipants).forEach(p => {
-                        if (p && p.identity) remoteParticipants.push(p);
-                    });
-                }
-            }
+            const a = document.createElement('a');
+            a.href = url;
+            const date = new Date().toISOString().split('T')[0];
+            a.download = `test_results_${date}_${allUsers.length}_users.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
             
-            if (remoteParticipants.length === 0 && room.participants) {
-                if (room.participants instanceof Map) {
-                    room.participants.forEach(p => {
-                        if (p && p.identity !== room.localParticipant?.identity) {
-                            remoteParticipants.push(p);
-                        }
-                    });
-                }
-            }
-            
-            return remoteParticipants;
+            console.log('CSV экспортирован:', allUsers.length, 'пользователей');
         }
         
-        function updateParticipantsUI() {
-            if (!room) return;
-            
-            const participants = [];
-            
-            if (room.localParticipant) {
-                participants.push({
-                    identity: room.localParticipant.identity || 'Unknown',
-                    isLocal: true,
-                    micEnabled: room.localParticipant.isMicrophoneEnabled || false
-                });
-            }
-            
-            const remoteParticipants = getRemoteParticipants();
-            
-            remoteParticipants.forEach(p => {
-                participants.push({
-                    identity: p.identity || 'Unknown',
-                    isLocal: false,
-                    micEnabled: p.isMicrophoneEnabled || false
-                });
-            });
-            
-            participants.sort((a, b) => {
-                if (a.micEnabled && !b.micEnabled) return -1;
-                if (!a.micEnabled && b.micEnabled) return 1;
-                return 0;
-            });
-            
-            participantsCount.textContent = `👥 ${participants.length}`;
-            
-            videoGrid.innerHTML = participants.map(p => `
-                <div class="video-wrapper ${p.isLocal ? 'local' : ''}">
-                    <div class="participant-avatar-big">${p.identity[0].toUpperCase()}</div>
-                    <div class="participant-name-big">${p.identity} ${p.isLocal ? '(Вы)' : ''}</div>
-                    <div class="mic-status ${p.micEnabled ? 'mic-on' : 'mic-off'}">
-                        ${p.micEnabled ? '🎤' : '🔇'}
-                    </div>
-                </div>
-            `).join('');
-            
-            conferenceParticipants.innerHTML = participants.map(p => `
-                <div class="participant-item ${p.isLocal ? 'local' : ''}">
-                    <div class="participant-avatar">${p.identity[0].toUpperCase()}</div>
-                    <div class="participant-name">${p.identity} ${p.isLocal ? '(Вы)' : ''}</div>
-                    <div class="mic-status ${p.micEnabled ? 'mic-on' : 'mic-off'}">${p.micEnabled ? '🎤' : '🔇'}</div>
-                </div>
-            `).join('');
-            
-            if (room.localParticipant) {
-                const isMicEnabled = room.localParticipant.isMicrophoneEnabled;
-                videoMicBtn.textContent = isMicEnabled ? '🎤' : '🔇';
-                videoMicBtn.classList.toggle('mic-off', !isMicEnabled);
-            }
-        }
-        
-        function updateActiveCallBar(show) {
+        // Вспомогательные функции UI
+        function showLoading(show) {
+            const usersList = document.getElementById('users-list');
             if (show) {
-                activeCallBar.style.display = 'flex';
-                document.documentElement.style.setProperty('--call-bar-height', '32px');
-                mainContainer.classList.add('with-call-bar');
-            } else {
-                activeCallBar.style.display = 'none';
-                document.documentElement.style.setProperty('--call-bar-height', '0px');
-                mainContainer.classList.remove('with-call-bar');
+                usersList.innerHTML = `
+                    <div class="loading" style="height: 200px;">
+                        <div class="loader"></div>
+                        Загрузка пользователей...
+                    </div>
+                `;
             }
         }
         
-        function leaveConference() {
-            confirmTitle.textContent = 'Подтверждение';
-            confirmText.textContent = 'Выйти из конференции?';
-            confirmYesBtn.textContent = 'Выйти';
-            confirmYesBtn.onclick = () => {
-                if (room) {
-                    room.disconnect();
-                    room = null;
-                }
-                videoModal.style.display = 'none';
-                isInConference = false;
-                localStorage.removeItem('activeConference');
-                updateActiveCallBar(false);
-                confirmModal.style.display = 'none';
-            };
-            confirmNoBtn.onclick = () => {
-                confirmModal.style.display = 'none';
-            };
-            confirmModal.style.display = 'flex';
+        function showError(message) {
+            const usersList = document.getElementById('users-list');
+            usersList.innerHTML = `
+                <div class="error" style="margin: 20px; padding: 20px; border-radius: 12px; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); color: #e74c3c;">
+                    <strong>Ошибка:</strong> ${message}<br><br>
+                    <button onclick="loadData()" class="btn btn-secondary" style="padding: 8px 16px; font-size: 14px;">
+                        Повторить загрузку
+                    </button>
+                </div>
+            `;
         }
         
-        conferenceBtn.addEventListener('click', async () => {
-            if (!currentUser) {
-                alert('Сначала войдите в систему');
-                return;
-            }
-            
-            try {
-                const token = await generateToken(currentUser.username, currentUser.display_name || currentUser.username, ROOM_NAME);
-                
-                if (room) {
-                    try {
-                        room.disconnect();
-                    } catch (e) {}
-                    room = null;
-                }
-               
-                videoGrid.innerHTML = '';
-                conferenceParticipants.innerHTML = '';
-                hiddenVideoContainer.innerHTML = '';
-                videoModal.style.display = 'block';
-                
-                isInConference = true;
-                localStorage.setItem('activeConference', JSON.stringify({
-                    token: token,
-                    room: ROOM_NAME,
-                    timestamp: Date.now()
-                }));
-                
-                updateActiveCallBar(false);
-                audioDebug.textContent = '🔄 Подключение...';
-                
-                await startConference(token);
-                
-            } catch (error) {
-                console.error('Ошибка при запуске конференции:', error);
-                audioDebug.textContent = '❌ Ошибка';
-                alert('Не удалось подключиться к конференции. Проверьте консоль для деталей.');
-            }
-        });
-        
-        async function startConference(token) {
-            const LiveKit = window.LivekitClient || window.LiveKit;
-           
-            if (!LiveKit) {
-                alert('LiveKit SDK не загружен');
-                return;
-            }
-            
-            try {
-                room = new LiveKit.Room({
-                    adaptiveStream: true,
-                    dynacast: true
-                });
-                
-                await room.connect(LIVEKIT_URL, token, {
-                    roomName: ROOM_NAME,
-                    autoSubscribe: true
-                });
-                
-                audioDebug.textContent = '✅ Подключено';
-                
-                try {
-                    await room.localParticipant.setMicrophoneEnabled(true);
-                    
-                    try {
-                        await room.localParticipant.setCameraEnabled(true);
-                    } catch (cameraErr) {}
-                    
-                    audioDebug.textContent = '🎤 Микрофон активен';
-                } catch (err) {
-                    console.error('Ошибка включения микрофона:', err);
-                    audioDebug.textContent = '⚠️ Проблема с микрофоном';
-                }
-                
-                setTimeout(() => {
-                    updateParticipantsUI();
-                }, 500);
-                
-                room.on(LiveKit.RoomEvent.ParticipantConnected, () => {
-                    updateParticipantsUI();
-                });
-               
-                room.on(LiveKit.RoomEvent.ParticipantDisconnected, () => {
-                    updateParticipantsUI();
-                });
-               
-                room.on(LiveKit.RoomEvent.TrackMuted, () => {
-                    updateParticipantsUI();
-                });
-               
-                room.on(LiveKit.RoomEvent.TrackUnmuted, () => {
-                    updateParticipantsUI();
-                });
-               
-                room.on(LiveKit.RoomEvent.TrackSubscribed, (track, publication, participant) => {
-                    if (track.kind === 'audio') {
-                        const audioEl = track.attach();
-                        audioEl.volume = 1.0;
-                        audioEl.muted = false;
-                        audioEl.play().catch(() => {});
-                    } else if (track.kind === 'video') {
-                        const videoEl = track.attach();
-                        videoEl.style.display = 'none';
-                        videoEl.muted = true;
-                        videoEl.autoplay = true;
-                        videoEl.playsInline = true;
-                        hiddenVideoContainer.appendChild(videoEl);
-                        videoEl.play().catch(() => {});
-                    }
-                });
-               
-                room.on(LiveKit.RoomEvent.TrackUnsubscribed, (track) => {
-                    track.detach().forEach(el => {
-                        if (el.parentNode === hiddenVideoContainer) {
-                            el.remove();
-                        }
-                    });
-                });
-               
-                room.on(LiveKit.RoomEvent.Disconnected, () => {
-                    audioDebug.textContent = '📴 Отключено';
-                    hiddenVideoContainer.innerHTML = '';
-                    isInConference = false;
-                    localStorage.removeItem('activeConference');
-                    updateActiveCallBar(false);
-                });
-                
-            } catch (error) {
-                console.error('Ошибка подключения к конференции:', error);
-                audioDebug.textContent = '❌ Ошибка';
-                updateActiveCallBar(false);
-            }
-        }
-        
-        videoMicBtn.addEventListener('click', async () => {
-            if (!room?.localParticipant) return;
-           
-            try {
-                const currentlyEnabled = room.localParticipant.isMicrophoneEnabled;
-                await room.localParticipant.setMicrophoneEnabled(!currentlyEnabled);
-            } catch (e) {
-                alert('Не удалось переключить микрофон');
-            }
-        });
-        
-        videoLeaveBtn.addEventListener('click', () => {
-            leaveConference();
-        });
-        
-        minimizeConferenceBtn.addEventListener('click', () => {
-            videoModal.style.display = 'none';
-            updateActiveCallBar(true);
-        });
-        
-        activeCallBar.addEventListener('click', () => {
-            if (room) {
-                videoModal.style.display = 'block';
-                updateActiveCallBar(false);
-            }
-        });
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                if (videoModal.style.display === 'block') {
-                    minimizeConferenceBtn.click();
-                }
-                if (editModal.style.display === 'flex') {
-                    editModal.style.display = 'none';
-                }
-                if (adminPanel.style.display === 'block') {
-                    adminPanel.style.display = 'none';
-                }
-                if (userProfileModal.style.display === 'flex') {
-                    userProfileModal.style.display = 'none';
-                    adminViewingUser = false;
-                }
-                if (confirmModal.style.display === 'flex') {
-                    confirmModal.style.display = 'none';
-                    pendingClearUserId = null;
-                }
-                if (isMobile()) {
-                    hideProfilePanel();
-                }
-            }
-        });
-        
-        (function checkImpersonation() {
-            const impersonateData = localStorage.getItem('impersonateUser');
-            if (impersonateData) {
-                const user = JSON.parse(impersonateData);
-                localStorage.removeItem('impersonateUser');
-               
-                currentUser = user;
-                localStorage.setItem('currentUser', JSON.stringify(user));
-               
-                setTimeout(() => {
-                    authContainer.style.display = 'none';
-                    mainContainer.style.display = 'grid';
-                   
-                    if (currentUser.username.toLowerCase() === 'german') {
-                        adminPanelBtn.style.display = 'block';
-                    }
-                   
-                    updateProfilePanel();
-                    loadChats();
-                    setupRealtimeSubscriptions();
-                    
-                    chatHeader.style.display = 'none';
-                    chatInputArea.style.display = 'none';
-                    messageInput.disabled = true;
-                    sendBtn.disabled = true;
-                    
-                    if (isMobile()) {
-                        showUsersPanel();
-                    }
-                    
-                    restoreConferenceSession();
-                }, 500);
-            } 
-        })();
-        
-        checkSavedSession();
+        // Глобальные функции
+        window.exportToCSV = exportToCSV;
+        window.loadData = loadData;
+        window.selectUser = selectUser;
     </script>
 </body>
 </html>
-
-
-Забудь про все тебепрь работаем с этим кодом сйчас напишу инструкиции что делать с ним
